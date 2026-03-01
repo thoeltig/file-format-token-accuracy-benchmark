@@ -12,7 +12,10 @@ This framework validates which file formats deliver the most reliable informatio
 
 The initial benchmark run (Dec 19, 2025) with Claude 4.5 Haiku tested 8 formats across 120 questions with weighted accuracy prioritizing structural understanding and retrieval (60% combined weight vs filtering/aggregation at 40%). 4 flat array data sets of variants 40 and 80 records, random optional fields and all mandatory fields.
 
-**Key Findings** (see [Initial BenchmarkReport.md](./benchmark_results/initital_benchmark_haiku_formats_all_variants_all_extended_thinking_off/BENCHMARK_REPORT.md)):
+> [!NOTE]
+> All benchmark results have been moved to a separate repository: [file-format-token-accuracy-benchmark-results](https://github.com/thoeltig/file-format-token-accuracy-benchmark-results)
+
+**Key Findings** (see [Initial BenchmarkReport.md](https://github.com/thoeltig/file-format-token-accuracy-benchmark-results/blob/main/initital_benchmark_haiku_4_5_formats_all_variants_all_extended_thinking_off/BENCHMARK_REPORT.md)):
 - **CSV**: Unbeatable for dense, mandatory data (70.98% weighted @ 9,008 tokens). Accuracy drops by ~15% with sparse data.
 - **JSON Compact**: Recommended baseline. 1.46x tokens compared to CSV but 70.12% weighted accuracy with consistency across all variants.
 - **JSON Pretty**: Not recommended. 1.88x tokens compared to JSON Compact with similiar accuracy. Formatting only adds tokens but does not increase accuracy.

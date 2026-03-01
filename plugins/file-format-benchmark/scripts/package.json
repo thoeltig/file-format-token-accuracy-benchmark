@@ -14,10 +14,10 @@
   ],
   "repository": {
     "type": "git",
-    "url": "https://github.com/thoeltig/claude-code-toolkit.git"
+    "url": "https://github.com/thoeltig/file-format-token-accuracy-benchmark.git"
   },
   "bugs": {
-    "url": "https://github.com/thoeltig/claude-code-toolkit/issues"
+    "url": "https://github.com/thoeltig/file-format-token-accuracy-benchmark/issues"
   },
   "main": "./dist/orchestrator.js",
   "devDependencies": {

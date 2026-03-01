@@ -6,8 +6,8 @@
     "name": "Thore Höltig",
     "url": "https://github.com/thoeltig"
   },
-  "homepage": "https://github.com/thoeltig/claude-code-toolkit/tree/main/plugins/file-format-benchmark",
-  "repository": "https://github.com/thoeltig/claude-code-toolkit",
+  "homepage": "https://github.com/thoeltig/file-format-token-accuracy-benchmark",
+  "repository": "https://github.com/thoeltig/file-format-token-accuracy-benchmark",
   "license": "MIT",
   "keywords": ["benchmark", "tokens", "file-format", "tokenization", "efficiency", "testing"]
 }
