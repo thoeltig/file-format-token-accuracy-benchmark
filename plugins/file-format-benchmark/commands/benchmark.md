@@ -1,7 +1,7 @@
 ---
 description: Orchestrate comprehensive benchmarking tests for file format token efficiency (CSV, JSON (compact/pretty), TOON, XML (compact/pretty), YAML). Generates test data variants (flat and nested), executes sequential tests with configurable model (haiku/sonnet) and thinking mode, validates results, and calculates efficiency metrics. Triggers: benchmark, format efficiency, token measurement, performance testing
 argument-hint: [--formats csv,json_compact,json_pretty,toon_safe,toon_unsafe,xml_pretty,xml_compact,yaml] [--variant optional,mandatory] [--structure flat,nested] [--model haiku|sonnet] [--thinking on|off] [--output PATH]
-allowed-tools: Bash(npm run build), Bash(node *)
+allowed-tools: Bash(node *)
 ---
 
 # Benchmarking Test Orchestration
@@ -104,7 +104,7 @@ echo "Benchmark output folder: $BENCHMARK_OUTPUT_DIR"
 Build the TypeScript project and run test data generation to the output folder:
 
 ```bash
-cd ${CLAUDE_PLUGIN_ROOT}/plugins/file-format-benchmark/scripts && npm run build && node dist/orchestrator.js --output ${BENCHMARK_OUTPUT_DIR}
+cd ${CLAUDE_PLUGIN_ROOT}/plugins/file-format-benchmark/scripts && node dist/orchestrator.js --output ${BENCHMARK_OUTPUT_DIR}
 ```
 
 This:
@@ -317,7 +317,7 @@ cd ${CLAUDE_PLUGIN_ROOT}/plugins/file-format-benchmark/scripts && node dist/anal
 Generate detailed comparison tables of benchmark results:
 
 ```bash
-cd ${CLAUDE_PLUGIN_ROOT}/plugins/file-format-benchmark/scripts && npm run build && node dist/tables/generateTables.js --json-path ../${BENCHMARK_OUTPUT_DIR}/analytics_results.json --results-path ../${BENCHMARK_OUTPUT_DIR}/results > ../${BENCHMARK_OUTPUT_DIR}/tables.md
+cd ${CLAUDE_PLUGIN_ROOT}/plugins/file-format-benchmark/scripts && node dist/tables/generateTables.js --json-path ../${BENCHMARK_OUTPUT_DIR}/analytics_results.json --results-path ../${BENCHMARK_OUTPUT_DIR}/results > ../${BENCHMARK_OUTPUT_DIR}/tables.md
 ```
 
 **Tables Generated (16 total):**
