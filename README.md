@@ -4,7 +4,7 @@ Comprehensive benchmarking suite for measuring token efficiency and accuracy acr
 
 ## Overview
 
-This framework validates which file formats deliver the most reliable information to LLMs with optimal token efficiency. The benchmark focuses on **structural and retrieval accuracy**—understanding data organization and extracting specific values—which are fundamental to avoiding context confusion.
+This framework validates which file formats deliver the most reliable information to LLMs with optimal token efficiency. The benchmark focuses on **structural and retrieval accuracy** understanding data organization and extracting specific values which are fundamental to avoiding context confusion.
 
 **Note on Question Categories**: Complex filtering and mathematical aggregation are interesting but test the model's intelligence rather than format effectiveness. Also the accuracy for filtering and aggregation would be irrelevant if the data is prefiltered or the data contains fields with the calculated values. Structural questions (understanding data shape/organization) and retrieval questions (extracting specific values) directly validate format clarity.
 
