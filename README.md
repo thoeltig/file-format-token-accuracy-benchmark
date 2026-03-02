@@ -1,6 +1,6 @@
-# File Format Token Efficiency Benchmark
+# File Format Token Accuracy Benchmark
 
-Comprehensive benchmarking suite for measuring token efficiency and accuracy across file formats for LLM consumption.
+Comprehensive benchmarking suite for measuring token usage and retrieval accuracy across file formats for LLM consumption to find the most efficient format.
 
 ## Overview
 
@@ -323,8 +323,8 @@ See root [LICENSE](./LICENSE) for details.
 
 ## Support
 
-- **Issues**: [Report bugs or request features](https://github.com/thoeltig/claude-code-toolkit/issues)
-- **Repository**: [claude-code-toolkit](https://github.com/thoeltig/claude-code-toolkit)
+- **Issues**: [Report bugs or request features](https://github.com/thoeltig/file-format-token-accuracy-benchmark/issues)
+- **Repository**: [file-format-token-accuracy-benchmark](https://github.com/thoeltig/file-format-token-accuracy-benchmark)
 
 ---
 
