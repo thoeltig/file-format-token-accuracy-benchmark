@@ -133,7 +133,7 @@ The benchmark command creates a working directory to store all generated data an
 ### Step 2: Generate Test Data
 
 ```bash
-cd scripts && npm run build && node dist/orchestrator.js --output {OUTPUT_DIR}
+cd scripts && node dist/orchestrator.js --output {OUTPUT_DIR}
 ```
 
 This generates:
