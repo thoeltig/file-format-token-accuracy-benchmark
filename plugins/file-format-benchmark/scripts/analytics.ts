@@ -5,6 +5,7 @@
 
 import * as fs from "fs";
 import * as path from "path";
+import { discoverAgents } from "./analytics/agent-discovery";
 import MetricsExtraction from "./analytics/metrics-extraction";
 import { GeneratorResult, MergedValidationReport, QuestionCategory, UserMetrics } from "./types";
 import ReportValidator from "./validators/reportValidator";
@@ -446,13 +447,13 @@ class BenchmarkAnalytics {
 // CLI entry point
 if (require.main === module) {
   const args = process.argv.slice(2);
-  let agentIdsFile: string | undefined;
+  let sessionId: string | undefined;
   let outputDir: string | undefined;
 
   for (let i = 0; i < args.length; i++) {
     switch (args[i]) {
-      case "--agent-ids":
-        agentIdsFile = args[++i];
+      case "--session-id":
+        sessionId = args[++i];
         break;
       case "--output":
         outputDir = args[++i];
@@ -460,12 +461,22 @@ if (require.main === module) {
     }
   }
 
-  if (!agentIdsFile || !outputDir) {
-    console.error("Usage: node dist/analytics.js --agent-ids <file> --output <dir>");
+  if (!sessionId || !outputDir) {
+    console.error("Usage: node dist/analytics.js --session-id <id> --output <dir>");
     process.exit(1);
   }
 
   try {
+    // Step 1: Discover agents from session and generate agent_ids.json
+    console.log(`\nStep 1: Discovering agents from session ${sessionId}...`);
+    var agentIds = discoverAgents(sessionId);
+    
+    // Write agent_ids.json
+    const agentIdsFile = path.join(outputDir, 'agent_ids.json');
+    fs.writeFileSync(agentIdsFile, JSON.stringify(agentIds, null, 2));
+
+    // Step 2: Run analytics with discovered agent IDs
+    console.log(`\nStep 2: Running analytics...`);
     const analytics = new BenchmarkAnalytics(agentIdsFile, outputDir);
     analytics.analyze();
   } catch (err) {
