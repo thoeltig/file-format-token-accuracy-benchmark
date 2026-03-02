@@ -8,17 +8,6 @@ allowed-tools: Bash(npm run build), Bash(node *)
 
 You are orchestrating a comprehensive benchmarking test suite for measuring file format token efficiency.
 
-## Primary Scripts
-
-**Main Orchestration & Validation Entry Points:**
-- `orchestrator.ts` → `dist/orchestrator.js` - Generates test data and metadata
-- `analytics.ts` → `dist/analytics.js` - Generates efficiency metrics and rankings
-
-**Supporting Utilities:**
-- `validators/index.ts` - Core AnswerValidator class (used by validate.ts)
-- `generators/` - Data generation utilities
-- `converters/` - Format conversion tools
-
 ## Parse Arguments
 
 Extract from $ARGUMENTS:
@@ -167,61 +156,6 @@ If all 8 formats selected: 2 variants × 1 flat structure x 1 CSV format + 2 var
 - CSV: 1 structure × 2 content variants × (1 read + 3 full) = 8 tests
 - Others: 2 structure × 2 content variants × (1 read + 3 full) = 16 tests
 **Peak Parallel Tasks:** 4 (read + up to 3 fulls per combination)
-
-### Algorithm
-
-```
-For each FORMAT in selected_formats (one format at a time):
-  Read agent_ids_for_format = []
-  Full agent_ids_for_format = []
-  launched_combinations = Set()  // Track to prevent re-launches
-
-  For each STRUCTURE in data_structure_variants:
-    // Skip nested for CSV format
-    IF format == "csv" AND structure == "nested":
-      CONTINUE
-    ENDIF
-
-    For each VARIANT in selected_variants:
-      combination_name = {format}_{structure}_{variant}
-
-      // GUARD: Never launch same combination twice
-      IF combination_name in launched_combinations:
-        ERROR: "Attempted to re-launch test for " + combination_name
-        ABORT
-      ENDIF
-      launched_combinations.Add(combination_name)
-
-      // Step 4a: Launch 1 Read-Only Test (ONCE per combination)
-      Launch: benchmark-read-only agent for data file
-      Wait for completion
-      Collect and store READ agent ID
-
-      // Step 4b: Launch 3 Full Tests (max 3 parallel, ONCE each)
-      full_ids_for_combo = []
-      For test_run in [1, 2, 3]:
-        Launch: benchmark-full-test agent (test run {test_run}/3)
-        full_ids_for_combo.Add(task_id)
-
-      Wait for all 3 full tests to complete
-      Collect and store all 3 FULL agent IDs
-      Full agent_ids_for_format.AddAll(full_ids_for_combo)
-
-      // IMPORTANT: Record both readonly and full test agent IDs
-      // Store in agent_ids.json for later extraction
-      WriteToAgentIdsFile({
-        format, structure, variant,
-        readonly_agent_id,
-        full_test_ids: [id1, id2, id3]
-      })
-
-  Save all agent_ids_for_format (read + full) to ${BENCHMARK_OUTPUT_DIR}/agent_ids.json
-  Move to next format
-
-Total execution: 8 formats (CSV: 8 tasks + 7 others: 16 tasks each) = 120 tasks total with all structures/variants
-GUARANTEE: Each combination tested exactly once, each agent task launched exactly once
-AGENT_IDS_FILE: All IDs saved to ${BENCHMARK_OUTPUT_DIR}/agent_ids.json for extraction
-```
 
 ### 4a. Launch Read-Only Test (Sequential - Wait for Completion)
 
@@ -378,37 +312,7 @@ cd ${CLAUDE_PLUGIN_ROOT}/plugins/file-format-benchmark/scripts && node dist/anal
 }
 ```
 
-## Step 6: Display Results Summary
-
-After analytics completes, read the output file and display:
-
-```
-=================================================================
-BENCHMARKING RESULTS
-=================================================================
-
-Test Configuration:
-- Model: {model}
-- Thinking: {thinking}
-- Formats tested: {formats}
-- Total test cases: {count}
-
-Key Rankings:
-- Most token-efficient format: {format} ({chars_per_token} chars/token)
-- Highest accuracy: {format} ({accuracy}%)
-- Best overall: {format} (efficiency: {score})
-
-Insights:
-- {insight 1}
-- {insight 2}
-- {insight 3}
-- {insight 4}
-
-Full results saved to: ${BENCHMARK_OUTPUT_DIR}/analytics_results.json
-=================================================================
-```
-
-## Comparison Tables
+## Step 6: Comparison Tables
 
 Generate detailed comparison tables of benchmark results:
 
