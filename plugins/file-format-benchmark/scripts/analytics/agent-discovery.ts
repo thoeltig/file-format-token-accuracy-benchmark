@@ -3,38 +3,23 @@ import path from 'path';
 import { execSync } from 'child_process';
 import { homedir } from 'os';
 
-export interface AgentMetadata {
-  agentId: string;
-  format: string;
-  structure: string;
-  variant: string;
-  recordCount: number;
-}
-
-export interface FullTestAgent extends AgentMetadata {
-  testRun: number;
-}
-
-export interface AgentIds {
-  readonly: AgentMetadata[];
-  full: FullTestAgent[];
-}
+import { AgentIdEntry, AgentIdsFile, FullTestAgentIdEntry, ReadOnlyAgentIdEntry } from '../types';
 
 /**
  * Discover and classify subagents from a session directory
  * - Read-only agents: have only 1 Read tool invocation
  * - Full test agents: have Write tool invocations (and multiple Reads)
  */
-export function discoverAgents(sessionId: string): AgentIds {
+export function discoverAgents(): AgentIdsFile {
   // Step 1: Expand glob and get actual subagent directory
-  const actualDir = getSubagentDirectory(sessionId);
+  const actualDir = getSubagentDirectory();
   if (!actualDir) {
-    throw new Error(`Could not find subagent directory for session: ${sessionId}`);
+    throw new Error(`Could not find subagent directory for session`);
   }
 
   // Step 2: List all agent JSONL files
   const agentIds = listAgentIds(actualDir);
-  console.log(`Found ${agentIds.length} agents in session ${sessionId}`);
+  console.log(`Found ${agentIds.length} agents in ${actualDir}`);
 
   // Step 3: Grep data file paths → map agentId to metadata
   const dataFileMap = grepDataFilePaths(actualDir);
@@ -56,7 +41,7 @@ export function discoverAgents(sessionId: string): AgentIds {
       // metadata already contains agentId from grepDataFilePaths
       return metadata;
     })
-    .filter((item): item is AgentMetadata => item !== null);
+    .filter((item): item is ReadOnlyAgentIdEntry => item !== null);
 
   // Step 6: Group full tests by variant and number them
   const full = groupAndNumberFullTests(
@@ -64,31 +49,69 @@ export function discoverAgents(sessionId: string): AgentIds {
     dataFileMap
   );
 
-  return { readonly, full };
+  return { 
+    testConfiguration: {
+      formats: [...new Set(readonly.map(x => x.format))],
+      variants: [...new Set(readonly.map(x => x.variant))],
+      model: "Entered by user",
+      thinking: "Entered by user",
+      timestamp: new Date().toISOString(),
+    },
+    readOnlyTests: readonly, 
+    fullTests: full 
+  };
 }
 
 /**
  * Find and resolve the actual subagent directory path
  */
-function getSubagentDirectory(sessionId: string): string | null {
+function getSubagentDirectory(): string | null {
   try {
     const projectsDir = path.join(homedir(), '.claude', 'projects');
     if (!fs.existsSync(projectsDir)) {
       return null;
     }
 
-    // Find all project dirs matching pattern
-    const projects = fs.readdirSync(projectsDir);
-    for (const project of projects) {
-      const sessionPath = path.join(projectsDir, project, sessionId, 'subagents');
+    // Find most recent project
+    const mostRecentProjectPath = findLastChangedFolder(projectsDir);    
+    if (!mostRecentProjectPath) {
+      return null;
+    }
+
+    // Find most recent session
+    const mostRecentSessionPath = findLastChangedFolder(mostRecentProjectPath);
+    if (mostRecentSessionPath) {
+      // Find subagents subdirectory in most recent session
+      const sessionPath = path.join(mostRecentSessionPath, 'subagents');
       if (fs.existsSync(sessionPath)) {
         return sessionPath;
       }
-    }
+    }       
   } catch (error) {
     console.error(`Error finding subagent directory: ${error}`);
   }
   return null;
+}
+
+function findLastChangedFolder(dirPath: string): string | null {
+  let mostRecentPath: string | null = null;
+  let mostRecentTime = 0;
+
+  const dirNames = fs.readdirSync(dirPath);
+  for (const dirName of dirNames) {
+    const subDirPath = path.join(dirPath, dirName);
+    try {
+      const stat = fs.statSync(subDirPath);
+      if (stat.mtimeMs > mostRecentTime) {
+        mostRecentTime = stat.mtimeMs;
+        mostRecentPath = subDirPath;
+      }
+    } catch (e) {
+      // Skip if can't stat
+    }
+  }
+
+  return mostRecentPath;
 }
 
 /**
@@ -113,7 +136,7 @@ function listAgentIds(subagentDir: string): string[] {
  * Pattern: {format}_with_{variant}_{recordCount}_{structure}_records
  * Example: json_compact_with_mandatory_80_flat_records.json
  */
-function parseDataFileName(filePath: string): Partial<AgentMetadata> | null {
+function parseDataFileName(filePath: string): Partial<AgentIdEntry> | null {
   // Match pattern: format_with_variant_recordCount_structure_records
   const match = filePath.match(/([a-z0-9_]+)_with_(\w+)_(\d+)_(\w+)_records/i);
   if (!match) {
@@ -132,8 +155,8 @@ function parseDataFileName(filePath: string): Partial<AgentMetadata> | null {
  * Grep for data file Read operations across all agents
  * Builds map: agentId → {format, structure, variant, recordCount}
  */
-function grepDataFilePaths(subagentDir: string): Record<string, AgentMetadata> {
-  const map: Record<string, AgentMetadata> = {};
+function grepDataFilePaths(subagentDir: string): Record<string, AgentIdEntry> {
+  const map: Record<string, AgentIdEntry> = {};
 
   try {
     // Grep for "name":"Read" in all JSONL files
@@ -177,7 +200,8 @@ function grepDataFilePaths(subagentDir: string): Record<string, AgentMetadata> {
           format: metadata.format as string,
           structure: metadata.structure as string,
           variant: metadata.variant as string,
-          recordCount: metadata.recordCount as number
+          recordCount: metadata.recordCount as number,
+          timestamp: new Date().toISOString()
         };
       }
     }
@@ -217,8 +241,8 @@ function grepWriteOperations(subagentDir: string): string[] {
  */
 function groupAndNumberFullTests(
   fullAgentIds: string[],
-  dataFileMap: Record<string, AgentMetadata>
-): FullTestAgent[] {
+  dataFileMap: Record<string, AgentIdEntry>
+): FullTestAgentIdEntry[] {
   // Group by (format, structure, variant)
   const groups: Record<string, string[]> = {};
 
@@ -237,7 +261,7 @@ function groupAndNumberFullTests(
   }
 
   // Flatten and number
-  const result: FullTestAgent[] = [];
+  const result: FullTestAgentIdEntry[] = [];
   for (const [key, agentIds] of Object.entries(groups)) {
     const [format, structure, variant] = key.split('|');
     const metadata = dataFileMap[agentIds[0]];
@@ -252,7 +276,8 @@ function groupAndNumberFullTests(
         structure,
         variant,
         recordCount: metadata.recordCount,
-        testRun: index + 1
+        testRun: index + 1,
+        timestamp: new Date().toISOString()
       });
     });
   }
