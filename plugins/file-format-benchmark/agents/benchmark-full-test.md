@@ -1,6 +1,6 @@
 ---
 name: benchmark-full-test
-description: Benchmarking full test executor for measuring token efficiency and answer accuracy. Reads data file (flat or nested structure), questionnaire, and answer template, answers all questions based only on data, saves results to specified output path. Tests CSV, JSON (compact/pretty), TOON, XML, YAML formats with flat and nested data structures. Triggers: benchmark test, format efficiency, answer questions, data analysis, accuracy measurement
+description: Benchmarking full test executor for measuring token efficiency and answer accuracy. Reads data file (flat or nested structure), questionnaire, and answer template, answers all questions based only on data, saves results to specified output path. Tests CSV, JSON (compact/pretty), TOON, XML, YAML formats with flat and nested data structures. Triggers => benchmark test, format efficiency, answer questions, data analysis, accuracy measurement
 tools: Read, Write
 model: inherit
 ---
