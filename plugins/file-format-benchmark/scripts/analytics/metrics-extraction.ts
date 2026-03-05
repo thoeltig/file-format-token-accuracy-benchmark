@@ -6,35 +6,7 @@
 
 import * as fs from "fs";
 import * as path from "path";
-import { UserMetrics } from "../types";
-
-interface AgentIdEntry {
-  format: string;
-  structure: string;
-  variant: string;
-  recordCount: number;
-  agentId: string;
-  timestamp: string;
-}
-
-interface ReadOnlyAgentIdEntry extends AgentIdEntry {
-}
-
-interface FullTestAgentIdEntry extends AgentIdEntry {
-  testRun: number;
-}
-
-interface AgentIdsFile {
-  testConfiguration: {
-    formats: string[];
-    variants: string[];
-    model: string;
-    thinking: string;
-    timestamp: string;
-  };
-  readOnlyTests: ReadOnlyAgentIdEntry[];
-  fullTests: FullTestAgentIdEntry[];
-}
+import { AgentIdsFile, FullTestAgentIdEntry, ReadOnlyAgentIdEntry, UserMetrics } from "../types";
 
 interface ReadMetricsFile {
   file: string;

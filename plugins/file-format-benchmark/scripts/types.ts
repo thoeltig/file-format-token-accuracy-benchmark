@@ -376,3 +376,35 @@ export interface UserMetrics {
   reasoningDurationInMilliseconds: number;
   outputTokens: number;
 }
+
+// ============================================================================
+// Agent id extraction
+// ============================================================================
+
+export interface AgentIdEntry {
+  format: string;
+  structure: string;
+  variant: string;
+  recordCount: number;
+  agentId: string;
+  timestamp: string;
+}
+
+export interface ReadOnlyAgentIdEntry extends AgentIdEntry {
+}
+
+export interface FullTestAgentIdEntry extends AgentIdEntry {
+  testRun: number;
+}
+
+export interface AgentIdsFile {
+  testConfiguration: {
+    formats: string[];
+    variants: string[];
+    model: string;
+    thinking: string;
+    timestamp: string;
+  };
+  readOnlyTests: ReadOnlyAgentIdEntry[];
+  fullTests: FullTestAgentIdEntry[];
+}

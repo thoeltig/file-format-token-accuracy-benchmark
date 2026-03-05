@@ -13,15 +13,15 @@ const os_1 = require("os");
  * - Read-only agents: have only 1 Read tool invocation
  * - Full test agents: have Write tool invocations (and multiple Reads)
  */
-function discoverAgents(sessionId) {
+function discoverAgents() {
     // Step 1: Expand glob and get actual subagent directory
-    const actualDir = getSubagentDirectory(sessionId);
+    const actualDir = getSubagentDirectory();
     if (!actualDir) {
-        throw new Error(`Could not find subagent directory for session: ${sessionId}`);
+        throw new Error(`Could not find subagent directory for session`);
     }
     // Step 2: List all agent JSONL files
     const agentIds = listAgentIds(actualDir);
-    console.log(`Found ${agentIds.length} agents in session ${sessionId}`);
+    console.log(`Found ${agentIds.length} agents in ${actualDir}`);
     // Step 3: Grep data file paths → map agentId to metadata
     const dataFileMap = grepDataFilePaths(actualDir);
     console.log(`Found metadata for ${Object.keys(dataFileMap).length} agents from data files`);
@@ -43,22 +43,38 @@ function discoverAgents(sessionId) {
         .filter((item) => item !== null);
     // Step 6: Group full tests by variant and number them
     const full = groupAndNumberFullTests(agentIds.filter(id => writeAgentIds.includes(id)), dataFileMap);
-    return { readonly, full };
+    return {
+        testConfiguration: {
+            formats: [...new Set(readonly.map(x => x.format))],
+            variants: [...new Set(readonly.map(x => x.variant))],
+            model: "Entered by user",
+            thinking: "Entered by user",
+            timestamp: new Date().toISOString(),
+        },
+        readOnlyTests: readonly,
+        fullTests: full
+    };
 }
 exports.discoverAgents = discoverAgents;
 /**
  * Find and resolve the actual subagent directory path
  */
-function getSubagentDirectory(sessionId) {
+function getSubagentDirectory() {
     try {
         const projectsDir = path_1.default.join((0, os_1.homedir)(), '.claude', 'projects');
         if (!fs_1.default.existsSync(projectsDir)) {
             return null;
         }
-        // Find all project dirs matching pattern
-        const projects = fs_1.default.readdirSync(projectsDir);
-        for (const project of projects) {
-            const sessionPath = path_1.default.join(projectsDir, project, sessionId, 'subagents');
+        // Find most recent project
+        const mostRecentProjectPath = findLastChangedFolder(projectsDir);
+        if (!mostRecentProjectPath) {
+            return null;
+        }
+        // Find most recent session
+        const mostRecentSessionPath = findLastChangedFolder(mostRecentProjectPath);
+        if (mostRecentSessionPath) {
+            // Find subagents subdirectory in most recent session
+            const sessionPath = path_1.default.join(mostRecentSessionPath, 'subagents');
             if (fs_1.default.existsSync(sessionPath)) {
                 return sessionPath;
             }
@@ -68,6 +84,25 @@ function getSubagentDirectory(sessionId) {
         console.error(`Error finding subagent directory: ${error}`);
     }
     return null;
+}
+function findLastChangedFolder(dirPath) {
+    let mostRecentPath = null;
+    let mostRecentTime = 0;
+    const dirNames = fs_1.default.readdirSync(dirPath);
+    for (const dirName of dirNames) {
+        const subDirPath = path_1.default.join(dirPath, dirName);
+        try {
+            const stat = fs_1.default.statSync(subDirPath);
+            if (stat.mtimeMs > mostRecentTime) {
+                mostRecentTime = stat.mtimeMs;
+                mostRecentPath = subDirPath;
+            }
+        }
+        catch (e) {
+            // Skip if can't stat
+        }
+    }
+    return mostRecentPath;
 }
 /**
  * List all agent IDs from JSONL files in subagents directory
@@ -150,7 +185,8 @@ function grepDataFilePaths(subagentDir) {
                     format: metadata.format,
                     structure: metadata.structure,
                     variant: metadata.variant,
-                    recordCount: metadata.recordCount
+                    recordCount: metadata.recordCount,
+                    timestamp: new Date().toISOString()
                 };
             }
         }
@@ -213,7 +249,8 @@ function groupAndNumberFullTests(fullAgentIds, dataFileMap) {
                 structure,
                 variant,
                 recordCount: metadata.recordCount,
-                testRun: index + 1
+                testRun: index + 1,
+                timestamp: new Date().toISOString()
             });
         });
     }

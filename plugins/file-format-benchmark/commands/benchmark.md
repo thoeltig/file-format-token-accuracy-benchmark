@@ -245,7 +245,7 @@ After all tests complete, run analytics which automatically:
 5. Runs comprehensive analysis
 
 ```bash
-cd ${CLAUDE_PLUGIN_ROOT}/plugins/file-format-benchmark/scripts && node dist/analytics.js --session-id ${CLAUDE_SESSION_ID} --output ${BENCHMARK_OUTPUT_DIR}
+cd ${CLAUDE_PLUGIN_ROOT}/plugins/file-format-benchmark/scripts && node dist/analytics.js --output ${BENCHMARK_OUTPUT_DIR}
 ```
 
 **Automatic Processing During Analytics:**
