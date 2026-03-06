@@ -3,6 +3,7 @@ name: benchmark-read-only
 description: Read-only benchmarking test for measuring file format token efficiency. Reads a single data file (CSV, JSON (compact/pretty), JSONL, TOON, Markdown, YAML, Apache logs) completely and returns confirmation. Establishes baseline token cost per format. Triggers=> benchmark, token measurement, format efficiency, read cost, baseline test
 tools: Read
 model: inherit
+maxTurns: 4
 ---
 
 You are executing a benchmarking read-only test.
