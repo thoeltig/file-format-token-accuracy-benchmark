@@ -10,16 +10,16 @@ import { AgentIdEntry, AgentIdsFile, FullTestAgentIdEntry, ReadOnlyAgentIdEntry 
  * - Read-only agents: have only 1 Read tool invocation
  * - Full test agents: have Write tool invocations (and multiple Reads)
  */
-export function discoverAgents(): AgentIdsFile {
+export function discoverAgents(sessionId: string): AgentIdsFile {
   // Step 1: Expand glob and get actual subagent directory
-  const actualDir = getSubagentDirectory();
+  const actualDir = getSubagentDirectory(sessionId);
   if (!actualDir) {
-    throw new Error(`Could not find subagent directory for session`);
+    throw new Error(`Could not find subagent directory for session: ${sessionId}`);
   }
 
   // Step 2: List all agent JSONL files
   const agentIds = listAgentIds(actualDir);
-  console.log(`Found ${agentIds.length} agents in ${actualDir}`);
+  console.log(`Found ${agentIds.length} agents in session ${sessionId}`);
 
   // Step 3: Grep data file paths → map agentId to metadata
   const dataFileMap = grepDataFilePaths(actualDir);
@@ -65,53 +65,25 @@ export function discoverAgents(): AgentIdsFile {
 /**
  * Find and resolve the actual subagent directory path
  */
-function getSubagentDirectory(): string | null {
+function getSubagentDirectory(sessionId: string): string | null {
   try {
     const projectsDir = path.join(homedir(), '.claude', 'projects');
     if (!fs.existsSync(projectsDir)) {
       return null;
     }
 
-    // Find most recent project
-    const mostRecentProjectPath = findLastChangedFolder(projectsDir);    
-    if (!mostRecentProjectPath) {
-      return null;
-    }
-
-    // Find most recent session
-    const mostRecentSessionPath = findLastChangedFolder(mostRecentProjectPath);
-    if (mostRecentSessionPath) {
-      // Find subagents subdirectory in most recent session
-      const sessionPath = path.join(mostRecentSessionPath, 'subagents');
+    // Find all project dirs matching pattern
+    const projects = fs.readdirSync(projectsDir);
+    for (const project of projects) {
+      const sessionPath = path.join(projectsDir, project, sessionId, 'subagents');
       if (fs.existsSync(sessionPath)) {
         return sessionPath;
       }
-    }       
+    }
   } catch (error) {
     console.error(`Error finding subagent directory: ${error}`);
   }
   return null;
-}
-
-function findLastChangedFolder(dirPath: string): string | null {
-  let mostRecentPath: string | null = null;
-  let mostRecentTime = 0;
-
-  const dirNames = fs.readdirSync(dirPath);
-  for (const dirName of dirNames) {
-    const subDirPath = path.join(dirPath, dirName);
-    try {
-      const stat = fs.statSync(subDirPath);
-      if (stat.mtimeMs > mostRecentTime) {
-        mostRecentTime = stat.mtimeMs;
-        mostRecentPath = subDirPath;
-      }
-    } catch (e) {
-      // Skip if can't stat
-    }
-  }
-
-  return mostRecentPath;
 }
 
 /**

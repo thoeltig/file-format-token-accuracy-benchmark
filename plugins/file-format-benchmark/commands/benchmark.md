@@ -237,7 +237,7 @@ This launches 3 full tests in parallel which will:
 
 ## Step 5: Run Analytics (Automatic Validation, Metrics Extraction + Analysis)
 
-After all tests complete, run analytics which automatically:
+After all tests complete, ask the user to execute `/status` which will display the current session id. After you received the session id, pass it to the following analytics script which automatically:
 1. Collects all subagent transcripts
 2. Extracts metrics from agent transcripts
 3. Validates all test cases
@@ -245,7 +245,7 @@ After all tests complete, run analytics which automatically:
 5. Runs comprehensive analysis
 
 ```bash
-cd ${CLAUDE_PLUGIN_ROOT}/plugins/file-format-benchmark/scripts && node dist/analytics.js --output ${BENCHMARK_OUTPUT_DIR}
+cd ${CLAUDE_PLUGIN_ROOT}/plugins/file-format-benchmark/scripts && node dist/analytics.js --session-id ${SESSION_ID} --output ${BENCHMARK_OUTPUT_DIR}
 ```
 
 **Automatic Processing During Analytics:**

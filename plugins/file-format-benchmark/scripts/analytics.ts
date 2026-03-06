@@ -447,25 +447,29 @@ class BenchmarkAnalytics {
 // CLI entry point
 if (require.main === module) {
   const args = process.argv.slice(2);
+  let sessionId: string | undefined;
   let outputDir: string | undefined;
 
   for (let i = 0; i < args.length; i++) {
     switch (args[i]) {
+      case "--session-id":
+        sessionId = args[++i];
+        break;
       case "--output":
         outputDir = args[++i];
         break;
     }
   }
 
-  if (!outputDir) {
+  if (!sessionId || !outputDir) {
     console.error("Usage: node dist/analytics.js --session-id <id> --output <dir>");
     process.exit(1);
   }
 
   try {
     // Step 1: Discover agents from session and generate agent_ids.json
-    console.log(`\nStep 1: Discovering agents from session...`);
-    var agentIds = discoverAgents();
+    console.log(`\nStep 1: Discovering agents from session ${sessionId}...`);
+    var agentIds = discoverAgents(sessionId);
     
     // Write agent_ids.json
     const agentIdsFile = path.join(outputDir, 'agent_ids.json');
