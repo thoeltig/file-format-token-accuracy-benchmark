@@ -165,18 +165,18 @@ The benchmark-full-test subagent:
 ### Step 5: Run Analytics
 
 ```bash
-cd scripts && node dist/analytics.js --output {OUTPUT_DIR}
+cd scripts && node dist/analytics.js --session-id ${CLAUDE_SESSION_ID} --output {OUTPUT_DIR}
 ```
 
 Analytics automatically:
-1. Auto-detects the most recent session and discovers all agent transcripts
-2. Generates `agent_ids.json` with testConfiguration and all agent IDs
-3. Validates all test case outputs using metadata and answers
-4. Extracts read metrics from readonly test transcripts
-5. Extracts used tokens and caluclate estimated reasoning tokens from full test transcripts
-6. Combines metrics into `metrics.json`
-7. Calculates efficiency rankings
-8. Outputs `analytics_results.json` with insights
+1. Generates `agent_ids.json` from agent transcripts
+1. Validates all test case outputs using metadata and answers
+2. Reads `agent_ids.json` to get all agent IDs
+3. Extracts read metrics from readonly test transcripts
+4. Extracts used tokens and caluclate estimated reasoning tokens from full test transcripts
+5. Combines metrics into `metrics.json`
+6. Calculates efficiency rankings
+7. Outputs `analytics_results.json` with insights
 
 ### Step 6: Review Results
 
