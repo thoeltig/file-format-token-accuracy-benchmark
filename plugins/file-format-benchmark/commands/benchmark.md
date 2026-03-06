@@ -1,5 +1,5 @@
 ---
-description: Orchestrate comprehensive benchmarking tests for file format token efficiency (CSV, JSON (compact/pretty), TOON, XML (compact/pretty), YAML). Generates test data variants (flat and nested), executes sequential tests with configurable model (haiku/sonnet) and thinking mode, validates results, and calculates efficiency metrics. Triggers: benchmark, format efficiency, token measurement, performance testing
+description: Orchestrate comprehensive benchmarking tests for file format token efficiency (CSV, JSON (compact/pretty), TOON, XML (compact/pretty), YAML). Generates test data variants (flat and nested), executes sequential tests with configurable model (haiku/sonnet) and thinking mode, validates results, and calculates efficiency metrics. Triggers => benchmark, format efficiency, token measurement, performance testing
 argument-hint: [--formats csv,json_compact,json_pretty,toon_safe,toon_unsafe,xml_pretty,xml_compact,yaml] [--variant optional,mandatory] [--structure flat,nested] [--model haiku|sonnet] [--thinking on|off] [--output PATH]
 allowed-tools: Bash(node *)
 ---
