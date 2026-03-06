@@ -186,7 +186,7 @@ class ReportValidator {
 
                     map.set(key, testCase);
                 }else{
-                    console.warn(`Found file with wrong name format '${entry.name}' in the folder '${path.basename(path.dirname(fullPath))}'. Expected format: 'answers_for_(.+?)_(.+?)_(\d+)_records_(\d+)\.json'`);
+                    console.warn(`Found file with wrong name format '${entry.name}' in the folder '${path.basename(path.dirname(fullPath))}'. Expected format: 'answers_for_(.+?)_(.+?)_(\d+)_records_(\d+)\.json' Example: 'answers_for_flat_mandatory_60_records_1.json'`);
                 }
             }
         }
