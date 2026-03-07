@@ -1,6 +1,6 @@
 import * as fs from 'fs';
 import * as path from 'path';
-import { QuestionCategory, MergedValidationReport } from '../types';
+import { QuestionCategory, MergedValidationReport, TestMetrics } from '../types';
 
 // ============================================================================
 // LOCAL TYPES
@@ -13,9 +13,13 @@ export interface AggregatedMetric {
   variant: string;
   recordCount: number;
   readTokens: number;
-  avgEstimatedReasoningTokens: number;
+  readDurationInMilliseconds: number;
+  readTokensPerMillisecond: number;
+  avgOutputTokens: number;
   totalTokensUsed: number;
   charsPerToken: number;
+  tokensPerValue: number;
+  tokensPerObject: number;
   avgAccuracyPercent: number;
   avgWeightedAccuracyPercent: number;
   informationValuePerToken: number;
@@ -45,25 +49,8 @@ export interface ValidationSummary {
   accuracy: CategoryAccuracy[];
 }
 
-interface RawMetric {
-  format: string;
-  variant: string;
-  hasOptionalData: boolean;
-  recordCount: number;
-  readTokens: number;
-  avgReasoningTokens: number;
-  totalTokensUsed: number;
-  charsPerToken: number;
-  avgAccuracyPercent: number;
-  avgWeightedAccuracyPercent: number;
-  informationValuePerToken: number;
-  costOfInaccuracy: number;
-  efficiencyScore: number;
-  weightedEfficiencyScore: number;
-}
-
 interface AnalyticsData {
-  metrics: RawMetric[];
+  metrics: TestMetrics[];
 }
 
 // ============================================================================
@@ -82,9 +69,9 @@ export function loadAnalyticsResults(jsonPath: string): AnalyticsData {
   return data;
 }
 
-export function aggregateMetrics(metrics: RawMetric[]): AggregatedMetric[] {
+export function aggregateMetrics(metrics: TestMetrics[]): AggregatedMetric[] {
   // Group by format, variant, AND record count
-  const byFormatVariantRecord: { [key: string]: RawMetric[] } = {};
+  const byFormatVariantRecord: { [key: string]: TestMetrics[] } = {};
 
   metrics.forEach(m => {
     const variant = m.hasOptionalData ? 'optional' : 'mandatory';
@@ -108,9 +95,13 @@ export function aggregateMetrics(metrics: RawMetric[]): AggregatedMetric[] {
       variant,
       recordCount,
       readTokens: 0,
-      avgEstimatedReasoningTokens: 0,
+      readDurationInMilliseconds: 0,
+      readTokensPerMillisecond: 0,
+      avgOutputTokens: 0,
       totalTokensUsed: 0,
       charsPerToken: 0,
+      tokensPerValue: 0,
+      tokensPerObject: 0,
       avgAccuracyPercent: 0,
       avgWeightedAccuracyPercent: 0,
       informationValuePerToken: 0,
@@ -121,9 +112,13 @@ export function aggregateMetrics(metrics: RawMetric[]): AggregatedMetric[] {
 
     tests.forEach(t => {
       avgTest.readTokens += t.readTokens;
-      avgTest.avgEstimatedReasoningTokens += t.avgReasoningTokens;
+      avgTest.readDurationInMilliseconds += t.readDurationInMilliseconds;
+      avgTest.readTokensPerMillisecond += t.readTokensPerMillisecond;
+      avgTest.avgOutputTokens += t.avgOutputTokens;
       avgTest.totalTokensUsed += t.totalTokensUsed;
       avgTest.charsPerToken += t.charsPerToken;
+      avgTest.tokensPerValue += t.tokensPerValue;
+      avgTest.tokensPerObject += t.tokensPerObject;
       avgTest.avgAccuracyPercent += t.avgAccuracyPercent;
       avgTest.avgWeightedAccuracyPercent += t.avgWeightedAccuracyPercent;
       avgTest.informationValuePerToken += t.informationValuePerToken;
@@ -134,9 +129,13 @@ export function aggregateMetrics(metrics: RawMetric[]): AggregatedMetric[] {
 
     const count = tests.length;
     avgTest.readTokens /= count;
-    avgTest.avgEstimatedReasoningTokens /= count;
+    avgTest.readDurationInMilliseconds /= count;
+    avgTest.readTokensPerMillisecond /= count;
+    avgTest.avgOutputTokens /= count;
     avgTest.totalTokensUsed /= count;
     avgTest.charsPerToken /= count;
+    avgTest.tokensPerValue /= count;
+    avgTest.tokensPerObject /= count;
     avgTest.avgAccuracyPercent /= count;
     avgTest.avgWeightedAccuracyPercent /= count;
     avgTest.informationValuePerToken /= count;
