@@ -113,8 +113,8 @@ This:
    - Data files (CSV, JSON compact/pretty, TOON safe/unsafe, XML compact/pretty, YAML)
    - 2 data structure variants: flat and nested (flat for CSV, both for others)
    - 2 data content variants: optional, mandatory
-   - Record count: 60
-   - Questionnaires with 125 questions per dataset
+   - Record count: 31
+   - Questionnaires with 124 questions per dataset
    - Answer templates
    - metadata.json with all dataset information
    - Directory structure for test execution
@@ -267,13 +267,13 @@ cd ${CLAUDE_PLUGIN_ROOT}/plugins/file-format-benchmark/scripts && node dist/anal
   "read": {
     "files": [
       {
-        "file": "csv_with_optional_60_flat_records.csv",
+        "file": "csv_with_optional_31_flat_records.csv",
         "path": "/path/to/data/...",
         "agentId": "agent-abc123",
         "format": "csv",
         "structure": "flat",
         "variant": "optional",
-        "recordCount": 60,
+        "recordCount": 31,
         "readTokens": 15234,
         "readDurationMs": 1523.0
       }
@@ -292,7 +292,7 @@ cd ${CLAUDE_PLUGIN_ROOT}/plugins/file-format-benchmark/scripts && node dist/anal
         "format": "csv",
         "structure": "flat",
         "variant": "optional",
-        "recordCount": 60,
+        "recordCount": 31,
         "testRuns": 3,
         "durationMs": 49984.33,
         "reasoningTokens": 5941.67,
@@ -352,24 +352,24 @@ The benchmark output folder contains all generated data and test results:
 ${BENCHMARK_OUTPUT_DIR}/
 ├── data/
 │   └── {format}/
-│       ├── {format}_with_{variant}_60_{flat|nested}_records.{ext}
+│       ├── {format}_with_{variant}_31_{flat|nested}_records.{ext}
 │       ├── ...
 ├── questions/
-│   ├── questions_with_{variant}_60_records.json
+│   ├── questions_with_{variant}_31_records.json
 │   └── ...
 ├── answers_template/
-│   ├── answers_with_{variant}_60_records_template.json
+│   ├── answers_with_{variant}_31_records_template.json
 │   └── ...
 ├── answers_validation/
-│   └── questions_and_answers_with_{variant}_60_records.json
+│   └── questions_and_answers_with_{variant}_31_records.json
 ├── subagent_outputs/
 │   └── {format}/
-│       ├── answers_for_{flat|nested}_{variant}_60_records_1.json
-│       ├── answers_for_{flat|nested}_{variant}_60_records_2.json
-│       ├── answers_for_{flat|nested}_{variant}_60_records_3.json
+│       ├── answers_for_{flat|nested}_{variant}_31_records_1.json
+│       ├── answers_for_{flat|nested}_{variant}_31_records_2.json
+│       ├── answers_for_{flat|nested}_{variant}_31_records_3.json
 │       └── ...
 ├── results/
-│   └── {format}_{flat|nested}_{variant}_60_validation.json
+│   └── {format}_{flat|nested}_{variant}_31_validation.json
 ├── metadata.json
 ├── agent_ids.json
 ├── metrics.json
