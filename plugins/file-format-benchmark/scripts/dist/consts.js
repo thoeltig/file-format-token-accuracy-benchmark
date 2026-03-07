@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.QUESTIONS_WEIGHT_DISTRIBUTION = exports.QUESTIONS_DISTRIBUTION = exports.QUESTIONS_COUNT = exports.FILE_METRICS = exports.FILE_ANALYTICS_RESULT = exports.FILE_METADATA = exports.FORMATS = exports.DIRECTORIES = exports.DIRECTORY_RESULTS = exports.DIRECTORY_SUBAGENT_OUTPUT = exports.DIRECTORY_ANSWERS_TEMPLATE = exports.DIRECTORY_QUESTIONS = exports.DIRECTORY_ANSWERS_VALIDATION = exports.DIRECTORY_DATA = void 0;
+exports.QUESTIONS_WEIGHT_DISTRIBUTION = exports.QUESTIONS_DISTRIBUTION = exports.QUESTIONS_COUNT = exports.VARIANTS = exports.RECORD_COUNT = exports.FILE_METRICS = exports.FILE_ANALYTICS_RESULT = exports.FILE_METADATA = exports.FORMATS = exports.DIRECTORIES = exports.DIRECTORY_RESULTS = exports.DIRECTORY_SUBAGENT_OUTPUT = exports.DIRECTORY_ANSWERS_TEMPLATE = exports.DIRECTORY_QUESTIONS = exports.DIRECTORY_ANSWERS_VALIDATION = exports.DIRECTORY_DATA = void 0;
 exports.DIRECTORY_DATA = "data";
 exports.DIRECTORY_ANSWERS_VALIDATION = "answers_validation";
 exports.DIRECTORY_QUESTIONS = "questions";
@@ -12,6 +12,8 @@ exports.FORMATS = ["csv", "json_pretty", "json_compact", "toon_safe", "toon_unsa
 exports.FILE_METADATA = "metadata.json";
 exports.FILE_ANALYTICS_RESULT = "analytics_results.json";
 exports.FILE_METRICS = "metrics.json";
+exports.RECORD_COUNT = 40;
+exports.VARIANTS = [true, false];
 exports.QUESTIONS_COUNT = 125;
 exports.QUESTIONS_DISTRIBUTION = {
     field_retrieval: 54,
