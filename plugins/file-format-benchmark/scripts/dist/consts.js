@@ -12,13 +12,13 @@ exports.FORMATS = ["csv", "json_pretty", "json_compact", "toon_safe", "toon_unsa
 exports.FILE_METADATA = "metadata.json";
 exports.FILE_ANALYTICS_RESULT = "analytics_results.json";
 exports.FILE_METRICS = "metrics.json";
-exports.RECORD_COUNT = 40;
+exports.RECORD_COUNT = 31;
 exports.VARIANTS = [true, false];
 exports.QUESTIONS_COUNT = 125;
 exports.QUESTIONS_DISTRIBUTION = {
-    field_retrieval: 54,
-    structure_awareness: 28,
-    filtering: 22,
+    field_retrieval: 60,
+    structure_awareness: 27,
+    filtering: 21,
     aggregation: 21
 };
 exports.QUESTIONS_WEIGHT_DISTRIBUTION = {

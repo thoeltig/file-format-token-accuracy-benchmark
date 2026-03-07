@@ -14,13 +14,13 @@ export const FILE_METADATA:string = "metadata.json";
 export const FILE_ANALYTICS_RESULT:string  = "analytics_results.json";
 export const FILE_METRICS:string = "metrics.json";
 
-export const RECORD_COUNT = 40;
+export const RECORD_COUNT = 31;
 export const VARIANTS: boolean[] = [true, false];
 export const QUESTIONS_COUNT = 125;
 export const QUESTIONS_DISTRIBUTION = {
-    field_retrieval: 54,
-    structure_awareness: 28, 
-    filtering: 22, 
+    field_retrieval: 60,
+    structure_awareness: 27, 
+    filtering: 21, 
     aggregation: 21
 };
 
