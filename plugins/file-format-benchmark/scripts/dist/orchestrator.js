@@ -35,8 +35,6 @@ const index_1 = require("./converters/index");
 const questions_1 = require("./generators/questions");
 const answerValidator_1 = require("./validators/answerValidator");
 const consts_1 = require("./consts");
-const MANDATORY_STATE = [true, false];
-const TARGET_SIZES = [60];
 class BenchmarkingOrchestrator {
     outputDir;
     constructor(outputDir = "benchmarking") {
@@ -66,121 +64,119 @@ class BenchmarkingOrchestrator {
      */
     generateAllTestData() {
         const filesCreated = [];
-        for (const allFieldsManadatory of MANDATORY_STATE) {
-            for (const targetSize of TARGET_SIZES) {
-                const fieldsMandatoryText = allFieldsManadatory ? 'mandatory' : 'optional';
-                console.log(`Generating test data with ${targetSize} records per file and all data ${fieldsMandatoryText}...\n`);
-                // Generate data
-                const dataToUse = (0, generateProductDataGenerator_1.generateProductDataGenerator)(targetSize, allFieldsManadatory);
-                const recordCount = dataToUse.records.length;
-                // Generate questionnaire
-                const answersAndQuestions = (0, questions_1.generateQuestionnaire)(dataToUse);
-                const answersAndQuestionsFileName = `questions_and_answers_with_${fieldsMandatoryText}_${recordCount}_records.json`;
-                const answersAndQuestionsFilePath = path.join(this.outputDir, consts_1.DIRECTORY_ANSWERS_VALIDATION, answersAndQuestionsFileName);
-                const questionnaireFileName = `questions_with_${fieldsMandatoryText}_${recordCount}_records.json`;
-                const questionnaireFilePath = path.join(this.outputDir, consts_1.DIRECTORY_QUESTIONS, questionnaireFileName);
-                const answerTemplateFileName = `answers_with_${fieldsMandatoryText}_${recordCount}_records_template.json`;
-                const answerTemplateFilePath = path.join(this.outputDir, consts_1.DIRECTORY_ANSWERS_TEMPLATE, answerTemplateFileName);
-                const questionaireWithAnswers = {
-                    metadata: {
-                        recordCount: dataToUse.metadata.recordCount,
-                        fieldCount: dataToUse.metadata.fieldCount,
-                        totalValues: dataToUse.metadata.totalValues,
-                        totalQuestions: answersAndQuestions.length,
-                        generatedAt: new Date().toISOString(),
-                        questionFilePath: questionnaireFilePath,
-                        answerTemplateFilePath: answerTemplateFilePath
-                    },
-                    answersAndQuestions: answersAndQuestions,
-                };
-                // Write answer and questions for validation
-                fs.writeFileSync(answersAndQuestionsFilePath, JSON.stringify(questionaireWithAnswers));
-                console.log(`✓ Questions and answers: ${answersAndQuestionsFilePath} (${answersAndQuestions.length} questions)`);
-                // Write questions
-                const questionsForTest = {
-                    instructions: `If you are asked for a single value like a text, number or count then set it as a string to the answer field like this: {"questionId":200,"answer":"value1"}. If you are asked for multiple values at the same time then set them as comma separated string to the answer field like this: {"questionId":201,"answer":"value1,value2,value3"}. IMPORTANT: When extracting dates, return them exactly as they appear in the data as plain text strings in YYYY-MM-DD format. Never convert to Date objects or perform any timezone operations.`,
-                    questions: answersAndQuestions.map(x => ({ id: x.id, question: x.question }))
-                };
-                fs.writeFileSync(questionnaireFilePath, JSON.stringify(questionsForTest));
-                console.log(`✓ Questions: ${questionnaireFileName} (${questionsForTest.questions.length} questions)`);
-                // Generate empty answer template
-                const answerTemplate = {
-                    metadata: {
-                        format: "",
-                        questionsFilePath: questionnaireFilePath,
-                        dataFilePath: "",
-                    },
-                    answers: answersAndQuestions.map((q) => ({ questionId: q.id, answer: "" }))
-                };
-                fs.writeFileSync(answerTemplateFilePath, JSON.stringify(answerTemplate));
-                console.log(`✓ Answer template: ${answerTemplateFileName}`);
-                // Prepare result
-                const generatedFiles = {
-                    recordCount: targetSize,
+        for (const allFieldsManadatory of consts_1.VARIANTS) {
+            const fieldsMandatoryText = allFieldsManadatory ? 'mandatory' : 'optional';
+            console.log(`Generating test data with ${consts_1.RECORD_COUNT} records per file and all data ${fieldsMandatoryText}...\n`);
+            // Generate data
+            const dataToUse = (0, generateProductDataGenerator_1.generateProductDataGenerator)(consts_1.RECORD_COUNT, allFieldsManadatory);
+            const recordCount = dataToUse.records.length;
+            // Generate questionnaire
+            const answersAndQuestions = (0, questions_1.generateQuestionnaire)(dataToUse);
+            const answersAndQuestionsFileName = `questions_and_answers_with_${fieldsMandatoryText}_${recordCount}_records.json`;
+            const answersAndQuestionsFilePath = path.join(this.outputDir, consts_1.DIRECTORY_ANSWERS_VALIDATION, answersAndQuestionsFileName);
+            const questionnaireFileName = `questions_with_${fieldsMandatoryText}_${recordCount}_records.json`;
+            const questionnaireFilePath = path.join(this.outputDir, consts_1.DIRECTORY_QUESTIONS, questionnaireFileName);
+            const answerTemplateFileName = `answers_with_${fieldsMandatoryText}_${recordCount}_records_template.json`;
+            const answerTemplateFilePath = path.join(this.outputDir, consts_1.DIRECTORY_ANSWERS_TEMPLATE, answerTemplateFileName);
+            const questionaireWithAnswers = {
+                metadata: {
+                    recordCount: dataToUse.metadata.recordCount,
                     fieldCount: dataToUse.metadata.fieldCount,
                     totalValues: dataToUse.metadata.totalValues,
-                    questionCount: questionsForTest.questions.length,
-                    answersAndQuestionsForValidationFilePath: answersAndQuestionsFilePath,
-                    questionnaireFilePath: questionnaireFilePath,
-                    answerTemplateFilePath: answerTemplateFilePath,
-                    dataAndOutput: []
-                };
-                // Generate array formats
-                for (const format of consts_1.FORMATS) {
-                    console.log(`Generating ${format.toUpperCase()} file with ${fieldsMandatoryText} ${targetSize} flat records`);
-                    // Convert to format
-                    const fileContent = (0, index_1.convertToFormat)(dataToUse, format);
-                    const fileExt = this.getFileExtension(format);
-                    const dataFileName = `${format}_with_${fieldsMandatoryText}_${recordCount}_flat_records.${fileExt}`;
-                    const dataFilePath = path.join(this.outputDir, consts_1.DIRECTORY_DATA, format, dataFileName);
-                    const expectedOutputFilePath = path.join(this.outputDir, consts_1.DIRECTORY_SUBAGENT_OUTPUT, format, `answers_with_${fieldsMandatoryText}_${recordCount}_flat_records.json`);
-                    fs.writeFileSync(dataFilePath, fileContent);
-                    const content = fs.readFileSync(dataFilePath, "utf-8"); // Read file again to get actual content size     
-                    const characterCount = content.length;
-                    console.log(`✓ Data: ${dataFileName} (${characterCount} chars, ${recordCount} flat data set rows and ${fieldsMandatoryText} data)`);
-                    // Track result
-                    generatedFiles.dataAndOutput.push({
-                        structure: "flat",
-                        format: format,
-                        allFieldsManadatory: allFieldsManadatory,
-                        dataFilePath: dataFilePath,
-                        expectedOutputFilePath: expectedOutputFilePath,
-                        metadata: {
-                            characterCount: characterCount,
-                            avgCharacterCountPerRecord: characterCount / generatedFiles.recordCount,
-                            avgCharacterCountPerValue: characterCount / generatedFiles.totalValues
-                        }
-                    });
-                }
-                // Generate nested formats (without CSV because it can not display nested structure)
-                for (const format of consts_1.FORMATS.filter(x => x !== "csv")) {
-                    console.log(`Generating ${format.toUpperCase()} file with ${fieldsMandatoryText} ${targetSize} nested records`);
-                    // Convert to format
-                    const nestedObjects = (0, generateProductDataGenerator_1.convertToNestedObject)(dataToUse);
-                    const fileContent = (0, index_1.convertToFormat)(nestedObjects, format);
-                    const characterCount = fileContent.length;
-                    const fileExt = this.getFileExtension(format);
-                    const dataFileName = `${format}_with_${fieldsMandatoryText}_${recordCount}_nested_records.${fileExt}`;
-                    const dataFilePath = path.join(this.outputDir, consts_1.DIRECTORY_DATA, format, dataFileName);
-                    const expectedOutputFilePath = path.join(this.outputDir, consts_1.DIRECTORY_SUBAGENT_OUTPUT, format, `answers_with_${fieldsMandatoryText}_${recordCount}_nested_records.json`);
-                    fs.writeFileSync(dataFilePath, fileContent);
-                    console.log(`✓ Data: ${dataFileName} (${characterCount} chars, ${recordCount} nested data set rows and ${fieldsMandatoryText} data)`);
-                    // Track result
-                    generatedFiles.dataAndOutput.push({
-                        structure: "nested",
-                        format: format,
-                        allFieldsManadatory: allFieldsManadatory,
-                        dataFilePath: dataFilePath,
-                        expectedOutputFilePath: expectedOutputFilePath,
-                        metadata: {
-                            characterCount: characterCount,
-                            avgCharacterCountPerRecord: characterCount / generatedFiles.recordCount,
-                            avgCharacterCountPerValue: characterCount / generatedFiles.totalValues
-                        }
-                    });
-                }
-                filesCreated.push(generatedFiles);
+                    totalQuestions: answersAndQuestions.length,
+                    generatedAt: new Date().toISOString(),
+                    questionFilePath: questionnaireFilePath,
+                    answerTemplateFilePath: answerTemplateFilePath
+                },
+                answersAndQuestions: answersAndQuestions,
+            };
+            // Write answer and questions for validation
+            fs.writeFileSync(answersAndQuestionsFilePath, JSON.stringify(questionaireWithAnswers));
+            console.log(`✓ Questions and answers: ${answersAndQuestionsFilePath} (${answersAndQuestions.length} questions)`);
+            // Write questions
+            const questionsForTest = {
+                instructions: `If you are asked for a single value like a text, number or count then set it as a string to the answer field like this: {"questionId":200,"answer":"value1"}. If you are asked for multiple values at the same time then set them as comma separated string to the answer field like this: {"questionId":201,"answer":"value1,value2,value3"}. IMPORTANT: When extracting dates, return them exactly as they appear in the data as plain text strings in YYYY-MM-DD format. Never convert to Date objects or perform any timezone operations.`,
+                questions: answersAndQuestions.map(x => ({ id: x.id, question: x.question }))
+            };
+            fs.writeFileSync(questionnaireFilePath, JSON.stringify(questionsForTest));
+            console.log(`✓ Questions: ${questionnaireFileName} (${questionsForTest.questions.length} questions)`);
+            // Generate empty answer template
+            const answerTemplate = {
+                metadata: {
+                    format: "",
+                    questionsFilePath: questionnaireFilePath,
+                    dataFilePath: "",
+                },
+                answers: answersAndQuestions.map((q) => ({ questionId: q.id, answer: "" }))
+            };
+            fs.writeFileSync(answerTemplateFilePath, JSON.stringify(answerTemplate));
+            console.log(`✓ Answer template: ${answerTemplateFileName}`);
+            // Prepare result
+            const generatedFiles = {
+                recordCount: consts_1.RECORD_COUNT,
+                fieldCount: dataToUse.metadata.fieldCount,
+                totalValues: dataToUse.metadata.totalValues,
+                questionCount: questionsForTest.questions.length,
+                answersAndQuestionsForValidationFilePath: answersAndQuestionsFilePath,
+                questionnaireFilePath: questionnaireFilePath,
+                answerTemplateFilePath: answerTemplateFilePath,
+                dataAndOutput: []
+            };
+            // Generate array formats
+            for (const format of consts_1.FORMATS) {
+                console.log(`Generating ${format.toUpperCase()} file with ${fieldsMandatoryText} ${consts_1.RECORD_COUNT} flat records`);
+                // Convert to format
+                const fileContent = (0, index_1.convertToFormat)(dataToUse, format);
+                const fileExt = this.getFileExtension(format);
+                const dataFileName = `${format}_with_${fieldsMandatoryText}_${recordCount}_flat_records.${fileExt}`;
+                const dataFilePath = path.join(this.outputDir, consts_1.DIRECTORY_DATA, format, dataFileName);
+                const expectedOutputFilePath = path.join(this.outputDir, consts_1.DIRECTORY_SUBAGENT_OUTPUT, format, `answers_with_${fieldsMandatoryText}_${recordCount}_flat_records.json`);
+                fs.writeFileSync(dataFilePath, fileContent);
+                const content = fs.readFileSync(dataFilePath, "utf-8"); // Read file again to get actual content size     
+                const characterCount = content.length;
+                console.log(`✓ Data: ${dataFileName} (${characterCount} chars, ${recordCount} flat data set rows and ${fieldsMandatoryText} data)`);
+                // Track result
+                generatedFiles.dataAndOutput.push({
+                    structure: "flat",
+                    format: format,
+                    allFieldsManadatory: allFieldsManadatory,
+                    dataFilePath: dataFilePath,
+                    expectedOutputFilePath: expectedOutputFilePath,
+                    metadata: {
+                        characterCount: characterCount,
+                        avgCharacterCountPerRecord: characterCount / generatedFiles.recordCount,
+                        avgCharacterCountPerValue: characterCount / generatedFiles.totalValues
+                    }
+                });
             }
+            // Generate nested formats (without CSV because it can not display nested structure)
+            for (const format of consts_1.FORMATS.filter(x => x !== "csv")) {
+                console.log(`Generating ${format.toUpperCase()} file with ${fieldsMandatoryText} ${consts_1.RECORD_COUNT} nested records`);
+                // Convert to format
+                const nestedObjects = (0, generateProductDataGenerator_1.convertToNestedObject)(dataToUse);
+                const fileContent = (0, index_1.convertToFormat)(nestedObjects, format);
+                const characterCount = fileContent.length;
+                const fileExt = this.getFileExtension(format);
+                const dataFileName = `${format}_with_${fieldsMandatoryText}_${recordCount}_nested_records.${fileExt}`;
+                const dataFilePath = path.join(this.outputDir, consts_1.DIRECTORY_DATA, format, dataFileName);
+                const expectedOutputFilePath = path.join(this.outputDir, consts_1.DIRECTORY_SUBAGENT_OUTPUT, format, `answers_with_${fieldsMandatoryText}_${recordCount}_nested_records.json`);
+                fs.writeFileSync(dataFilePath, fileContent);
+                console.log(`✓ Data: ${dataFileName} (${characterCount} chars, ${recordCount} nested data set rows and ${fieldsMandatoryText} data)`);
+                // Track result
+                generatedFiles.dataAndOutput.push({
+                    structure: "nested",
+                    format: format,
+                    allFieldsManadatory: allFieldsManadatory,
+                    dataFilePath: dataFilePath,
+                    expectedOutputFilePath: expectedOutputFilePath,
+                    metadata: {
+                        characterCount: characterCount,
+                        avgCharacterCountPerRecord: characterCount / generatedFiles.recordCount,
+                        avgCharacterCountPerValue: characterCount / generatedFiles.totalValues
+                    }
+                });
+            }
+            filesCreated.push(generatedFiles);
         }
         // Write metadata
         const results = {
@@ -267,7 +263,7 @@ if (require.main === module) {
     }
     else {
         console.log(`${logSeparator}`);
-        const fileCount = consts_1.FORMATS.length * TARGET_SIZES.length * MANDATORY_STATE.length;
+        const fileCount = consts_1.FORMATS.length * consts_1.VARIANTS.length;
         console.log(`Generated ${fileCount} dataset(s) with questionnaires`);
         console.log(`Output directory: ${outputDir}`);
         console.log(`${logSeparator}\n`);
