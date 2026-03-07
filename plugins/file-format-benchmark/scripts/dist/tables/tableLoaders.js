@@ -61,9 +61,13 @@ function aggregateMetrics(metrics) {
             variant,
             recordCount,
             readTokens: 0,
-            avgEstimatedReasoningTokens: 0,
+            readDurationInMilliseconds: 0,
+            readTokensPerMillisecond: 0,
+            avgOutputTokens: 0,
             totalTokensUsed: 0,
             charsPerToken: 0,
+            tokensPerValue: 0,
+            tokensPerObject: 0,
             avgAccuracyPercent: 0,
             avgWeightedAccuracyPercent: 0,
             informationValuePerToken: 0,
@@ -73,9 +77,13 @@ function aggregateMetrics(metrics) {
         };
         tests.forEach(t => {
             avgTest.readTokens += t.readTokens;
-            avgTest.avgEstimatedReasoningTokens += t.avgReasoningTokens;
+            avgTest.readDurationInMilliseconds += t.readDurationInMilliseconds;
+            avgTest.readTokensPerMillisecond += t.readTokensPerMillisecond;
+            avgTest.avgOutputTokens += t.avgOutputTokens;
             avgTest.totalTokensUsed += t.totalTokensUsed;
             avgTest.charsPerToken += t.charsPerToken;
+            avgTest.tokensPerValue += t.tokensPerValue;
+            avgTest.tokensPerObject += t.tokensPerObject;
             avgTest.avgAccuracyPercent += t.avgAccuracyPercent;
             avgTest.avgWeightedAccuracyPercent += t.avgWeightedAccuracyPercent;
             avgTest.informationValuePerToken += t.informationValuePerToken;
@@ -85,9 +93,13 @@ function aggregateMetrics(metrics) {
         });
         const count = tests.length;
         avgTest.readTokens /= count;
-        avgTest.avgEstimatedReasoningTokens /= count;
+        avgTest.readDurationInMilliseconds /= count;
+        avgTest.readTokensPerMillisecond /= count;
+        avgTest.avgOutputTokens /= count;
         avgTest.totalTokensUsed /= count;
         avgTest.charsPerToken /= count;
+        avgTest.tokensPerValue /= count;
+        avgTest.tokensPerObject /= count;
         avgTest.avgAccuracyPercent /= count;
         avgTest.avgWeightedAccuracyPercent /= count;
         avgTest.informationValuePerToken /= count;

@@ -6,13 +6,13 @@ exports.generateCategoryDifficultyRankingTable = exports.generateCategoryMandato
 // ============================================================================
 function generateComprehensiveTable(aggregated) {
     console.log('\n=== COMPREHENSIVE BENCHMARK METRICS TABLE ===\n');
-    console.log('| Format | Records | Variant | Read Tokens | Reasoning | Total | Tokens/Char | Raw Acc | Wtd Acc | Info/Token | Cost Inaccuracy | Efficiency | Wtd Efficiency |');
+    console.log('| Format | Records | Variant | Read Tokens | Output Tokens | Total | Tokens/Char | Raw Acc | Wtd Acc | Info/Token | Cost Inaccuracy | Efficiency | Wtd Efficiency |');
     console.log('|--------|---------|---------|-------------|-----------|-------|-------------|---------|---------|------------|-----------------|------------|-----------------|');
     aggregated.forEach(item => {
         const fmt = item.format.toUpperCase();
         const rec = item.recordCount;
         const var_ = item.variant.substring(0, 3);
-        console.log(`| ${fmt} | ${rec} | ${var_} | ${Math.round(item.readTokens)} | ${Math.round(item.avgEstimatedReasoningTokens)} | ${Math.round(item.totalTokensUsed)} | ${item.charsPerToken.toFixed(2)} | ${item.avgAccuracyPercent.toFixed(1)}% | ${item.avgWeightedAccuracyPercent.toFixed(1)}% | ${item.informationValuePerToken.toFixed(3)} | ${Math.round(item.costOfInaccuracy)} | ${item.efficiencyScore.toFixed(1)} | ${item.weightedEfficiencyScore.toFixed(1)} |`);
+        console.log(`| ${fmt} | ${rec} | ${var_} | ${Math.round(item.readTokens)} | ${Math.round(item.avgOutputTokens)} | ${Math.round(item.totalTokensUsed)} | ${item.charsPerToken.toFixed(2)} | ${item.avgAccuracyPercent.toFixed(1)}% | ${item.avgWeightedAccuracyPercent.toFixed(1)}% | ${item.informationValuePerToken.toFixed(3)} | ${Math.round(item.costOfInaccuracy)} | ${item.efficiencyScore.toFixed(1)} | ${item.weightedEfficiencyScore.toFixed(1)} |`);
     });
 }
 exports.generateComprehensiveTable = generateComprehensiveTable;
@@ -33,7 +33,7 @@ function generateReadTokensTable(aggregated, recordCounts, uniqueFormats) {
 }
 exports.generateReadTokensTable = generateReadTokensTable;
 function generateTotalTokensTable(aggregated, recordCounts, uniqueFormats) {
-    console.log('\n\n=== TOTAL TOKENS (Read + Reasoning) ===\n');
+    console.log('\n\n=== TOTAL TOKENS (Read + Output) ===\n');
     recordCounts.forEach(recCount => {
         console.log(`**${recCount}-Record Variants:**\n| Format | Mandatory | Optional |`);
         console.log('|--------|-----------|----------|');
