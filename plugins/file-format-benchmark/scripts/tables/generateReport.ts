@@ -33,6 +33,7 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import { loadAnalyticsResults, aggregateMetrics, loadValidationResults, AggregatedMetric, ValidationSummary } from './tableLoaders';
+import { AnalyticsOutput, QuestionCategory } from '../types';
 
 interface ReportConfig {
   benchmarkFolder: string;
@@ -58,21 +59,29 @@ function parseArgs(args: string[]): ReportConfig {
 // METADATA EXTRACTION
 // ============================================================================
 
-function extractMetadata(analyticsData: any): any {
-  const metadata = analyticsData.metadata || {
+interface Metadata {
+  generatedAt: string;
+  model: string,
+  thinking: string;
+  structure: string;
+  formats: string[];
+  variants: string[];
+  recordCounts: number[];
+  questionDistribution: [QuestionCategory, number][];
+  questionWeightDistribution: [QuestionCategory, number][];
+};
+
+function extractMetadata(analyticsData: AnalyticsOutput): Metadata {
+  return {
     generatedAt: new Date().toISOString(),
     model: 'Claude Haiku 4.5',
     thinking: 'off',
     structure: 'flat',
-  };
-
-  return {
-    generatedAt: metadata.generatedAt,
-    model: metadata.model || 'Claude Haiku 4.5',
-    thinking: metadata.thinking || 'off',
-    structure: metadata.structure || 'flat',
-    questionDistribution: metadata.questionDistribution || [],
-    questionWeightDistribution: metadata.questionWeightDistribution || [],
+    formats: analyticsData.testConfigurations.formats || [],
+    variants: analyticsData.testConfigurations.variants || [],
+    recordCounts: analyticsData.testConfigurations.recordCounts || [],
+    questionDistribution: analyticsData.testConfigurations.questionDistribution || [],
+    questionWeightDistribution: analyticsData.testConfigurations.questionWeightDistribution || [],
   };
 }
 
@@ -86,24 +95,24 @@ class ReportGenerator {
   private validations: ValidationSummary[];
   private uniqueFormats: string[];
   private recordCounts: number[];
-  private metadata: any;
+  private metadata: Metadata;
 
   constructor(
     aggregated: AggregatedMetric[],
     validations: ValidationSummary[],
-    metadata: any
+    metadata: Metadata
   ) {
     this.aggregated = aggregated;
     this.validations = validations;
     this.metadata = metadata;
-    this.uniqueFormats = [...new Set(aggregated.map(a => a.format))].sort();
-    this.recordCounts = [...new Set(aggregated.map(a => a.recordCount))].sort((a, b) => b - a);
+    this.uniqueFormats = metadata.formats.sort();
+    this.recordCounts = metadata.recordCounts.sort((a, b) => b - a);
   }
 
   private line(text: string = ''): void {
     this.content.push(text);
   }
-
+  
   private heading(level: number, text: string): void {
     this.line('#'.repeat(level) + ' ' + text);
   }
@@ -135,9 +144,7 @@ class ReportGenerator {
 
   private generateTitleAndMetadata(): void {
     this.heading(1, 'File Format Token Efficiency Benchmark: Comprehensive Report');
-    this.line(
-      `**Date**: ${new Date(this.metadata.generatedAt).toISOString().split('T')[0]}`
-    );
+    this.line(`**Date**: ${new Date(this.metadata.generatedAt).toISOString().split('T')[0]}`);
     this.line(`- **Model**: ${this.metadata.model}`);
     this.line(`- **Extended Thinking**: ${this.metadata.thinking}`);
     this.line(`- **Data Structure**: ${this.metadata.structure}`);
@@ -152,74 +159,127 @@ class ReportGenerator {
     this.line(
       'This benchmark evaluates token efficiency and information accuracy across ' +
       this.uniqueFormats.length + ' file formats using ' + this.metadata.model +
-      ' as the inference model. The research addresses the critical question: **which file format ' +
-      'delivers maximum information value per token consumed?**\n'
+      ' as the inference model. The research addresses a critical but underexplored problem: **not all tokens are equally useful**. ' +
+      'A format that uses fewer tokens but produces inaccurate results wastes both tokens and context, while a format that accurately conveys information may justify higher token cost.'
     );
+    this.line();
 
     this.heading(3, 'Key Findings');
+    this.line();
     this.line('<ADD_CONTENT_HERE: Insert 5-7 key findings from analysis>');
+    this.line();
     this.line('1. Finding 1');
+    this.line();
     this.line('2. Finding 2');
+    this.line();
     this.line('3. Finding 3');
+    this.line();
     this.line('4. Finding 4');
+    this.line();
     this.line('5. Finding 5');
     this.line();
     this.hr();
   }
 
   private generateMethodology(): void {
-    this.heading(2, 'Methodology');
+    this.heading(2, '1. Methodology');
+    this.line();
 
-    this.heading(3, 'Research Purpose');
-    this.line(
-      'The underlying question: **Which file format delivers maximum information value per token consumed?**\n' +
-      'This requires measuring:\n' +
-      '- **Token Cost**: How many tokens does each format consume for equivalent data?\n' +
-      '- **Information Fidelity**: How accurately can the model understand and answer questions about the data?\n' +
-      '- **Robustness**: How consistent is performance across data variants (mandatory vs optional fields)?\n'
-    );
+    this.heading(3, '1.1 Research Purpose');
+    this.line();
+    this.line('The underlying question: **Which file format delivers maximum information value per token consumed?**');
+    this.line();
+    this.line('This requires measuring:');
+    this.line('- **Token Cost**: How many tokens does each format consume for equivalent data?');
+    this.line('- **Information Fidelity**: How accurately can the model understand and answer questions about the data?');
+    this.line('- **Robustness**: How consistent is performance across data variants (mandatory vs optional fields)?');
+    this.line();
 
-    this.heading(3, 'Test Design');
-    this.line(`**Data:**\n` +
-      `- Formats: ${this.uniqueFormats.length} (${this.uniqueFormats.map(f => f.toUpperCase()).join(', ')})\n` +
-      `- Record Counts: ${this.recordCounts.join(', ')}\n` +
-      `- Variants: Mandatory (complete data) and Optional (sparse data)\n`
-    );
+    this.heading(3, '1.2 Test Design');
+    this.line();
+    this.line('**Data Generation:**');
+    this.line(`- ${this.uniqueFormats.length} formats tested: ${this.uniqueFormats.map(f => f.toUpperCase()).join(', ')}`);
+    this.line('- 2 variants per format: mandatory (22 fields, dense) and optional (19 mandatory + 3 optional, sparse)');
+    this.line(`- Record Counts: ${this.recordCounts.join(', ')}`);
+    this.line();
 
     if (this.metadata.questionDistribution && this.metadata.questionDistribution.length > 0) {
-      this.line('**Question Distribution:**\n');
+      this.line('**Question Distribution:**');
+      this.line(`- ${this.metadata.questionDistribution.length} question categories reflecting practical use cases:`);
+
+      let fieledRetrivalAndStructureAwareness = 0;
+      let filteringAndAggregation = 0;
       this.metadata.questionDistribution.forEach((q: any) => {
         const weight = this.metadata.questionWeightDistribution.find((w: any) => w[0] === q[0]);
-        const weightPercent = weight ? (weight[1] * 100).toFixed(2) : '0.0';
-        this.line(`- ${q[0]}: ${q[1]} questions (${weightPercent}% weight)`);
+        const weightPerc = weight ? (weight[1] * 100) : 0;
+
+        let questionCategory = '';
+        let questionCategoryDescription = '';
+
+        switch (q[0]) {
+          case "field_retrieval":
+            questionCategory = 'Field Retrieval';
+            questionCategoryDescription = 'Extract specific values from specific records';
+            fieledRetrivalAndStructureAwareness += weightPerc;
+            break;
+          case "structure_awareness":
+            questionCategory = 'Structure Awareness';
+            questionCategoryDescription = 'Understand data shape, organization, metadata';
+            fieledRetrivalAndStructureAwareness += weightPerc;
+            break;
+          case "filtering":
+            questionCategory = 'Filtering';
+            questionCategoryDescription = 'Count records matching criteria';
+            filteringAndAggregation += weightPerc;
+            break;
+          case "aggregation":
+            questionCategory = 'Aggregation';
+            questionCategoryDescription = 'Sum, average, min/max calculations';
+            filteringAndAggregation += weightPerc;
+            break;
+        }
+
+        this.line(`   - **${questionCategory} (${q[1]} questions, ${weightPerc.toFixed(3)}% weight):** ${questionCategoryDescription}`);
       });
       this.line();
+      
+      this.line('**Weighting Rationale:**');
+      this.line(`- Field retrieval + structure awareness = ${fieledRetrivalAndStructureAwareness.toFixed(3)}%`);
+      this.line(`   - These represent the file format itself. Understanding "what data exists and how it's organized" which is fundamental to avoiding context confusion.`);
+      this.line(`- Filtering + aggregation = ${filteringAndAggregation.toFixed(3)}%`);
+      this.line(`   - These represent more the "intellactual" aspect of the model and will differ greatly depending on the model. Also if done deterministic the model still needs to do field retrival and structure awarness on the result.`);
+      this.line();
     }
-
-    this.heading(3, 'Metrics Definition');
-    this.line('**Token Metrics:**\n' +
-      '- `readTokens`: Tokens consumed reading the data file\n' +
-      '- `reasoningTokens`: Tokens consumed during inference\n' +
-      '- `totalTokens`: readTokens + reasoningTokens\n'
-    );
-    this.line('**Accuracy Metrics:**\n' +
-      '- `rawAccuracy`: Correct answers / total questions\n' +
-      '- `weightedAccuracy`: Accuracy weighted by question category importance\n'
-    );
-    this.line('**Information Value Metrics:**\n' +
-      '- `informationValuePerToken`: (accuracy% / totalTokens) × 100\n' +
-      '- `costOfInaccuracy`: totalTokens × (1 - accuracy%) — tokens wasted on inaccurate output\n'
-    );
-    this.line('**Efficiency Score:**\n' +
-      '- Composite metric balancing accuracy with token cost\n'
-    );
+    
+    this.heading(3, '1.3 Metrics Definition');
+    this.line();
+    this.line('**Token Metrics:**');
+    this.line('- `readTokens`: Tokens consumed reading the data file');
+    this.line('- `outputTokens`: Tokens consumed during inference (answering questions + creating the file content)');
+    this.line('- `totalTokens`: readTokens + outputTokens');
+    this.line();
+    this.line('**Accuracy Metrics:**');
+    this.line('- `rawAccuracy`: Correct answers / total questions');
+    this.line('- `weightedAccuracy`: Accuracy weighted by question category importanc');
+    this.line();
+    this.line('**Information Value Metrics:**');
+    this.line('- `informationValuePerToken`: (accuracy% / totalTokens) × 100');
+    this.line('- `costOfInaccuracy`: totalTokens × (1 - accuracy% / 100) — tokens wasted on inaccurate output');
+    this.line();
+    this.line('**Efficiency Score:**');
+    this.line('- Composite metric balancing accuracy with normalized token cost (favour towards accuracy)')
+    this.line('- normalizedTokenCost = (((maxTotalTokens+10)-currenTotalTokens)/((maxTotalTokens+10)-(minTotalTokens-10)))*100')
+    this.line('- `efficiencyScore`: (accuracy% x 0.3) + (normalizedTokenCost * 0.3)');
+    this.line('- `weightedEfficiencyScore`: (weightedAccuracy% x 0.3) + (normalizedTokenCost * 0.3)');
+    this.line();
     this.hr();
   }
 
   private generateResults(): void {
-    this.heading(2, 'Results');
-
+    this.heading(2, '2. Results');
+    this.line();
     this.heading(3, '2.1 Comprehensive Benchmark Metrics');
+    this.line();
 
     // Sort by format then variant (alphabetically)
     const sortedAggregated = [...this.aggregated].sort((ob1, ob2) =>{
@@ -247,31 +307,39 @@ class ReportGenerator {
       Math.round(item.avgOutputTokens).toString(),
       Math.round(item.totalTokensUsed).toString(),
       item.charsPerToken.toFixed(3),
+      item.informationValuePerToken.toFixed(3),
+      item.avgOutputTokensPerAnswer.toFixed(3),
       item.avgAccuracyPercent.toFixed(2),
       item.avgWeightedAccuracyPercent.toFixed(2),
-      item.informationValuePerToken.toFixed(3),
     ]);
     this.table(
-      ['Format', 'Records', 'Variant', 'Read Tokens', 'Output Tokens', 'Total', 'Tokens/Char', 'Raw Acc (%)', 'Wtd Acc (%)', 'Info/Token'],
+      ['Format', 'Records', 'Variant', 'Read Tokens', 'Output Tokens', 'Total', 'Tokens/Char', 'Info/Token', 'Token/Answer', 'Raw Acc (%)', 'Wtd Acc (%)'],
       rows
     );
 
     this.heading(3, '2.2 Token Efficiency Analysis');
+    this.line();
     this.line('<ADD_CONTENT_HERE: Analyze token cost patterns across formats>');
+    this.line();
     this.line('- Lowest token cost formats:');
     this.line('- Highest token efficiency (chars/token):');
-    this.line('- Linear scaling observations:\n');
+    this.line('- Linear scaling observations:');
+    this.line();
 
     this.heading(3, '2.3 Accuracy Analysis');
+    this.line();
     this.line('<ADD_CONTENT_HERE: Analyze accuracy patterns and divergence from previous tests>');
+    this.line();
     this.line('- Best performing formats:');
     this.line('- Format weaknesses:');
-    this.line('- Mandatory vs optional impact:\n');
+    this.line('- Mandatory vs optional impact:');
+    this.line();
 
     this.heading(3, '2.4 Format Robustness: Mandatory vs Optional Data');
     const mandOptRows = this.uniqueFormats.map(fmt => {
       const mand = this.aggregated.find(a => a.format === fmt && a.variant === 'mandatory' && a.recordCount === this.recordCounts[0]);
       const opt = this.aggregated.find(a => a.format === fmt && a.variant === 'optional' && a.recordCount === this.recordCounts[0]);
+
       if (!mand || !opt) return null;
 
       const mandTotalTokensUsed = Math.round(mand.totalTokensUsed);
@@ -298,61 +366,104 @@ class ReportGenerator {
     );
 
     this.heading(3, '2.5 Performance Metrics (Duration & Speed)');
-    this.line('**Read Phase Performance:**\n');
+    this.line();
     const readPerfRows = sortedAggregated.map(item => {
-      //const metric = this.aggregated.find(a => a.format === item.format && a.variant === item.variant && a.recordCount === item.recordCount);
+      const totalDurationInMilliseconds = item.readDurationInMilliseconds+item.avgReasoningDurationInMilliseconds;
+      const totalTokensPerMillisecond = item.readTokensPerMillisecond+item.avgReasoningTokensPerMillisecond;
       return [
         item.format.toUpperCase(),
-        item.recordCount.toString(),
         item.variant.substring(0, 3),
         Math.round(item.readDurationInMilliseconds).toString(),
-        item.readTokensPerMillisecond.toFixed(3)
+        item.readTokensPerMillisecond.toFixed(3),
+        (item.readDurationInMilliseconds / item.recordCount).toFixed(2),
+        Math.round(item.avgReasoningDurationInMilliseconds).toString(),
+        item.avgReasoningTokensPerMillisecond.toFixed(3),
+        (item.avgReasoningDurationInMilliseconds / item.totalQuestions).toFixed(2),
+        Math.round(totalDurationInMilliseconds).toString(),
+        totalTokensPerMillisecond.toFixed(3),
+        (totalDurationInMilliseconds / (item.recordCount + item.totalQuestions)).toFixed(2),
       ];
     });
     this.table(
-      ['Format', 'Records', 'Variant', 'Read Duration (ms)', 'Read Speed (tokens/ms)'],
+      ['Format', 'Variant', 'Read Duration (ms)', 'Read Speed (tokens/ms)', 'Ratio (ms/record)', 'Output Duration (ms)', 'Output Speed (tokens/ms)', 'Ratio (ms/question)', 'Total Duration (ms)', 'Total Speed (tokens/ms)', 'Ratio (ms/record+question)'],
       readPerfRows
     );
-    this.line('*Note: Duration metrics available in metrics.json per test case*\n');
 
     this.heading(3, '2.6 Structural Efficiency Metrics');
+    this.line();
     const structRows = sortedAggregated.map(item => [
       item.format.toUpperCase(),
-      item.recordCount.toString(),
       item.variant.substring(0, 3),
       item.charsPerToken.toFixed(3),
       item.tokensPerValue.toFixed(3),
       item.tokensPerObject.toFixed(3)
     ]);
     this.table(
-      ['Format', 'Records', 'Variant', 'Chars/Token', 'Tokens/Value', 'Tokens/Object'],
+      ['Format', 'Variant', 'Chars/Token', 'Tokens/Value', 'Tokens/Object'],
       structRows
     );
-    this.line('*Note: Tokens/Value and Tokens/Object metrics available in metrics.json*\n');
 
-    this.heading(3, '2.7 Answer Quality Breakdown');
-    this.line('**Detailed Question Answer Distribution:**\n');
-    this.line('<ADD_CONTENT_HERE: Analyze which formats have better answer quality (correct vs incorrect vs unanswered)>');
-    this.line('*Note: Answer breakdown (avgCorrectAnswers, avgIncorrectAnswers, avgNoAnswers) available in metrics.json per test case*\n');
-
-    this.heading(3, '2.8 Token Utilization Efficiency');
-    this.line('**Efficiently Used vs Wasted Tokens:**\n');
-    const effTokenRows = sortedAggregated.map(item => [
+    this.heading(3, '2.7 Answer Quality Breakdown'); 
+    this.line();
+    const answerQualityRows = sortedAggregated.map(item => [
       item.format.toUpperCase(),
-      item.recordCount.toString(),
       item.variant.substring(0, 3),
-      Math.round(item.totalTokensUsed).toString(),
-      item.efficiencyScore.toFixed(2),
-      item.weightedEfficiencyScore.toFixed(2),
-      item.costOfInaccuracy.toFixed(3),
+      Math.round(item.avgCorrectAnswers).toString(),
+      Math.round(item.avgIncorrectAnswers).toString(),
+      Math.round(item.avgNoAnswers).toString(),
+      item.avgAccuracyPercent.toFixed(2),
     ]);
     this.table(
-      ['Format', 'Records', 'Variant', 'Total Tokens', 'Efficiency Score', 'Wtd Efficiency', 'Wasted Tokens'],
+      ['Format', 'Variant', 'Correct Answers', 'Incorrect Answers', 'No Answers',  'Raw Acc (%)'],
+      answerQualityRows
+    );
+
+    this.heading(3, '2.8 Token Utilization Efficiency');
+    this.line();
+    const effTokenRows = sortedAggregated.map(item => [
+      item.format.toUpperCase(),
+      item.variant.substring(0, 3),
+      item.avgAccuracyPercent.toFixed(2),
+      Math.round(item.totalTokensUsed).toString(),
+      Math.round(item.efficientlyUsedTokens).toString(),
+      Math.round(item.costOfInaccuracy).toString(),
+      item.efficiencyScore.toFixed(2),
+      item.weightedEfficiencyScore.toFixed(2),
+    ]);
+    this.table(
+      ['Format', 'Variant', 'Raw Acc (%)', 'Total Tokens', 'Utilized Tokens', 'Wasted Tokens', 'Efficiency Score', 'Wtd Efficiency', ],
       effTokenRows
     );
-    this.line();
 
     this.heading(3, '2.9 Category Performance Analysis');
+    this.line();
+    const categoryRows = sortedAggregated.map(item => {
+      const validation = this.validations.find(x => x.format === item.format && x.variant === item.variant && x.recordCount === item.recordCount);
+      const retrieval = validation?.accuracy.find(x => x.category === 'field_retrieval')?.accuracyPercent ?? 0;
+      const structure = validation?.accuracy.find(x => x.category === 'structure_awareness')?.accuracyPercent ?? 0;
+      const filtering = validation?.accuracy.find(x => x.category === 'filtering')?.accuracyPercent ?? 0;
+      const aggregation = validation?.accuracy.find(x => x.category === 'aggregation')?.accuracyPercent ?? 0;
+
+      return [
+      item.format.toUpperCase(),
+      item.variant.substring(0, 3),
+      item.avgAccuracyPercent.toFixed(2),
+      retrieval.toFixed(2),
+      structure.toFixed(2),
+      filtering.toFixed(2),
+      aggregation.toFixed(2),
+    ]});
+    this.table(
+      ['Format', 'Variant', 'Raw Acc (%)', 'Field Retrieval (%)', 'Structure Awareness (%)', 'Filtering (%)', 'Aggregation (%)'],
+      categoryRows
+    );
+
+    this.diffMandOptAccuracyPerCategory('Field Retrieval', 'field_retrieval');
+    this.diffMandOptAccuracyPerCategory('Structure Awareness', 'structure_awareness');
+    this.diffMandOptAccuracyPerCategory('Filtering', 'filtering');
+    this.diffMandOptAccuracyPerCategory('Aggregation', 'aggregation');
+
+    this.line();
     this.generateCategoryAccuracyTables();
     this.line('<ADD_CONTENT_HERE: Analyze performance across question categories>');
     this.line('- Field retrieval performance:');
@@ -361,6 +472,33 @@ class ReportGenerator {
     this.line('- Per-format strengths and weaknesses:\n');
 
     this.hr();
+  }
+
+  private diffMandOptAccuracyPerCategory(label: string, category: QuestionCategory): void { 
+    this.heading(4, `${label} Delta: Mandatory vs Optional`); 
+    this.line();
+
+    const categoryMandOptRows = this.uniqueFormats.map(fmt => {
+      const mandValidation = this.validations.find(x => x.format === fmt && x.variant === 'mandatory' && x.recordCount === this.recordCounts[0]);
+      const mandRetrieval = mandValidation?.accuracy.find(x => x.category === category)?.accuracyPercent ?? 0;
+      
+      const optValidation = this.validations.find(x => x.format === fmt && x.variant === 'optional' && x.recordCount === this.recordCounts[0]);
+      const optRetrieval = optValidation?.accuracy.find(x => x.category === category)?.accuracyPercent ?? 0;
+
+      const diffRetrieval = optRetrieval - mandRetrieval;
+
+      return [
+        fmt.toUpperCase(),
+        mandRetrieval.toFixed(2),
+        optRetrieval.toFixed(2),
+        diffRetrieval.toFixed(2),
+      ];
+    }).filter(r => r !== null) as string[][];
+
+    this.table(
+      ['Format', 'Mand (%)', 'Opt (%)', 'Diff (%)'],
+      categoryMandOptRows
+    );
   }
 
   private generateCategoryAccuracyTables(): void {
@@ -373,61 +511,7 @@ class ReportGenerator {
     const recordCounts = [...new Set(this.validations.map(v => v.recordCount))].sort((a, b) => b - a);
     const categories = [...new Set(this.validations.flatMap(v => v.accuracy.map(a => a.category)))].sort();
 
-    recordCounts.forEach(recCount => {
-      this.line(`\n#### Per-Category Accuracy (${recCount}-Record Dataset):\n`);
-
-      this.uniqueFormats.forEach(format => {
-        const formatValidations = this.validations.filter(
-          v => v.format === format && v.recordCount === recCount
-        );
-
-        if (formatValidations.length === 0) return;
-
-        this.line(`**${format.toUpperCase()}:**\n`);
-        this.line('| Category | Mandatory (%) | Optional (%) |');
-        this.line('|----------|--------------|--------------|');
-
-        categories.forEach(category => {
-          const mandatoryVal = formatValidations.find(v => v.variant === 'mandatory');
-          const optionalVal = formatValidations.find(v => v.variant === 'optional');
-
-          const mandatoryAcc = mandatoryVal?.accuracy.find(a => a.category === category)?.accuracyPercent || 0;
-          const optionalAcc = optionalVal?.accuracy.find(a => a.category === category)?.accuracyPercent || 0;
-
-          this.line(
-            `| ${category} | ${mandatoryAcc.toFixed(2)} | ${optionalAcc.toFixed(2)} |`
-          );
-        });
-
-        this.line();
-      });
-
-      // Category delta table
-      this.line(`\n#### Category Delta: Mandatory vs Optional (${recCount}-Record Dataset):\n`);
-      this.line('| Category | ' + this.uniqueFormats.map(f => f.toUpperCase()).join(' | ') + ' |');
-      this.line('|---|' + this.uniqueFormats.map(() => '---|').join(''));
-
-      categories.forEach(category => {
-        const deltas = this.uniqueFormats.map(fmt => {
-          const mandatory = this.validations.find(
-            v => v.format === fmt && v.variant === 'mandatory' && v.recordCount === recCount
-          );
-          const optional = this.validations.find(
-            v => v.format === fmt && v.variant === 'optional' && v.recordCount === recCount
-          );
-
-          const mandatoryAcc = mandatory?.accuracy.find(a => a.category === category)?.accuracyPercent || 0;
-          const optionalAcc = optional?.accuracy.find(a => a.category === category)?.accuracyPercent || 0;
-          const delta = (optionalAcc - mandatoryAcc).toFixed(2);
-
-          return delta + '%';
-        });
-
-        this.line(`| ${category} | ${deltas.join(' | ')} |`);
-      });
-
-      this.line();
-
+    recordCounts.forEach(recCount => {    
       // Category difficulty ranking
       this.line(`\n#### Category Difficulty Ranking (${recCount}-Record Dataset):\n`);
       this.line('| Rank | Category | Avg Accuracy (%) | Easiest Format | Hardest Format |');
