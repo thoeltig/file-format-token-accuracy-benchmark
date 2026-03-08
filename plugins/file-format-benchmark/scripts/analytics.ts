@@ -7,56 +7,9 @@ import * as fs from "fs";
 import * as path from "path";
 import { discoverAgents } from "./analytics/agent-discovery";
 import MetricsExtraction from "./analytics/metrics-extraction";
-import { GeneratorResult, MergedValidationReport, QuestionCategory, TestMetrics, UserMetrics } from "./types";
+import { AnalyticsOutput, GeneratorResult, MergedValidationReport, Ranking, RankingEntry, TestMetrics, UserMetrics } from "./types";
 import ReportValidator from "./validators/reportValidator";
 import { DIRECTORY_ANSWERS_VALIDATION, FILE_ANALYTICS_RESULT, FILE_METADATA, FILE_METRICS, QUESTIONS_DISTRIBUTION, QUESTIONS_WEIGHT_DISTRIBUTION } from "./consts";
-
-interface AnalyticsOutput {
-  timestamp: string;
-  testConfigurations: {
-    metadataFile: string;
-    agentIdsFile: string;
-    metricsFile: string;
-    model: string;
-    thinking: string;
-    formats: string[];
-    variants: string[];
-    recordCounts: number[];
-    questionDistribution: [QuestionCategory, number][];
-    questionWeightDistribution: [QuestionCategory, number][];
-  };
-  metrics: TestMetrics[];
-  rankings: Record<number, Ranking>;
-}
-
-interface Ranking { 
-  avgCharsPerToken: number; 
-  avgTokensPerValue: number; 
-  avgTokensPerObject: number; 
-  avgAccuracy: number;
-  mostTokenEfficient: RankingEntry[];
-  leastTokenUsage: RankingEntry[];
-  mostAccurate: RankingEntry[];
-  mostAccurateWeighted: RankingEntry[];
-  mostEfficiencyScore: RankingEntry[];
-  mostWeightedEfficiencyScore: RankingEntry[];
-}
-
-interface RankingEntry { 
-  format: string; 
-  hasOptionalData: boolean; 
-  recordCount: number; 
-  charsPerToken: number; 
-  tokensUsed: number; 
-  tokensPerValue: number; 
-  tokensPerObject: number; 
-  accuracyPercent: number; 
-  efficientlyUsedTokens: number; 
-  efficiencyScore: number;
-  weightedAccuracyPercent: number; 
-  weightedEfficientlyUsedTokens: number; 
-  weightedEfficiencyScore: number;
- }
 
 class BenchmarkAnalytics {
   private outputDir: string;

@@ -413,14 +413,10 @@ export interface AgentIdsFile {
 // Analytics
 // ============================================================================
 
-export interface TestMetrics {
-  testCase: string;
+export interface Metrics {
   format: string;
   variant: string;
-  hasOptionalData: boolean;
   recordCount: number;
-  totalValues: number;
-  characterCount: number;
 
   // Read-Only extraction script result
   readTokens: number;
@@ -468,5 +464,59 @@ export interface TestMetrics {
   // normalizedAmountScore: lower token usage = higher score (max tokens used = 0, min tokens used = 100).
   efficiencyScore: number;
   // Same scoring as efficiencyScore but uses weighted accuracy: field retrieval and structure awareness answers count more than aggregation and filtering
+  weightedEfficiencyScore: number;
+}
+
+export interface TestMetrics extends Metrics {
+  testCase: string;
+  hasOptionalData: boolean;
+  totalValues: number;
+  characterCount: number;
+}
+
+export interface AnalyticsOutput {
+  timestamp: string;
+  testConfigurations: {
+    metadataFile: string;
+    agentIdsFile: string;
+    metricsFile: string;
+    model: string;
+    thinking: string;
+    formats: string[];
+    variants: string[];
+    recordCounts: number[];
+    questionDistribution: [QuestionCategory, number][];
+    questionWeightDistribution: [QuestionCategory, number][];
+  };
+  metrics: TestMetrics[];
+  rankings: Record<number, Ranking>;
+}
+
+export interface Ranking { 
+  avgCharsPerToken: number; 
+  avgTokensPerValue: number; 
+  avgTokensPerObject: number; 
+  avgAccuracy: number;
+  mostTokenEfficient: RankingEntry[];
+  leastTokenUsage: RankingEntry[];
+  mostAccurate: RankingEntry[];
+  mostAccurateWeighted: RankingEntry[];
+  mostEfficiencyScore: RankingEntry[];
+  mostWeightedEfficiencyScore: RankingEntry[];
+}
+
+export interface RankingEntry { 
+  format: string; 
+  hasOptionalData: boolean; 
+  recordCount: number; 
+  charsPerToken: number; 
+  tokensUsed: number; 
+  tokensPerValue: number; 
+  tokensPerObject: number; 
+  accuracyPercent: number; 
+  efficientlyUsedTokens: number; 
+  efficiencyScore: number;
+  weightedAccuracyPercent: number; 
+  weightedEfficientlyUsedTokens: number; 
   weightedEfficiencyScore: number;
 }

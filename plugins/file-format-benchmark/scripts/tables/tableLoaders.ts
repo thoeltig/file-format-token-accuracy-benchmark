@@ -1,6 +1,6 @@
 import * as fs from 'fs';
 import * as path from 'path';
-import { QuestionCategory, MergedValidationReport, TestMetrics } from '../types';
+import { QuestionCategory, MergedValidationReport, TestMetrics, AnalyticsOutput, Metrics } from '../types';
 
 // ============================================================================
 // LOCAL TYPES
@@ -8,24 +8,7 @@ import { QuestionCategory, MergedValidationReport, TestMetrics } from '../types'
 
 export type AllQuestionCategory = QuestionCategory | "multiple_steps";
 
-export interface AggregatedMetric {
-  format: string;
-  variant: string;
-  recordCount: number;
-  readTokens: number;
-  readDurationInMilliseconds: number;
-  readTokensPerMillisecond: number;
-  avgOutputTokens: number;
-  totalTokensUsed: number;
-  charsPerToken: number;
-  tokensPerValue: number;
-  tokensPerObject: number;
-  avgAccuracyPercent: number;
-  avgWeightedAccuracyPercent: number;
-  informationValuePerToken: number;
-  costOfInaccuracy: number;
-  efficiencyScore: number;
-  weightedEfficiencyScore: number;
+export interface AggregatedMetric extends Metrics {
   accuracyDelta?: number;
   weightedAccuracyDelta?: number;
   efficiencyDelta?: number;
@@ -49,15 +32,11 @@ export interface ValidationSummary {
   accuracy: CategoryAccuracy[];
 }
 
-interface AnalyticsData {
-  metrics: TestMetrics[];
-}
-
 // ============================================================================
 // LOADERS
 // ============================================================================
 
-export function loadAnalyticsResults(jsonPath: string): AnalyticsData {
+export function loadAnalyticsResults(jsonPath: string): AnalyticsOutput {
   const resolvedPath = path.resolve(jsonPath);
   const content = fs.readFileSync(resolvedPath, 'utf-8');
   const data = JSON.parse(content);
@@ -98,16 +77,25 @@ export function aggregateMetrics(metrics: TestMetrics[]): AggregatedMetric[] {
       readDurationInMilliseconds: 0,
       readTokensPerMillisecond: 0,
       avgOutputTokens: 0,
-      totalTokensUsed: 0,
-      charsPerToken: 0,
-      tokensPerValue: 0,
-      tokensPerObject: 0,
+      avgReasoningDurationInMilliseconds: 0,
+      avgReasoningTokensPerMillisecond: 0,
+      totalQuestions: 0,
+      avgNoAnswers: 0,
+      avgIncorrectAnswers: 0,
+      avgCorrectAnswers: 0,
       avgAccuracyPercent: 0,
       avgWeightedAccuracyPercent: 0,
+      charsPerToken: 0,
+      tokensPerValue: 0,  
+      tokensPerObject: 0, 
+      avgOutputTokensPerAnswer: 0,
       informationValuePerToken: 0,
       costOfInaccuracy: 0,
+      totalTokensUsed: 0,
+      efficientlyUsedTokens: 0,
+      weightedEfficientlyUsedTokens: 0,
       efficiencyScore: 0,
-      weightedEfficiencyScore: 0,
+      weightedEfficiencyScore: 0
     };
 
     tests.forEach(t => {
@@ -115,14 +103,23 @@ export function aggregateMetrics(metrics: TestMetrics[]): AggregatedMetric[] {
       avgTest.readDurationInMilliseconds += t.readDurationInMilliseconds;
       avgTest.readTokensPerMillisecond += t.readTokensPerMillisecond;
       avgTest.avgOutputTokens += t.avgOutputTokens;
-      avgTest.totalTokensUsed += t.totalTokensUsed;
+      avgTest.avgReasoningDurationInMilliseconds += t.avgReasoningDurationInMilliseconds;
+      avgTest.avgReasoningTokensPerMillisecond += t.avgReasoningTokensPerMillisecond;
+      avgTest.totalQuestions += t.totalQuestions;
+      avgTest.avgNoAnswers += t.avgNoAnswers;
+      avgTest.avgIncorrectAnswers += t.avgIncorrectAnswers;
+      avgTest.avgCorrectAnswers += t.avgCorrectAnswers;
+      avgTest.avgAccuracyPercent += t.avgAccuracyPercent;
+      avgTest.avgWeightedAccuracyPercent += t.avgWeightedAccuracyPercent;
       avgTest.charsPerToken += t.charsPerToken;
       avgTest.tokensPerValue += t.tokensPerValue;
       avgTest.tokensPerObject += t.tokensPerObject;
-      avgTest.avgAccuracyPercent += t.avgAccuracyPercent;
-      avgTest.avgWeightedAccuracyPercent += t.avgWeightedAccuracyPercent;
+      avgTest.avgOutputTokensPerAnswer += t.avgOutputTokensPerAnswer;
       avgTest.informationValuePerToken += t.informationValuePerToken;
       avgTest.costOfInaccuracy += t.costOfInaccuracy;
+      avgTest.totalTokensUsed += t.totalTokensUsed;
+      avgTest.efficientlyUsedTokens += t.efficientlyUsedTokens;
+      avgTest.weightedEfficientlyUsedTokens += t.weightedEfficientlyUsedTokens;
       avgTest.efficiencyScore += t.efficiencyScore;
       avgTest.weightedEfficiencyScore += t.weightedEfficiencyScore;
     });
@@ -132,14 +129,23 @@ export function aggregateMetrics(metrics: TestMetrics[]): AggregatedMetric[] {
     avgTest.readDurationInMilliseconds /= count;
     avgTest.readTokensPerMillisecond /= count;
     avgTest.avgOutputTokens /= count;
-    avgTest.totalTokensUsed /= count;
+    avgTest.avgReasoningDurationInMilliseconds /= count;
+    avgTest.avgReasoningTokensPerMillisecond /= count;
+    avgTest.totalQuestions /= count;
+    avgTest.avgNoAnswers /= count;
+    avgTest.avgIncorrectAnswers /= count;
+    avgTest.avgCorrectAnswers /= count;
+    avgTest.avgAccuracyPercent /= count;
+    avgTest.avgWeightedAccuracyPercent /= count;
     avgTest.charsPerToken /= count;
     avgTest.tokensPerValue /= count;
     avgTest.tokensPerObject /= count;
-    avgTest.avgAccuracyPercent /= count;
-    avgTest.avgWeightedAccuracyPercent /= count;
+    avgTest.avgOutputTokensPerAnswer /= count;
     avgTest.informationValuePerToken /= count;
     avgTest.costOfInaccuracy /= count;
+    avgTest.totalTokensUsed /= count;
+    avgTest.efficientlyUsedTokens /= count;
+    avgTest.weightedEfficientlyUsedTokens /= count;
     avgTest.efficiencyScore /= count;
     avgTest.weightedEfficiencyScore /= count;
 
