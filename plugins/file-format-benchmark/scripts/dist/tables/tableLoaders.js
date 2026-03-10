@@ -82,7 +82,25 @@ function aggregateMetrics(metrics) {
             efficientlyUsedTokens: 0,
             weightedEfficientlyUsedTokens: 0,
             efficiencyScore: 0,
-            weightedEfficiencyScore: 0
+            weightedEfficiencyScore: 0,
+            readTokensDelta: 0,
+            outputTokensDelta: 0,
+            totalTokensDelta: 0,
+            efficientlyUsedTokensyDelta: 0,
+            costOfInaccuracyDelta: 0,
+            correctAnswersDelta: 0,
+            incorrectAnswersDelta: 0,
+            accuracyDelta: 0,
+            weightedAccuracyDelta: 0,
+            efficiencyDelta: 0,
+            weightedEfficiencyDelta: 0,
+            informationValuePerTokenDelta: 0,
+            readDurationInMillisecondsDelta: 0,
+            outputDurationInMillisecondsDelta: 0,
+            totalDurationInMillisecondsDelta: 0,
+            charsPerTokenDelta: 0,
+            tokensPerValueDelta: 0,
+            tokensPerObjectDelta: 0
         };
         tests.forEach(t => {
             avgTest.readTokens += t.readTokens;
@@ -140,11 +158,24 @@ function aggregateMetrics(metrics) {
         const mandatory = aggregated.find(a => a.format === item.format && a.variant === 'mandatory' && a.recordCount === item.recordCount);
         const optional = aggregated.find(a => a.format === item.format && a.variant === 'optional' && a.recordCount === item.recordCount);
         if (mandatory && optional) {
+            item.readTokensDelta = optional.readTokens - mandatory.readTokens;
+            item.outputTokensDelta = optional.avgOutputTokens - mandatory.avgOutputTokens;
+            item.totalTokensDelta = optional.totalTokensUsed - mandatory.totalTokensUsed;
+            item.efficientlyUsedTokensyDelta = optional.efficientlyUsedTokens - mandatory.efficientlyUsedTokens;
+            item.costOfInaccuracyDelta = optional.costOfInaccuracy - mandatory.costOfInaccuracy;
             item.accuracyDelta = optional.avgAccuracyPercent - mandatory.avgAccuracyPercent;
             item.weightedAccuracyDelta = optional.avgWeightedAccuracyPercent - mandatory.avgWeightedAccuracyPercent;
+            item.correctAnswersDelta = optional.avgCorrectAnswers - mandatory.avgCorrectAnswers;
+            item.incorrectAnswersDelta = optional.avgIncorrectAnswers - mandatory.avgIncorrectAnswers;
             item.efficiencyDelta = optional.efficiencyScore - mandatory.efficiencyScore;
             item.weightedEfficiencyDelta = optional.weightedEfficiencyScore - mandatory.weightedEfficiencyScore;
-            item.variantImpact = ((optional.informationValuePerToken / mandatory.informationValuePerToken - 1) * 100);
+            item.charsPerTokenDelta = optional.charsPerToken - mandatory.charsPerToken;
+            item.tokensPerValueDelta = optional.tokensPerValue - mandatory.tokensPerValue;
+            item.tokensPerObjectDelta = optional.tokensPerObject - mandatory.tokensPerObject;
+            item.informationValuePerTokenDelta = optional.informationValuePerToken - mandatory.informationValuePerToken;
+            item.readDurationInMillisecondsDelta = optional.readDurationInMilliseconds - mandatory.readDurationInMilliseconds;
+            item.outputDurationInMillisecondsDelta = optional.avgReasoningDurationInMilliseconds - mandatory.avgReasoningDurationInMilliseconds;
+            item.totalDurationInMillisecondsDelta = (optional.readDurationInMilliseconds + optional.avgReasoningDurationInMilliseconds) - (mandatory.readDurationInMilliseconds + mandatory.avgReasoningDurationInMilliseconds);
         }
     });
     return aggregated;

@@ -9,11 +9,24 @@ import { QuestionCategory, MergedValidationReport, TestMetrics, AnalyticsOutput,
 export type AllQuestionCategory = QuestionCategory | "multiple_steps";
 
 export interface AggregatedMetric extends Metrics {
-  accuracyDelta?: number;
-  weightedAccuracyDelta?: number;
-  efficiencyDelta?: number;
-  weightedEfficiencyDelta?: number;
-  variantImpact?: number;
+  charsPerTokenDelta: number;
+  tokensPerValueDelta: number;
+  tokensPerObjectDelta: number;
+  readDurationInMillisecondsDelta: number;
+  outputDurationInMillisecondsDelta: number;
+  totalDurationInMillisecondsDelta: number;
+  readTokensDelta: number;
+  outputTokensDelta: number;
+  totalTokensDelta: number;
+  efficientlyUsedTokensyDelta: number;
+  costOfInaccuracyDelta: number;
+  correctAnswersDelta: number;
+  incorrectAnswersDelta: number;
+  accuracyDelta: number;
+  weightedAccuracyDelta: number;
+  efficiencyDelta: number;
+  weightedEfficiencyDelta: number;
+  informationValuePerTokenDelta: number;
 }
 
 export interface CategoryAccuracy {
@@ -86,8 +99,8 @@ export function aggregateMetrics(metrics: TestMetrics[]): AggregatedMetric[] {
       avgAccuracyPercent: 0,
       avgWeightedAccuracyPercent: 0,
       charsPerToken: 0,
-      tokensPerValue: 0,  
-      tokensPerObject: 0, 
+      tokensPerValue: 0,
+      tokensPerObject: 0,
       avgOutputTokensPerAnswer: 0,
       informationValuePerToken: 0,
       costOfInaccuracy: 0,
@@ -95,7 +108,25 @@ export function aggregateMetrics(metrics: TestMetrics[]): AggregatedMetric[] {
       efficientlyUsedTokens: 0,
       weightedEfficientlyUsedTokens: 0,
       efficiencyScore: 0,
-      weightedEfficiencyScore: 0
+      weightedEfficiencyScore: 0,
+      readTokensDelta: 0,
+      outputTokensDelta: 0,
+      totalTokensDelta: 0,
+      efficientlyUsedTokensyDelta: 0,
+      costOfInaccuracyDelta: 0,
+      correctAnswersDelta: 0,
+      incorrectAnswersDelta: 0,
+      accuracyDelta: 0,
+      weightedAccuracyDelta: 0,
+      efficiencyDelta: 0,
+      weightedEfficiencyDelta: 0,
+      informationValuePerTokenDelta: 0,
+      readDurationInMillisecondsDelta: 0,
+      outputDurationInMillisecondsDelta: 0,
+      totalDurationInMillisecondsDelta: 0,
+      charsPerTokenDelta: 0,
+      tokensPerValueDelta: 0,
+      tokensPerObjectDelta: 0
     };
 
     tests.forEach(t => {
@@ -162,11 +193,24 @@ export function aggregateMetrics(metrics: TestMetrics[]): AggregatedMetric[] {
     );
 
     if (mandatory && optional) {
+      item.readTokensDelta = optional.readTokens - mandatory.readTokens;
+      item.outputTokensDelta = optional.avgOutputTokens - mandatory.avgOutputTokens;
+      item.totalTokensDelta = optional.totalTokensUsed - mandatory.totalTokensUsed;
+      item.efficientlyUsedTokensyDelta = optional.efficientlyUsedTokens - mandatory.efficientlyUsedTokens;
+      item.costOfInaccuracyDelta = optional.costOfInaccuracy - mandatory.costOfInaccuracy;
       item.accuracyDelta = optional.avgAccuracyPercent - mandatory.avgAccuracyPercent;
       item.weightedAccuracyDelta = optional.avgWeightedAccuracyPercent - mandatory.avgWeightedAccuracyPercent;
+      item.correctAnswersDelta = optional.avgCorrectAnswers - mandatory.avgCorrectAnswers;
+      item.incorrectAnswersDelta = optional.avgIncorrectAnswers - mandatory.avgIncorrectAnswers;
       item.efficiencyDelta = optional.efficiencyScore - mandatory.efficiencyScore;
       item.weightedEfficiencyDelta = optional.weightedEfficiencyScore - mandatory.weightedEfficiencyScore;
-      item.variantImpact = ((optional.informationValuePerToken / mandatory.informationValuePerToken - 1) * 100);
+      item.charsPerTokenDelta = optional.charsPerToken - mandatory.charsPerToken;
+      item.tokensPerValueDelta = optional.tokensPerValue - mandatory.tokensPerValue;
+      item.tokensPerObjectDelta = optional.tokensPerObject - mandatory.tokensPerObject;
+      item.informationValuePerTokenDelta = optional.informationValuePerToken - mandatory.informationValuePerToken;
+      item.readDurationInMillisecondsDelta = optional.readDurationInMilliseconds - mandatory.readDurationInMilliseconds;
+      item.outputDurationInMillisecondsDelta = optional.avgReasoningDurationInMilliseconds - mandatory.avgReasoningDurationInMilliseconds;
+      item.totalDurationInMillisecondsDelta = (optional.readDurationInMilliseconds+optional.avgReasoningDurationInMilliseconds) - (mandatory.readDurationInMilliseconds+mandatory.avgReasoningDurationInMilliseconds);
     }
   });
 
