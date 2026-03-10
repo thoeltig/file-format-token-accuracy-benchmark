@@ -213,33 +213,28 @@ class ReportGenerator {
         const weight = this.metadata.questionWeightDistribution.find((w: any) => w[0] === q[0]);
         const weightPerc = weight ? (weight[1] * 100) : 0;
 
-        let questionCategory = '';
         let questionCategoryDescription = '';
 
         switch (q[0]) {
           case "field_retrieval":
-            questionCategory = 'Field Retrieval';
             questionCategoryDescription = 'Extract specific values from specific records';
             fieledRetrivalAndStructureAwareness += weightPerc;
             break;
           case "structure_awareness":
-            questionCategory = 'Structure Awareness';
             questionCategoryDescription = 'Understand data shape, organization, metadata';
             fieledRetrivalAndStructureAwareness += weightPerc;
             break;
           case "filtering":
-            questionCategory = 'Filtering';
             questionCategoryDescription = 'Count records matching criteria';
             filteringAndAggregation += weightPerc;
             break;
           case "aggregation":
-            questionCategory = 'Aggregation';
             questionCategoryDescription = 'Sum, average, min/max calculations';
             filteringAndAggregation += weightPerc;
             break;
         }
 
-        this.line(`   - **${questionCategory} (${q[1]} questions, ${weightPerc.toFixed(2)}% weight):** ${questionCategoryDescription}`);
+        this.line(`   - **${this.getQuestionCategoryLabel(q[0])} (${q[1]} questions, ${weightPerc.toFixed(2)}% weight):** ${questionCategoryDescription}`);
       });
       this.line();
       
@@ -332,7 +327,7 @@ class ReportGenerator {
     this.line();
     this.heading(4, '2.1.1 Best results');
     this.line();
-    this.line('- Lowest total token cost formats:');
+    this.line('- Lowest total token cost:');
     this.line(`   - Optional: ${optionalLowestTokenCost.format.toUpperCase()} ${Math.round(optionalLowestTokenCost.totalTokensUsed)} tokens`);
     this.line(`   - Mandatory: ${mandatoryLowestTokenCost.format.toUpperCase()} ${Math.round(mandatoryLowestTokenCost.totalTokensUsed)} tokens`);
     this.line('- Highest accuracy:');
@@ -351,7 +346,7 @@ class ReportGenerator {
     this.line();
     this.heading(4, '2.1.2 Worst results');
     this.line();
-    this.line('- Highest total token cost formats:');
+    this.line('- Highest total token cost:');
     this.line(`   - Optional: ${optionalHighestTokenCost.format.toUpperCase()} ${Math.round(optionalHighestTokenCost.totalTokensUsed)} tokens`);
     this.line(`   - Mandatory: ${mandatoryHighestTokenCost.format.toUpperCase()} ${Math.round(mandatoryHighestTokenCost.totalTokensUsed)} tokens`);
     this.line('- Lowest accuracy:');
