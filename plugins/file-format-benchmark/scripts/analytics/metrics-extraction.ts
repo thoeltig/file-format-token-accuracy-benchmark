@@ -702,7 +702,7 @@ class MetricsExtraction {
   }  
 
   private calcDriftPerc(avg: number, val: number): number{
-    return ((val - avg) / avg) * 100;
+    return Math.round(((val - avg) / avg) * 100 * 100) / 100;
   }
 }
 

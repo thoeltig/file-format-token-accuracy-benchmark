@@ -229,9 +229,16 @@ export interface MergedValidationReport {
   recordCount: number;
   testRuns: number;
   totalQuestions: number;
-  accuracy: AnswerAccuracy;
+  accuracy: AvgAnswerAccuracy;
   perRunAccuracy: PerTestRunAnswerAccuracy[];
   questionsAndProvidedAnswers: QuestionsAndProvidedAnswers[];
+}
+
+export interface AvgAnswerAccuracy extends AnswerAccuracy{
+  accuracyDriftPercMin: number;
+  accuracyDriftPercMax: number;
+  weightedAccuracyDriftPercMin: number;
+  weightedAccuracyDriftPercMax: number;
 }
 
 export interface AnswerAccuracy {

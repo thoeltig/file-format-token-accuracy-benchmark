@@ -73,8 +73,12 @@ class ReportValidator {
                         correct: 0,
                         incorrect: 0,
                         accuracyPercent: 0,
-                        weightedAccuracyPercent: 0
-                },
+                        accuracyDriftPercMin: 0,
+                        accuracyDriftPercMax: 0,
+                        weightedAccuracyPercent: 0,
+                        weightedAccuracyDriftPercMin: 0,
+                        weightedAccuracyDriftPercMax: 0
+                    },
                 perRunAccuracy:[],
                 questionsAndProvidedAnswers: groundTruthQuestions.map<QuestionsAndProvidedAnswers>(x => {
                     return {
@@ -127,6 +131,11 @@ class ReportValidator {
             report.accuracy.accuracyPercent =  Math.round((report.perRunAccuracy.reduce((sum, r) => sum + r.accuracyPercent, 0) / report.perRunAccuracy.length) * 100)/100;
             report.accuracy.weightedAccuracyPercent =  Math.round((report.perRunAccuracy.reduce((sum, r) => sum + r.weightedAccuracyPercent, 0) / report.perRunAccuracy.length) * 100)/100;
             
+            report.accuracy.accuracyDriftPercMin = this.calcDriftPerc(report.accuracy.accuracyPercent, Math.min(...report.perRunAccuracy.map(x => x.accuracyPercent)));
+            report.accuracy.accuracyDriftPercMax = this.calcDriftPerc(report.accuracy.accuracyPercent, Math.max(...report.perRunAccuracy.map(x => x.accuracyPercent)));
+            report.accuracy.weightedAccuracyDriftPercMin = this.calcDriftPerc(report.accuracy.weightedAccuracyPercent, Math.min(...report.perRunAccuracy.map(x => x.weightedAccuracyPercent)));
+            report.accuracy.weightedAccuracyDriftPercMax = this.calcDriftPerc(report.accuracy.weightedAccuracyPercent, Math.max(...report.perRunAccuracy.map(x => x.weightedAccuracyPercent)));
+            
             const statusIcon = report.accuracy.accuracyPercent === 100 ? "✓" : report.accuracy.accuracyPercent >= 90 ? "◐" : "✗";
             console.log(`${statusIcon} ${testCase.format.padEnd(15)} ${testCase.structure.padEnd(8)} ${testCase.variant.padEnd(10)} ${String(testCase.recordCount).padEnd(4)} → ${report.accuracy.accuracyPercent.toFixed(3)}%`);
 
@@ -139,6 +148,10 @@ class ReportValidator {
 
         console.log(`\n✓ Validation complete. Results saved to: ${this.resultsDir}\n`);
         return results;
+    }
+    
+    private calcDriftPerc(avg: number, val: number): number{
+        return Math.round(((val - avg) / avg) * 100 * 100) / 100;
     }
     
     private findTestCases(dir: string): Map<string,TestCase> {
