@@ -9,7 +9,7 @@ import { discoverAgents } from "./analytics/agent-discovery";
 import MetricsExtraction from "./analytics/metrics-extraction";
 import { GeneratorResult, MergedValidationReport, QuestionCategory, UserMetrics } from "./types";
 import ReportValidator from "./validators/reportValidator";
-import { DIRECTORY_ANSWERS_VALIDATION, FILE_ANALYTICS_RESULT, FILE_METADATA, FILE_METRICS, QUESTIONS_DISTRIBUTION, QUESTIONS_WEIGHT_DISTRIBUTION } from "./consts";
+import { DIRECTORY_ANSWERS_VALIDATION, FILE_AGENT_ID, FILE_ANALYTICS_RESULT, FILE_METADATA, FILE_METRICS, QUESTIONS_DISTRIBUTION, QUESTIONS_WEIGHT_DISTRIBUTION } from "./consts";
 
 interface TestMetrics {
   testCase: string;
@@ -124,11 +124,11 @@ class BenchmarkAnalytics {
   private metricsFile: string;
   private agentIdsFile: string;
 
-  constructor(agentIdsFile: string, outputDir: string) {
-    this.agentIdsFile = agentIdsFile;
+  constructor(outputDir: string) {
     this.outputDir = outputDir;
+    this.agentIdsFile = path.join(outputDir, FILE_AGENT_ID);
     this.validationDir = path.join(outputDir, DIRECTORY_ANSWERS_VALIDATION);
-    this.metadataFile = path.join(this.outputDir, FILE_METADATA);
+    this.metadataFile = path.join(outputDir, FILE_METADATA);
     this.outputFile = path.join(outputDir, FILE_ANALYTICS_RESULT);
     this.metricsFile = path.join(outputDir, FILE_METRICS);
   }
@@ -136,15 +136,24 @@ class BenchmarkAnalytics {
   public analyze(): void {
     console.log("Extracting metrics from agent transcripts...");
     const userMetrics = this.extractMetrics();
-    
+    if(userMetrics.length === 0){
+      return;
+    }
+
     console.log("Validating results...");
     const validationResults = this.validateResults();
+    if(validationResults.size === 0){
+      return;
+    }
 
     console.log("Loading metadata...");
     const metadata = this.loadMetadata();
 
     console.log("Calculating metrics...");
     const testMetrics = this.calculateMetrics(userMetrics, metadata, validationResults);
+    if(testMetrics.length === 0){
+      return;
+    }
 
     console.log("Generating insights...");
     const analytics = this.generateAnalytics(testMetrics);
@@ -440,7 +449,7 @@ class BenchmarkAnalytics {
     }
 
     const output = { ...analytics, metrics: analytics.metrics };
-    fs.writeFileSync(this.outputFile, JSON.stringify(output));
+    fs.writeFileSync(this.outputFile, JSON.stringify(output, null, 4));
   }
 }
 
@@ -472,8 +481,8 @@ if (require.main === module) {
     var agentIds = discoverAgents(sessionId);
     
     // Write agent_ids.json
-    const agentIdsFile = path.join(outputDir, 'agent_ids.json');
-    fs.writeFileSync(agentIdsFile, JSON.stringify(agentIds, null, 2));
+      const agentIdsFile = path.join(outputDir, FILE_AGENT_ID);
+      fs.writeFileSync(agentIdsFile, JSON.stringify(agentIds, null, 4));
 
     // Step 2: Run analytics with discovered agent IDs
     console.log(`\nStep 2: Running analytics...`);

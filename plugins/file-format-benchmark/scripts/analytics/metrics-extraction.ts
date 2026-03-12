@@ -615,7 +615,7 @@ class MetricsExtraction {
       fs.mkdirSync(dir, { recursive: true });
     }
 
-    fs.writeFileSync(this.outputFile, JSON.stringify(metrics));
+    fs.writeFileSync(this.outputFile, JSON.stringify(metrics, null, 4));
   }
 
   private mergeCombinedMetrics(combinedMetrics: CombinedMetrics): UserMetrics[] {
