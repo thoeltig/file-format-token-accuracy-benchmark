@@ -484,7 +484,7 @@ if (require.main === module) {
       
       // Write agent_ids.json
       const agentIdsFile = path.join(outputDir, FILE_AGENT_ID);
-      fs.writeFileSync(agentIdsFile, JSON.stringify(agentIds, null, 4));
+      fs.writeFileSync(agentIdsFile, JSON.stringify(agentIds, null, 2));
     }
     else{      
       console.log(`\nStep 1: Skip agent id extraction, metrics file already exists...`);
