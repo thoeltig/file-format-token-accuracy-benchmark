@@ -10,6 +10,7 @@ export const DIRECTORIES: Directory[] = [DIRECTORY_DATA, DIRECTORY_ANSWERS_VALID
 
 export const FORMATS: Format[] = ["csv", "json_pretty", "json_compact", "toon_safe", "toon_unsafe", "xml_pretty", "xml_compact", "yaml"];
 
+export const FILE_AGENT_ID:string = 'agent_ids.json';
 export const FILE_METADATA:string = "metadata.json";
 export const FILE_ANALYTICS_RESULT:string  = "analytics_results.json";
 export const FILE_METRICS:string = "metrics.json";

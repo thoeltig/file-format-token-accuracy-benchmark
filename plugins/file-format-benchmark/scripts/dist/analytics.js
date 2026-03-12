@@ -43,23 +43,32 @@ class BenchmarkAnalytics {
     outputFile;
     metricsFile;
     agentIdsFile;
-    constructor(agentIdsFile, outputDir) {
-        this.agentIdsFile = agentIdsFile;
+    constructor(outputDir) {
         this.outputDir = outputDir;
+        this.agentIdsFile = path.join(outputDir, consts_1.FILE_AGENT_ID);
         this.validationDir = path.join(outputDir, consts_1.DIRECTORY_ANSWERS_VALIDATION);
-        this.metadataFile = path.join(this.outputDir, consts_1.FILE_METADATA);
+        this.metadataFile = path.join(outputDir, consts_1.FILE_METADATA);
         this.outputFile = path.join(outputDir, consts_1.FILE_ANALYTICS_RESULT);
         this.metricsFile = path.join(outputDir, consts_1.FILE_METRICS);
     }
     analyze() {
         console.log("Extracting metrics from agent transcripts...");
         const userMetrics = this.extractMetrics();
+        if (userMetrics.length === 0) {
+            return;
+        }
         console.log("Validating results...");
         const validationResults = this.validateResults();
+        if (validationResults.size === 0) {
+            return;
+        }
         console.log("Loading metadata...");
         const metadata = this.loadMetadata();
         console.log("Calculating metrics...");
         const testMetrics = this.calculateMetrics(userMetrics, metadata, validationResults);
+        if (testMetrics.length === 0) {
+            return;
+        }
         console.log("Generating insights...");
         const analytics = this.generateAnalytics(testMetrics);
         console.log(`Writing results to ${this.outputFile}...`);
@@ -68,10 +77,6 @@ class BenchmarkAnalytics {
         console.log(`\nResults saved to: ${this.outputFile}`);
     }
     extractMetrics() {
-        if (!fs.existsSync(this.agentIdsFile)) {
-            console.warn(`AgentId file not found: ${this.agentIdsFile}`);
-            return [];
-        }
         try {
             const extraction = new metrics_extraction_1.default(this.agentIdsFile, this.metricsFile);
             return extraction.extract();
@@ -163,7 +168,11 @@ class BenchmarkAnalytics {
                 readDurationInMilliseconds: userMetric.readDurationInMilliseconds,
                 readTokensPerMillisecond: parseFloat((userMetric.readTokens / userMetric.readDurationInMilliseconds).toFixed(3)),
                 avgOutputTokens: userMetric.outputTokens,
+                minOutputTokensDriftPerc: parseFloat(userMetric.outputTokensDriftPercMin.toFixed(2)),
+                maxOutputTokensDriftPerc: parseFloat(userMetric.outputTokensDriftPercMax.toFixed(2)),
                 avgReasoningDurationInMilliseconds: userMetric.reasoningDurationInMilliseconds,
+                minReasoningDurationDriftPerc: parseFloat(userMetric.reasoningDurationDriftPercMin.toFixed(2)),
+                maxReasoningDurationDriftPerc: parseFloat(userMetric.reasoningDurationDriftPercMax.toFixed(2)),
                 avgReasoningTokensPerMillisecond: parseFloat((userMetric.outputTokens / userMetric.reasoningDurationInMilliseconds).toFixed(3)),
                 totalQuestions: validation.totalQuestions,
                 avgNoAnswers: validation.totalQuestions - validation.accuracy.correct - validation.accuracy.incorrect,
@@ -306,7 +315,7 @@ class BenchmarkAnalytics {
             fs.mkdirSync(dir, { recursive: true });
         }
         const output = { ...analytics, metrics: analytics.metrics };
-        fs.writeFileSync(this.outputFile, JSON.stringify(output));
+        fs.writeFileSync(this.outputFile, JSON.stringify(output, null, 4));
     }
 }
 // CLI entry point
@@ -324,20 +333,30 @@ if (require.main === module) {
                 break;
         }
     }
-    if (!sessionId || !outputDir) {
+    if (!outputDir) {
+        console.error("Usage: node dist/analytics.js --session-id <id> --output <dir>");
+        process.exit(1);
+    }
+    const needToLoadMetrics = fs.existsSync(path.join(outputDir, consts_1.FILE_METRICS)) === false;
+    if (needToLoadMetrics && !sessionId) {
         console.error("Usage: node dist/analytics.js --session-id <id> --output <dir>");
         process.exit(1);
     }
     try {
-        // Step 1: Discover agents from session and generate agent_ids.json
-        console.log(`\nStep 1: Discovering agents from session ${sessionId}...`);
-        var agentIds = (0, agent_discovery_1.discoverAgents)(sessionId);
-        // Write agent_ids.json
-        const agentIdsFile = path.join(outputDir, 'agent_ids.json');
-        fs.writeFileSync(agentIdsFile, JSON.stringify(agentIds, null, 2));
+        if (needToLoadMetrics && sessionId) {
+            // Step 1: Discover agents from session and generate agent_ids.json if not already done
+            console.log(`\nStep 1: Discovering agents from session ${sessionId}...`);
+            var agentIds = (0, agent_discovery_1.discoverAgents)(sessionId);
+            // Write agent_ids.json
+            const agentIdsFile = path.join(outputDir, consts_1.FILE_AGENT_ID);
+            fs.writeFileSync(agentIdsFile, JSON.stringify(agentIds, null, 2));
+        }
+        else {
+            console.log(`\nStep 1: Skip agent id extraction, metrics file already exists...`);
+        }
         // Step 2: Run analytics with discovered agent IDs
         console.log(`\nStep 2: Running analytics...`);
-        const analytics = new BenchmarkAnalytics(agentIdsFile, outputDir);
+        const analytics = new BenchmarkAnalytics(outputDir);
         analytics.analyze();
     }
     catch (err) {

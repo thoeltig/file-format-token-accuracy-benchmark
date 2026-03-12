@@ -27,8 +27,12 @@ interface ReasoningMetricsFile {
   recordCount: number;
   testRuns: number;
   durationMs: number;
+  durationMsMin: number;
+  durationMsMax: number;
   // Output tokens contain the tokens generated for the output of the LLM and include the reasoning tokens
   outputTokens: number;
+  outputTokensMin: number;
+  outputTokensMax: number;
 }
 
 interface CombinedMetrics {
@@ -66,6 +70,21 @@ class MetricsExtraction {
   }
 
   public extract(): UserMetrics[] {
+    if (fs.existsSync(this.outputFile)) {
+      try{
+        const content = fs.readFileSync(this.outputFile, "utf-8");
+        const combined = JSON.parse(content) as CombinedMetrics;
+        console.log("✓ Metrics loaded");
+        return this.mergeCombinedMetrics(combined);
+      }
+      catch{ }
+    }
+    
+    if (!fs.existsSync(this.agentIdsFile)) {
+      console.warn(`AgentId file not found: ${this.agentIdsFile}`);
+      return [];
+    }
+
     console.log("Loading agent IDs from file...");
     const agentIds = this.loadAgentIds();
 
@@ -441,7 +460,11 @@ class MetricsExtraction {
           recordCount: entry.recordCount,
           testRuns: 0, // Will be set during aggregation
           durationMs: metrics.duration_ms || 0,
+          durationMsMin: metrics.duration_ms || 0,
+          durationMsMax: metrics.duration_ms || 0,
           outputTokens: metrics.output_tokens,
+          outputTokensMin: metrics.output_tokens,
+          outputTokensMax: metrics.output_tokens,
         });
       }
     }
@@ -570,7 +593,11 @@ class MetricsExtraction {
           recordCount: firstMetric.recordCount,
           testRuns: metricsFilesCount,
           durationMs: parseFloat(avg_duration.toFixed(3)),
+          durationMsMin: Math.min(...metrics.map(x=>x.durationMs)),
+          durationMsMax: Math.max(...metrics.map(x=>x.durationMs)),
           outputTokens: parseFloat(avg_output.toFixed(3)),
+          outputTokensMin: Math.min(...metrics.map(x=>x.outputTokens)),
+          outputTokensMax: Math.max(...metrics.map(x=>x.outputTokens)),
         });
       }
     }
@@ -615,7 +642,7 @@ class MetricsExtraction {
       fs.mkdirSync(dir, { recursive: true });
     }
 
-    fs.writeFileSync(this.outputFile, JSON.stringify(metrics));
+    fs.writeFileSync(this.outputFile, JSON.stringify(metrics, null, 4));
   }
 
   private mergeCombinedMetrics(combinedMetrics: CombinedMetrics): UserMetrics[] {
@@ -663,12 +690,20 @@ class MetricsExtraction {
         readDurationInMilliseconds: readData.readDurationMs,
         readTokens: readData.readTokens,
         reasoningDurationInMilliseconds: reasoning.durationMs,
+        reasoningDurationDriftPercMax: this.calcDriftPerc(reasoning.durationMs, reasoning.durationMsMax),
+        reasoningDurationDriftPercMin: this.calcDriftPerc(reasoning.durationMs, reasoning.durationMsMin),
         outputTokens: reasoning.outputTokens,
+        outputTokensDriftPercMin: this.calcDriftPerc(reasoning.outputTokens, reasoning.outputTokensMin),
+        outputTokensDriftPercMax: this.calcDriftPerc(reasoning.outputTokens, reasoning.outputTokensMax),
       });
     }
 
     return merged;
   }  
+
+  private calcDriftPerc(avg: number, val: number): number{
+    return Math.round(((val - avg) / avg) * 100 * 100) / 100;
+  }
 }
 
 export default MetricsExtraction;
