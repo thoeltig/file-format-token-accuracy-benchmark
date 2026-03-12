@@ -374,7 +374,11 @@ export interface UserMetrics {
   readDurationInMilliseconds: number;
   readTokens: number;
   reasoningDurationInMilliseconds: number;
+  reasoningDurationDriftPercMin: number;
+  reasoningDurationDriftPercMax: number;
   outputTokens: number;
+  outputTokensDriftPercMin: number;
+  outputTokensDriftPercMax: number;
 }
 
 // ============================================================================

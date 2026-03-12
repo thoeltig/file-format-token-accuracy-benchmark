@@ -27,8 +27,12 @@ interface ReasoningMetricsFile {
   recordCount: number;
   testRuns: number;
   durationMs: number;
+  durationMsMin: number;
+  durationMsMax: number;
   // Output tokens contain the tokens generated for the output of the LLM and include the reasoning tokens
   outputTokens: number;
+  outputTokensMin: number;
+  outputTokensMax: number;
 }
 
 interface CombinedMetrics {
@@ -456,7 +460,11 @@ class MetricsExtraction {
           recordCount: entry.recordCount,
           testRuns: 0, // Will be set during aggregation
           durationMs: metrics.duration_ms || 0,
+          durationMsMin: metrics.duration_ms || 0,
+          durationMsMax: metrics.duration_ms || 0,
           outputTokens: metrics.output_tokens,
+          outputTokensMin: metrics.output_tokens,
+          outputTokensMax: metrics.output_tokens,
         });
       }
     }
@@ -585,7 +593,11 @@ class MetricsExtraction {
           recordCount: firstMetric.recordCount,
           testRuns: metricsFilesCount,
           durationMs: parseFloat(avg_duration.toFixed(3)),
+          durationMsMin: Math.min(...metrics.map(x=>x.durationMs)),
+          durationMsMax: Math.max(...metrics.map(x=>x.durationMs)),
           outputTokens: parseFloat(avg_output.toFixed(3)),
+          outputTokensMin: Math.min(...metrics.map(x=>x.outputTokens)),
+          outputTokensMax: Math.max(...metrics.map(x=>x.outputTokens)),
         });
       }
     }
@@ -678,12 +690,20 @@ class MetricsExtraction {
         readDurationInMilliseconds: readData.readDurationMs,
         readTokens: readData.readTokens,
         reasoningDurationInMilliseconds: reasoning.durationMs,
+        reasoningDurationDriftPercMax: this.calcDriftPerc(reasoning.durationMs, reasoning.durationMsMax),
+        reasoningDurationDriftPercMin: this.calcDriftPerc(reasoning.durationMs, reasoning.durationMsMin),
         outputTokens: reasoning.outputTokens,
+        outputTokensDriftPercMin: this.calcDriftPerc(reasoning.outputTokens, reasoning.outputTokensMin),
+        outputTokensDriftPercMax: this.calcDriftPerc(reasoning.outputTokens, reasoning.outputTokensMax),
       });
     }
 
     return merged;
   }  
+
+  private calcDriftPerc(avg: number, val: number): number{
+    return ((val - avg) / avg) * 100;
+  }
 }
 
 export default MetricsExtraction;

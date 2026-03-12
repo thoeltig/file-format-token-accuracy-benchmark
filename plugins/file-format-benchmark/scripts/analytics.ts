@@ -27,7 +27,11 @@ interface TestMetrics {
   
   // Full test extraction script result
   avgOutputTokens: number;
+  minOutputTokensDriftPerc: number;
+  maxOutputTokensDriftPerc: number;
   avgReasoningDurationInMilliseconds: number;
+  minReasoningDurationDriftPerc: number;
+  maxReasoningDurationDriftPerc: number;
   avgReasoningTokensPerMillisecond: number;
 
   // Validation script result
@@ -272,7 +276,11 @@ class BenchmarkAnalytics {
         readTokensPerMillisecond: parseFloat((userMetric.readTokens / userMetric.readDurationInMilliseconds).toFixed(3)),
 
         avgOutputTokens: userMetric.outputTokens,
+        minOutputTokensDriftPerc: parseFloat(userMetric.outputTokensDriftPercMin.toFixed(2)),
+        maxOutputTokensDriftPerc: parseFloat(userMetric.outputTokensDriftPercMax.toFixed(2)),
         avgReasoningDurationInMilliseconds: userMetric.reasoningDurationInMilliseconds,
+        minReasoningDurationDriftPerc: parseFloat(userMetric.reasoningDurationDriftPercMin.toFixed(2)),
+        maxReasoningDurationDriftPerc: parseFloat(userMetric.reasoningDurationDriftPercMax.toFixed(2)),
         avgReasoningTokensPerMillisecond: parseFloat((userMetric.outputTokens / userMetric.reasoningDurationInMilliseconds).toFixed(3)),
 
         totalQuestions: validation.totalQuestions,
