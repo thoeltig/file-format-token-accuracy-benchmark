@@ -66,6 +66,21 @@ class MetricsExtraction {
   }
 
   public extract(): UserMetrics[] {
+    if (fs.existsSync(this.outputFile)) {
+      try{
+        const content = fs.readFileSync(this.outputFile, "utf-8");
+        const combined = JSON.parse(content) as CombinedMetrics;
+        console.log("✓ Metrics loaded");
+        return this.mergeCombinedMetrics(combined);
+      }
+      catch{ }
+    }
+    
+    if (!fs.existsSync(this.agentIdsFile)) {
+      console.warn(`AgentId file not found: ${this.agentIdsFile}`);
+      return [];
+    }
+
     console.log("Loading agent IDs from file...");
     const agentIds = this.loadAgentIds();
 

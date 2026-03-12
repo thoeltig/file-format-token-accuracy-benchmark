@@ -166,11 +166,6 @@ class BenchmarkAnalytics {
   }
 
   private extractMetrics(): UserMetrics[] {
-    if (!fs.existsSync(this.agentIdsFile)) {
-      console.warn(`AgentId file not found: ${this.agentIdsFile}`);
-      return [];
-    }
-
     try {
       const extraction = new MetricsExtraction(this.agentIdsFile, this.metricsFile);
       return extraction.extract();
@@ -470,23 +465,34 @@ if (require.main === module) {
     }
   }
 
-  if (!sessionId || !outputDir) {
+  if (!outputDir) {
+    console.error("Usage: node dist/analytics.js --session-id <id> --output <dir>");
+    process.exit(1);
+  }
+  
+  const needToLoadMetrics = fs.existsSync(path.join(outputDir, FILE_METRICS)) === false;
+  if (needToLoadMetrics && !sessionId) {
     console.error("Usage: node dist/analytics.js --session-id <id> --output <dir>");
     process.exit(1);
   }
 
   try {
-    // Step 1: Discover agents from session and generate agent_ids.json
-    console.log(`\nStep 1: Discovering agents from session ${sessionId}...`);
-    var agentIds = discoverAgents(sessionId);
-    
-    // Write agent_ids.json
+    if(needToLoadMetrics && sessionId){
+      // Step 1: Discover agents from session and generate agent_ids.json if not already done
+      console.log(`\nStep 1: Discovering agents from session ${sessionId}...`);
+      var agentIds = discoverAgents(sessionId);
+      
+      // Write agent_ids.json
       const agentIdsFile = path.join(outputDir, FILE_AGENT_ID);
       fs.writeFileSync(agentIdsFile, JSON.stringify(agentIds, null, 4));
+    }
+    else{      
+      console.log(`\nStep 1: Skip agent id extraction, metrics file already exists...`);
+    }
 
     // Step 2: Run analytics with discovered agent IDs
     console.log(`\nStep 2: Running analytics...`);
-    const analytics = new BenchmarkAnalytics(agentIdsFile, outputDir);
+    const analytics = new BenchmarkAnalytics(outputDir);
     analytics.analyze();
   } catch (err) {
     console.error(`Error: ${err}`);
