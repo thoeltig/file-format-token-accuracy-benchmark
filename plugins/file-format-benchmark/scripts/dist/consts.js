@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.QUESTIONS_WEIGHT_DISTRIBUTION = exports.QUESTIONS_DISTRIBUTION = exports.QUESTIONS_COUNT = exports.VARIANTS = exports.RECORD_COUNT = exports.FILE_METRICS = exports.FILE_ANALYTICS_RESULT = exports.FILE_METADATA = exports.FORMATS = exports.DIRECTORIES = exports.DIRECTORY_RESULTS = exports.DIRECTORY_SUBAGENT_OUTPUT = exports.DIRECTORY_ANSWERS_TEMPLATE = exports.DIRECTORY_QUESTIONS = exports.DIRECTORY_ANSWERS_VALIDATION = exports.DIRECTORY_DATA = void 0;
+exports.QUESTIONS_WEIGHT_DISTRIBUTION = exports.QUESTIONS_DISTRIBUTION = exports.QUESTIONS_COUNT = exports.VARIANTS = exports.RECORD_COUNT = exports.FILE_METRICS = exports.FILE_ANALYTICS_RESULT = exports.FILE_METADATA = exports.FILE_AGENT_ID = exports.FORMATS = exports.DIRECTORIES = exports.DIRECTORY_RESULTS = exports.DIRECTORY_SUBAGENT_OUTPUT = exports.DIRECTORY_ANSWERS_TEMPLATE = exports.DIRECTORY_QUESTIONS = exports.DIRECTORY_ANSWERS_VALIDATION = exports.DIRECTORY_DATA = void 0;
 exports.DIRECTORY_DATA = "data";
 exports.DIRECTORY_ANSWERS_VALIDATION = "answers_validation";
 exports.DIRECTORY_QUESTIONS = "questions";
@@ -9,6 +9,7 @@ exports.DIRECTORY_SUBAGENT_OUTPUT = "subagent_outputs";
 exports.DIRECTORY_RESULTS = "results";
 exports.DIRECTORIES = [exports.DIRECTORY_DATA, exports.DIRECTORY_ANSWERS_VALIDATION, exports.DIRECTORY_QUESTIONS, exports.DIRECTORY_ANSWERS_TEMPLATE, exports.DIRECTORY_SUBAGENT_OUTPUT, exports.DIRECTORY_RESULTS];
 exports.FORMATS = ["csv", "json_pretty", "json_compact", "toon_safe", "toon_unsafe", "xml_pretty", "xml_compact", "yaml"];
+exports.FILE_AGENT_ID = 'agent_ids.json';
 exports.FILE_METADATA = "metadata.json";
 exports.FILE_ANALYTICS_RESULT = "analytics_results.json";
 exports.FILE_METRICS = "metrics.json";

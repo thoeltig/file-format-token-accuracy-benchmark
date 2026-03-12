@@ -229,9 +229,16 @@ export interface MergedValidationReport {
   recordCount: number;
   testRuns: number;
   totalQuestions: number;
-  accuracy: AnswerAccuracy;
+  accuracy: AvgAnswerAccuracy;
   perRunAccuracy: PerTestRunAnswerAccuracy[];
   questionsAndProvidedAnswers: QuestionsAndProvidedAnswers[];
+}
+
+export interface AvgAnswerAccuracy extends AnswerAccuracy{
+  accuracyDriftPercMin: number;
+  accuracyDriftPercMax: number;
+  weightedAccuracyDriftPercMin: number;
+  weightedAccuracyDriftPercMax: number;
 }
 
 export interface AnswerAccuracy {
@@ -374,7 +381,11 @@ export interface UserMetrics {
   readDurationInMilliseconds: number;
   readTokens: number;
   reasoningDurationInMilliseconds: number;
+  reasoningDurationDriftPercMin: number;
+  reasoningDurationDriftPercMax: number;
   outputTokens: number;
+  outputTokensDriftPercMin: number;
+  outputTokensDriftPercMax: number;
 }
 
 // ============================================================================
@@ -425,7 +436,11 @@ export interface Metrics {
   
   // Full test extraction script result
   avgOutputTokens: number;
+  minOutputTokensDriftPerc: number;
+  maxOutputTokensDriftPerc: number;
   avgReasoningDurationInMilliseconds: number;
+  minReasoningDurationDriftPerc: number;
+  maxReasoningDurationDriftPerc: number;
   avgReasoningTokensPerMillisecond: number;
 
   // Validation script result
