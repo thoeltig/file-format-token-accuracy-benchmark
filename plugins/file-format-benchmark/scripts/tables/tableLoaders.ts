@@ -14,16 +14,20 @@ export interface AggregatedMetric extends Metrics {
   tokensPerObjectDelta: number;
   readDurationInMillisecondsDelta: number;
   outputDurationInMillisecondsDelta: number;
+  absOutputDurationDriftPerc: number;
   totalDurationInMillisecondsDelta: number;
   readTokensDelta: number;
   outputTokensDelta: number;
+  absOutputTokensDriftPerc: number;
   totalTokensDelta: number;
   efficientlyUsedTokensyDelta: number;
   costOfInaccuracyDelta: number;
   correctAnswersDelta: number;
   incorrectAnswersDelta: number;
   accuracyDelta: number;
+  absAccuracyDriftPerc: number;
   weightedAccuracyDelta: number;
+  absweightedAccuracyDriftPerc: number;
   efficiencyDelta: number;
   weightedEfficiencyDelta: number;
   informationValuePerTokenDelta: number;
@@ -134,7 +138,11 @@ export function aggregateMetrics(metrics: TestMetrics[]): AggregatedMetric[] {
       totalDurationInMillisecondsDelta: 0,
       charsPerTokenDelta: 0,
       tokensPerValueDelta: 0,
-      tokensPerObjectDelta: 0
+      tokensPerObjectDelta: 0,
+      absOutputDurationDriftPerc: 0,
+      absOutputTokensDriftPerc: 0,
+      absAccuracyDriftPerc: 0,
+      absweightedAccuracyDriftPerc: 0
     };
 
     tests.forEach(t => {
@@ -203,7 +211,11 @@ export function aggregateMetrics(metrics: TestMetrics[]): AggregatedMetric[] {
     avgTest.weightedEfficientlyUsedTokens /= count;
     avgTest.efficiencyScore /= count;
     avgTest.weightedEfficiencyScore /= count;
-
+    avgTest.absOutputDurationDriftPerc = Math.abs(avgTest.minReasoningDurationDriftPerc) + avgTest.maxReasoningDurationDriftPerc;
+    avgTest.absOutputTokensDriftPerc = Math.abs(avgTest.minOutputTokensDriftPerc) + avgTest.maxOutputTokensDriftPerc;
+    avgTest.absAccuracyDriftPerc = Math.abs(avgTest.minAccuracyDriftPercent) + avgTest.maxAccuracyDriftPercent;
+    avgTest.absweightedAccuracyDriftPerc = Math.abs(avgTest.minWeightedAccuracyDriftPercent) + avgTest.maxWeightedAccuracyDriftPercent;
+    
     aggregated.push(avgTest);
   });
 

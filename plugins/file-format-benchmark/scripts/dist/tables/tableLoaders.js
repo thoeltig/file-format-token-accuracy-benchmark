@@ -108,7 +108,11 @@ function aggregateMetrics(metrics) {
             totalDurationInMillisecondsDelta: 0,
             charsPerTokenDelta: 0,
             tokensPerValueDelta: 0,
-            tokensPerObjectDelta: 0
+            tokensPerObjectDelta: 0,
+            absOutputDurationDriftPerc: 0,
+            absOutputTokensDriftPerc: 0,
+            absAccuracyDriftPerc: 0,
+            absweightedAccuracyDriftPerc: 0
         };
         tests.forEach(t => {
             avgTest.readTokens += t.readTokens;
@@ -175,6 +179,10 @@ function aggregateMetrics(metrics) {
         avgTest.weightedEfficientlyUsedTokens /= count;
         avgTest.efficiencyScore /= count;
         avgTest.weightedEfficiencyScore /= count;
+        avgTest.absOutputDurationDriftPerc = Math.abs(avgTest.minReasoningDurationDriftPerc) + avgTest.maxReasoningDurationDriftPerc;
+        avgTest.absOutputTokensDriftPerc = Math.abs(avgTest.minOutputTokensDriftPerc) + avgTest.maxOutputTokensDriftPerc;
+        avgTest.absAccuracyDriftPerc = Math.abs(avgTest.minAccuracyDriftPercent) + avgTest.maxAccuracyDriftPercent;
+        avgTest.absweightedAccuracyDriftPerc = Math.abs(avgTest.minWeightedAccuracyDriftPercent) + avgTest.maxWeightedAccuracyDriftPercent;
         aggregated.push(avgTest);
     });
     // Calculate deltas
