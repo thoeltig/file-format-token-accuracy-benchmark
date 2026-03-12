@@ -90,14 +90,22 @@ export function aggregateMetrics(metrics: TestMetrics[]): AggregatedMetric[] {
       readDurationInMilliseconds: 0,
       readTokensPerMillisecond: 0,
       avgOutputTokens: 0,
+      minOutputTokensDriftPerc: 0,
+      maxOutputTokensDriftPerc: 0,
       avgReasoningDurationInMilliseconds: 0,
+      minReasoningDurationDriftPerc: 0,
+      maxReasoningDurationDriftPerc: 0,
       avgReasoningTokensPerMillisecond: 0,
       totalQuestions: 0,
       avgNoAnswers: 0,
       avgIncorrectAnswers: 0,
       avgCorrectAnswers: 0,
       avgAccuracyPercent: 0,
+      minAccuracyDriftPercent: 0,
+      maxAccuracyDriftPercent: 0, 
       avgWeightedAccuracyPercent: 0,
+      minWeightedAccuracyDriftPercent: 0,
+      maxWeightedAccuracyDriftPercent: 0,
       charsPerToken: 0,
       tokensPerValue: 0,
       tokensPerObject: 0,
@@ -134,14 +142,22 @@ export function aggregateMetrics(metrics: TestMetrics[]): AggregatedMetric[] {
       avgTest.readDurationInMilliseconds += t.readDurationInMilliseconds;
       avgTest.readTokensPerMillisecond += t.readTokensPerMillisecond;
       avgTest.avgOutputTokens += t.avgOutputTokens;
+      avgTest.minOutputTokensDriftPerc += t.minOutputTokensDriftPerc;
+      avgTest.maxOutputTokensDriftPerc += t.maxOutputTokensDriftPerc;
       avgTest.avgReasoningDurationInMilliseconds += t.avgReasoningDurationInMilliseconds;
+      avgTest.minReasoningDurationDriftPerc += t.minReasoningDurationDriftPerc;
+      avgTest.maxReasoningDurationDriftPerc += t.maxReasoningDurationDriftPerc;
       avgTest.avgReasoningTokensPerMillisecond += t.avgReasoningTokensPerMillisecond;
       avgTest.totalQuestions += t.totalQuestions;
       avgTest.avgNoAnswers += t.avgNoAnswers;
       avgTest.avgIncorrectAnswers += t.avgIncorrectAnswers;
       avgTest.avgCorrectAnswers += t.avgCorrectAnswers;
       avgTest.avgAccuracyPercent += t.avgAccuracyPercent;
+      avgTest.minAccuracyDriftPercent += t.minAccuracyDriftPercent;
+      avgTest.maxAccuracyDriftPercent += t.maxAccuracyDriftPercent;
       avgTest.avgWeightedAccuracyPercent += t.avgWeightedAccuracyPercent;
+      avgTest.minWeightedAccuracyDriftPercent += t.minWeightedAccuracyDriftPercent;
+      avgTest.maxWeightedAccuracyDriftPercent += t.maxWeightedAccuracyDriftPercent;
       avgTest.charsPerToken += t.charsPerToken;
       avgTest.tokensPerValue += t.tokensPerValue;
       avgTest.tokensPerObject += t.tokensPerObject;
@@ -160,14 +176,22 @@ export function aggregateMetrics(metrics: TestMetrics[]): AggregatedMetric[] {
     avgTest.readDurationInMilliseconds /= count;
     avgTest.readTokensPerMillisecond /= count;
     avgTest.avgOutputTokens /= count;
+    avgTest.minOutputTokensDriftPerc /= count;
+    avgTest.maxOutputTokensDriftPerc /= count;
     avgTest.avgReasoningDurationInMilliseconds /= count;
+    avgTest.minReasoningDurationDriftPerc /= count;
+    avgTest.maxReasoningDurationDriftPerc /= count;
     avgTest.avgReasoningTokensPerMillisecond /= count;
     avgTest.totalQuestions /= count;
     avgTest.avgNoAnswers /= count;
     avgTest.avgIncorrectAnswers /= count;
     avgTest.avgCorrectAnswers /= count;
     avgTest.avgAccuracyPercent /= count;
+    avgTest.minAccuracyDriftPercent /= count;
+    avgTest.maxAccuracyDriftPercent /= count;
     avgTest.avgWeightedAccuracyPercent /= count;
+    avgTest.minWeightedAccuracyDriftPercent /= count;
+    avgTest.maxWeightedAccuracyDriftPercent /= count;
     avgTest.charsPerToken /= count;
     avgTest.tokensPerValue /= count;
     avgTest.tokensPerObject /= count;

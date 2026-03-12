@@ -449,7 +449,11 @@ export interface Metrics {
   avgIncorrectAnswers: number;
   avgCorrectAnswers: number;
   avgAccuracyPercent: number;
+  minAccuracyDriftPercent: number;
+  maxAccuracyDriftPercent: number;
   avgWeightedAccuracyPercent: number;
+  minWeightedAccuracyDriftPercent: number;
+  maxWeightedAccuracyDriftPercent: number;
 
   // Calculated metrics section
 
