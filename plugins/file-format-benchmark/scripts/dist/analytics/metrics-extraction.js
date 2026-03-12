@@ -40,6 +40,19 @@ class MetricsExtraction {
         this.projectsDir = projectsDir || path.join(process.env.HOME || process.env.USERPROFILE || "~", ".claude", "projects");
     }
     extract() {
+        if (fs.existsSync(this.outputFile)) {
+            try {
+                const content = fs.readFileSync(this.outputFile, "utf-8");
+                const combined = JSON.parse(content);
+                console.log("✓ Metrics loaded");
+                return this.mergeCombinedMetrics(combined);
+            }
+            catch { }
+        }
+        if (!fs.existsSync(this.agentIdsFile)) {
+            console.warn(`AgentId file not found: ${this.agentIdsFile}`);
+            return [];
+        }
         console.log("Loading agent IDs from file...");
         const agentIds = this.loadAgentIds();
         console.log("Finding transcript files...");
@@ -352,7 +365,11 @@ class MetricsExtraction {
                     recordCount: entry.recordCount,
                     testRuns: 0, // Will be set during aggregation
                     durationMs: metrics.duration_ms || 0,
+                    durationMsMin: metrics.duration_ms || 0,
+                    durationMsMax: metrics.duration_ms || 0,
                     outputTokens: metrics.output_tokens,
+                    outputTokensMin: metrics.output_tokens,
+                    outputTokensMax: metrics.output_tokens,
                 });
             }
         }
@@ -465,7 +482,11 @@ class MetricsExtraction {
                     recordCount: firstMetric.recordCount,
                     testRuns: metricsFilesCount,
                     durationMs: parseFloat(avg_duration.toFixed(3)),
+                    durationMsMin: Math.min(...metrics.map(x => x.durationMs)),
+                    durationMsMax: Math.max(...metrics.map(x => x.durationMs)),
                     outputTokens: parseFloat(avg_output.toFixed(3)),
+                    outputTokensMin: Math.min(...metrics.map(x => x.outputTokens)),
+                    outputTokensMax: Math.max(...metrics.map(x => x.outputTokens)),
                 });
             }
         }
@@ -504,7 +525,7 @@ class MetricsExtraction {
         if (!fs.existsSync(dir)) {
             fs.mkdirSync(dir, { recursive: true });
         }
-        fs.writeFileSync(this.outputFile, JSON.stringify(metrics));
+        fs.writeFileSync(this.outputFile, JSON.stringify(metrics, null, 4));
     }
     mergeCombinedMetrics(combinedMetrics) {
         const merged = [];
@@ -548,10 +569,17 @@ class MetricsExtraction {
                 readDurationInMilliseconds: readData.readDurationMs,
                 readTokens: readData.readTokens,
                 reasoningDurationInMilliseconds: reasoning.durationMs,
+                reasoningDurationDriftPercMax: this.calcDriftPerc(reasoning.durationMs, reasoning.durationMsMax),
+                reasoningDurationDriftPercMin: this.calcDriftPerc(reasoning.durationMs, reasoning.durationMsMin),
                 outputTokens: reasoning.outputTokens,
+                outputTokensDriftPercMin: this.calcDriftPerc(reasoning.outputTokens, reasoning.outputTokensMin),
+                outputTokensDriftPercMax: this.calcDriftPerc(reasoning.outputTokens, reasoning.outputTokensMax),
             });
         }
         return merged;
+    }
+    calcDriftPerc(avg, val) {
+        return Math.round(((val - avg) / avg) * 100 * 100) / 100;
     }
 }
 exports.default = MetricsExtraction;
