@@ -255,7 +255,7 @@ class ReportGenerator {
         const mandatoryMostUsedTokens = mandatories.reduce((max, a) => a.efficientlyUsedTokens > max.efficientlyUsedTokens ? a : max);
         const optionalHighestTokenEfficiency = optionals.reduce((max, a) => a.efficiencyScore > max.efficiencyScore ? a : max);
         const mandatoryHighestTokenEfficiency = mandatories.reduce((max, a) => a.efficiencyScore > max.efficiencyScore ? a : max);
-        const lowestTotalTokensDelta = sortedAggregated.reduce((min, a) => a.totalTokensDelta < min.totalTokensDelta ? a : min);
+        const lowestTotalTokensDelta = sortedAggregated.reduce((min, a) => Math.abs(a.totalTokensDelta) < Math.abs(min.totalTokensDelta) ? a : min);
         const lowestAccuracyDelta = sortedAggregated.reduce((min, a) => Math.abs(a.accuracyDelta) < Math.abs(min.accuracyDelta) ? a : min);
         const lowestEfficiencyDelta = sortedAggregated.reduce((min, a) => Math.abs(a.efficiencyDelta) < Math.abs(min.efficiencyDelta) ? a : min);
         this.heading(3, '2.1 TLDR: Token Efficiency Analysis');
@@ -297,7 +297,7 @@ class ReportGenerator {
         const mandatoryMostWastedTokens = mandatories.reduce((max, a) => a.costOfInaccuracy > max.costOfInaccuracy ? a : max);
         const optionalLowestTokenEfficiency = optionals.reduce((min, a) => a.efficiencyScore < min.efficiencyScore ? a : min);
         const mandatoryLowestTokenEfficiency = mandatories.reduce((min, a) => a.efficiencyScore < min.efficiencyScore ? a : min);
-        const highestTotalTokensDelta = sortedAggregated.reduce((max, a) => a.totalTokensDelta > max.totalTokensDelta ? a : max);
+        const highestTotalTokensDelta = sortedAggregated.reduce((max, a) => Math.abs(a.totalTokensDelta) > Math.abs(max.totalTokensDelta) ? a : max);
         const highestAccuracyDelta = sortedAggregated.reduce((max, a) => Math.abs(a.accuracyDelta) > Math.abs(max.accuracyDelta) ? a : max);
         const highestEfficiencyDelta = sortedAggregated.reduce((max, a) => Math.abs(a.efficiencyDelta) > Math.abs(max.efficiencyDelta) ? a : max);
         this.heading(4, '2.1.2 Worst results');
