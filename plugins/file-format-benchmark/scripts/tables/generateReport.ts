@@ -270,6 +270,154 @@ class ReportGenerator {
     this.hr();
   }
 
+  private generateSummaryTLDRFormatRanking(sortedAggregated: AggregatedMetric[]){
+    const optionals = sortedAggregated.filter(x => x.variant == 'optional');
+    const mandatories = sortedAggregated.filter(x => x.variant == 'mandatory');
+
+    const optionalLowestTokenCost = optionals.reduce((min, a) => a.totalTokensUsed < min.totalTokensUsed ? a : min);
+    const mandatoryLowestTokenCost = mandatories.reduce((min, a) => a.totalTokensUsed < min.totalTokensUsed ? a : min);
+
+    const optionalLowestOutputTokensDriftPerc = optionals.reduce((min, a) => a.absOutputTokensDriftPerc < min.absOutputTokensDriftPerc ? a : min);
+    const mandatoryLowestOutputTokensDriftPerc = mandatories.reduce((min, a) => a.absOutputTokensDriftPerc < min.absOutputTokensDriftPerc ? a : min);
+        
+    const optionalHighestAccuracy = optionals.reduce((max, a) => a.avgAccuracyPercent > max.avgAccuracyPercent ? a : max);
+    const mandatoryHighestAccuracy = mandatories.reduce((max, a) => a.avgAccuracyPercent > max.avgAccuracyPercent ? a : max);
+    
+    const optionalLowestAccuracyDriftPerc = optionals.reduce((min, a) => a.absAccuracyDriftPerc < min.absAccuracyDriftPerc ? a : min);
+    const mandatoryLowestAccuracyDriftPerc = mandatories.reduce((min, a) => a.absAccuracyDriftPerc < min.absAccuracyDriftPerc ? a : min);
+
+    const optionalMostUsedTokens = optionals.reduce((max, a) => a.efficientlyUsedTokens > max.efficientlyUsedTokens ? a : max);
+    const mandatoryMostUsedTokens = mandatories.reduce((max, a) => a.efficientlyUsedTokens > max.efficientlyUsedTokens ? a : max);
+    
+    const optionalHighestTokenEfficiency = optionals.reduce((max, a) => a.efficiencyScore > max.efficiencyScore ? a : max);
+    const mandatoryHighestTokenEfficiency = mandatories.reduce((max, a) => a.efficiencyScore > max.efficiencyScore ? a : max);
+        
+    const lowestTotalTokensDelta = sortedAggregated.reduce((min, a) => a.totalTokensDelta < min.totalTokensDelta ? a : min);
+    const lowestAccuracyDelta = sortedAggregated.reduce((min, a) => Math.abs(a.accuracyDelta) < Math.abs(min.accuracyDelta) ? a : min);
+    const lowestEfficiencyDelta = sortedAggregated.reduce((min, a) => Math.abs(a.efficiencyDelta) < Math.abs(min.efficiencyDelta) ? a : min);
+    
+    this.heading(3, '2.1 TLDR: Token Efficiency Analysis');
+    this.line();
+    this.heading(4, '2.1.1 Best results');
+    this.line();
+    this.line('- Lowest total token cost:');
+    this.line(`   - Optional: ${optionalLowestTokenCost.format.toUpperCase()} ${Math.round(optionalLowestTokenCost.totalTokensUsed)} tokens`);
+    this.line(`   - Mandatory: ${mandatoryLowestTokenCost.format.toUpperCase()} ${Math.round(mandatoryLowestTokenCost.totalTokensUsed)} tokens`);
+    this.line('- Lowest output token cost drift:');
+    this.line(`   - Optional: ${optionalLowestOutputTokensDriftPerc.format.toUpperCase()} ↓ ${optionalLowestOutputTokensDriftPerc.minOutputTokensDriftPerc.toFixed(2)} % ↑ ${optionalLowestOutputTokensDriftPerc.maxOutputTokensDriftPerc.toFixed(2)} %`);
+    this.line(`   - Mandatory: ${mandatoryLowestOutputTokensDriftPerc.format.toUpperCase()} ↓ ${mandatoryLowestOutputTokensDriftPerc.minOutputTokensDriftPerc.toFixed(2)} % ↑ ${mandatoryLowestOutputTokensDriftPerc.maxOutputTokensDriftPerc.toFixed(2)} %`);
+    this.line('- Highest accuracy:');
+    this.line(`   - Optional: ${optionalHighestAccuracy.format.toUpperCase()} ${optionalHighestAccuracy.avgAccuracyPercent.toFixed(2)} %`);
+    this.line(`   - Mandatory: ${mandatoryHighestAccuracy.format.toUpperCase()} ${mandatoryHighestAccuracy.avgAccuracyPercent.toFixed(2)} %`);
+    this.line('- Lowest accuracy drift:');
+    this.line(`   - Optional: ${optionalLowestAccuracyDriftPerc.format.toUpperCase()} ↓ ${optionalLowestAccuracyDriftPerc.minAccuracyDriftPercent.toFixed(2)} % ↑ ${optionalLowestAccuracyDriftPerc.maxAccuracyDriftPercent.toFixed(2)} %`);
+    this.line(`   - Mandatory: ${mandatoryLowestAccuracyDriftPerc.format.toUpperCase()} ↓ ${mandatoryLowestAccuracyDriftPerc.minAccuracyDriftPercent.toFixed(2)} % ↑ ${mandatoryLowestAccuracyDriftPerc.maxAccuracyDriftPercent.toFixed(2)} %`);
+    this.line('- Most useful tokens:');    
+    this.line(`   - Optional: ${optionalMostUsedTokens.format.toUpperCase()} ${Math.round(optionalMostUsedTokens.efficientlyUsedTokens)} / ${Math.round(optionalMostUsedTokens.totalTokensUsed)} tokens`);
+    this.line(`   - Mandatory: ${mandatoryMostUsedTokens.format.toUpperCase()} ${Math.round(mandatoryMostUsedTokens.efficientlyUsedTokens)} / ${Math.round(mandatoryMostUsedTokens.totalTokensUsed)} tokens`);
+    this.line('- Highest token efficiency (%/token):');
+    this.line(`   - Optional: ${optionalHighestTokenEfficiency.format.toUpperCase()} ${optionalHighestTokenEfficiency.efficiencyScore.toFixed(2)}`);
+    this.line(`   - Mandatory: ${mandatoryHighestTokenEfficiency.format.toUpperCase()} ${mandatoryHighestTokenEfficiency.efficiencyScore.toFixed(2)}`);
+    this.line('- Lowest delta (optional-mandatory):');
+    this.line(`   - Total tokens: ${lowestTotalTokensDelta.format.toUpperCase()} ${Math.round(lowestTotalTokensDelta.totalTokensDelta)} tokens`);
+    this.line(`   - Accuracy: ${lowestAccuracyDelta.format.toUpperCase()} ${lowestAccuracyDelta.accuracyDelta.toFixed(2)} %`);
+    this.line(`   - Token efficiency: ${lowestEfficiencyDelta.format.toUpperCase()} ${lowestEfficiencyDelta.efficiencyDelta.toFixed(2)}`);
+    this.line();
+
+    const optionalHighestTokenCost = optionals.reduce((max, a) => a.totalTokensUsed > max.totalTokensUsed ? a : max);
+    const mandatoryHighestTokenCost = mandatories.reduce((max, a) => a.totalTokensUsed > max.totalTokensUsed ? a : max);
+    
+    const optionalHighestOutputTokensDriftPerc = optionals.reduce((max, a) => a.absOutputTokensDriftPerc > max.absOutputTokensDriftPerc ? a : max);
+    const mandatoryHighestOutputTokensDriftPerc = mandatories.reduce((max, a) => a.absOutputTokensDriftPerc > max.absOutputTokensDriftPerc ? a : max);
+    
+    const optionalLowestAccuracy = optionals.reduce((min, a) => a.avgAccuracyPercent < min.avgAccuracyPercent ? a : min);
+    const mandatoryLowestAccuracy = mandatories.reduce((min, a) => a.avgAccuracyPercent < min.avgAccuracyPercent ? a : min);
+    
+    const optionalHighestAccuracyDriftPerc = optionals.reduce((max, a) => a.absAccuracyDriftPerc > max.absAccuracyDriftPerc ? a : max);
+    const mandatoryHighestAccuracyDriftPerc = mandatories.reduce((max, a) => a.absAccuracyDriftPerc > max.absAccuracyDriftPerc ? a : max);
+    
+    const optionaMostWastedTokens = optionals.reduce((max, a) => a.costOfInaccuracy > max.costOfInaccuracy ? a : max);
+    const mandatoryMostWastedTokens = mandatories.reduce((max, a) => a.costOfInaccuracy > max.costOfInaccuracy ? a : max);
+
+    const optionalLowestTokenEfficiency = optionals.reduce((min, a) => a.efficiencyScore < min.efficiencyScore ? a : min);
+    const mandatoryLowestTokenEfficiency = mandatories.reduce((min, a) => a.efficiencyScore < min.efficiencyScore ? a : min);
+
+    const highestTotalTokensDelta = sortedAggregated.reduce((max, a) => a.totalTokensDelta > max.totalTokensDelta ? a : max);
+    const highestAccuracyDelta = sortedAggregated.reduce((max, a) => Math.abs(a.accuracyDelta) > Math.abs(max.accuracyDelta) ? a : max);
+    const highestEfficiencyDelta = sortedAggregated.reduce((max, a) => Math.abs(a.efficiencyDelta) > Math.abs(max.efficiencyDelta) ? a : max);
+
+    this.heading(4, '2.1.2 Worst results');
+    this.line();
+    this.line('- Highest total token cost:');
+    this.line(`   - Optional: ${optionalHighestTokenCost.format.toUpperCase()} ${Math.round(optionalHighestTokenCost.totalTokensUsed)} tokens`);
+    this.line(`   - Mandatory: ${mandatoryHighestTokenCost.format.toUpperCase()} ${Math.round(mandatoryHighestTokenCost.totalTokensUsed)} tokens`);
+    this.line('- Highest output token drift:');
+    this.line(`   - Optional: ${optionalHighestOutputTokensDriftPerc.format.toUpperCase()} ↓ ${optionalHighestOutputTokensDriftPerc.minOutputTokensDriftPerc.toFixed(2)} % ↑ ${optionalHighestOutputTokensDriftPerc.maxOutputTokensDriftPerc.toFixed(2)} %`);
+    this.line(`   - Mandatory: ${mandatoryHighestOutputTokensDriftPerc.format.toUpperCase()} ↓ ${mandatoryHighestOutputTokensDriftPerc.minOutputTokensDriftPerc.toFixed(2)} % ↑ ${mandatoryHighestOutputTokensDriftPerc.maxOutputTokensDriftPerc.toFixed(2)} %`);
+    this.line('- Lowest accuracy:');
+    this.line(`   - Optional: ${optionalLowestAccuracy.format.toUpperCase()} ${optionalLowestAccuracy.avgAccuracyPercent.toFixed(2)} %`);
+    this.line(`   - Mandatory: ${mandatoryLowestAccuracy.format.toUpperCase()} ${mandatoryLowestAccuracy.avgAccuracyPercent.toFixed(2)} %`);
+    this.line('- Highest accuracy drift:');
+    this.line(`   - Optional: ${optionalHighestAccuracyDriftPerc.format.toUpperCase()} ↓ ${optionalHighestAccuracyDriftPerc.minAccuracyDriftPercent.toFixed(2)} % ↑ ${optionalHighestAccuracyDriftPerc.maxAccuracyDriftPercent.toFixed(2)} %`);
+    this.line(`   - Mandatory: ${mandatoryHighestAccuracyDriftPerc.format.toUpperCase()} ↓ ${mandatoryHighestAccuracyDriftPerc.minAccuracyDriftPercent.toFixed(2)} % ↑ ${mandatoryHighestAccuracyDriftPerc.maxAccuracyDriftPercent.toFixed(2)} %`);
+    this.line('- Most wasted tokens:');    
+    this.line(`   - Optional: ${optionaMostWastedTokens.format.toUpperCase()} ${Math.round(optionaMostWastedTokens.costOfInaccuracy)} / ${Math.round(optionaMostWastedTokens.totalTokensUsed)} tokens`);
+    this.line(`   - Mandatory: ${mandatoryMostWastedTokens.format.toUpperCase()} ${Math.round(mandatoryMostWastedTokens.costOfInaccuracy)} / ${Math.round(mandatoryMostWastedTokens.totalTokensUsed)} tokens`);
+    this.line('- Lowest token efficiency (%/token):');
+    this.line(`   - Optional: ${optionalLowestTokenEfficiency.format.toUpperCase()} ${optionalLowestTokenEfficiency.efficiencyScore.toFixed(2)}`);
+    this.line(`   - Mandatory: ${mandatoryLowestTokenEfficiency.format.toUpperCase()} ${mandatoryLowestTokenEfficiency.efficiencyScore.toFixed(2)}`);
+    this.line('- Highest delta (optional-mandatory):');
+    this.line(`   - Total tokens: ${highestTotalTokensDelta.format.toUpperCase()} ${Math.round(highestTotalTokensDelta.totalTokensDelta)} tokens`);
+    this.line(`   - Accuracy: ${highestAccuracyDelta.format.toUpperCase()} ${highestAccuracyDelta.accuracyDelta.toFixed(2)} %`);
+    this.line(`   - Token efficiency: ${highestEfficiencyDelta.format.toUpperCase()} ${highestEfficiencyDelta.efficiencyDelta.toFixed(2)}`);
+    this.line();
+
+    const sortedByTotalTokensOptionals = [...optionals].sort((ob1, ob2) => ob1.totalTokensUsed > ob2.totalTokensUsed ? 1 : ob1.totalTokensUsed < ob2.totalTokensUsed ? -1 : 0).map(x => x.format);
+    const sortedByTotalTokensMandatories = [...mandatories].sort((ob1, ob2) => ob1.totalTokensUsed > ob2.totalTokensUsed ? 1 : ob1.totalTokensUsed < ob2.totalTokensUsed ? -1 : 0).map(x => x.format);
+    const sortedByEfficientlyUsedTokensOptionals = [...optionals].sort((ob1, ob2) => ob1.efficientlyUsedTokens < ob2.efficientlyUsedTokens ? 1 : ob1.efficientlyUsedTokens > ob2.efficientlyUsedTokens ? -1 : 0).map(x => x.format);
+    const sortedByEfficientlyUsedTokensMandatories = [...mandatories].sort((ob1, ob2) => ob1.efficientlyUsedTokens < ob2.efficientlyUsedTokens ? 1 : ob1.efficientlyUsedTokens > ob2.efficientlyUsedTokens ? -1 : 0).map(x => x.format);
+    const sortedByCostOfInaccuracyOptionals = [...optionals].sort((ob1, ob2) => ob1.costOfInaccuracy > ob2.costOfInaccuracy ? 1 : ob1.costOfInaccuracy < ob2.costOfInaccuracy ? -1 : 0).map(x => x.format);
+    const sortedByCostOfInaccuracyMandatories = [...mandatories].sort((ob1, ob2) => ob1.costOfInaccuracy > ob2.costOfInaccuracy ? 1 : ob1.costOfInaccuracy < ob2.costOfInaccuracy ? -1 : 0).map(x => x.format);
+    const sortedByAccuracyOptionals = [...optionals].sort((ob1, ob2) => ob1.avgAccuracyPercent < ob2.avgAccuracyPercent ? 1 : ob1.avgAccuracyPercent > ob2.avgAccuracyPercent ? -1 : 0).map(x => x.format);
+    const sortedByAccuracyMandatories = [...mandatories].sort((ob1, ob2) => ob1.avgAccuracyPercent < ob2.avgAccuracyPercent ? 1 : ob1.avgAccuracyPercent > ob2.avgAccuracyPercent ? -1 : 0).map(x => x.format);
+    const sortedByWeightedAccuracyOptionals = [...optionals].sort((ob1, ob2) => ob1.avgWeightedAccuracyPercent < ob2.avgWeightedAccuracyPercent ? 1 : ob1.avgWeightedAccuracyPercent > ob2.avgWeightedAccuracyPercent ? -1 : 0).map(x => x.format);
+    const sortedByWeightedAccuracyMandatories = [...mandatories].sort((ob1, ob2) => ob1.avgWeightedAccuracyPercent < ob2.avgWeightedAccuracyPercent ? 1 : ob1.avgWeightedAccuracyPercent > ob2.avgWeightedAccuracyPercent ? -1 : 0).map(x => x.format);
+    const sortedByEfficiencyScoreOptionals = [...optionals].sort((ob1, ob2) => ob1.efficiencyScore < ob2.efficiencyScore ? 1 : ob1.efficiencyScore > ob2.efficiencyScore ? -1 : 0).map(x => x.format);
+    const sortedByEfficiencyScoreMandatories = [...mandatories].sort((ob1, ob2) => ob1.efficiencyScore < ob2.efficiencyScore ? 1 : ob1.efficiencyScore > ob2.efficiencyScore ? -1 : 0).map(x => x.format);
+    const sortedByWeightedEfficiencyScoreOptionals = [...optionals].sort((ob1, ob2) => ob1.weightedEfficiencyScore < ob2.weightedEfficiencyScore ? 1 : ob1.weightedEfficiencyScore > ob2.weightedEfficiencyScore ? -1 : 0).map(x => x.format);
+    const sortedByWeightedEfficiencyScoreMandatories = [...mandatories].sort((ob1, ob2) => ob1.weightedEfficiencyScore < ob2.weightedEfficiencyScore ? 1 : ob1.weightedEfficiencyScore > ob2.weightedEfficiencyScore ? -1 : 0).map(x => x.format);
+
+    const rows = mandatories.map((_, i) => [
+      sortedByTotalTokensOptionals[i],
+      sortedByTotalTokensMandatories[i],
+      sortedByEfficientlyUsedTokensOptionals[i],
+      sortedByEfficientlyUsedTokensMandatories[i],
+      sortedByCostOfInaccuracyOptionals[i],
+      sortedByCostOfInaccuracyMandatories[i],
+      sortedByAccuracyOptionals[i],
+      sortedByAccuracyMandatories[i],
+      sortedByWeightedAccuracyOptionals[i],
+      sortedByWeightedAccuracyMandatories[i],
+      sortedByEfficiencyScoreOptionals[i],
+      sortedByEfficiencyScoreMandatories[i],
+      sortedByWeightedEfficiencyScoreOptionals[i],
+      sortedByWeightedEfficiencyScoreMandatories[i],
+    ]);
+
+    this.heading(4, '2.1.3 Format Ranking');
+    this.line();
+    this.table(
+      ['↑ Total Opt', '↑ Total Man', '↓ Used Tokens Opt', '↓ Used Tokens Man', '↑ Wasted Tokens Opt', '↑ Wasted Tokens Man', '↓ Acc (%) Opt', '↓ Acc (%) Man', '↓ Wtd Acc (%) Opt', '↓ Wtd Acc (%) Man', '↓ Eff Score Opt', '↓ Eff Score Man', '↓ Wtd Eff Score Opt', '↓ Wtd Eff Score Man'],
+      rows
+    );
+    this.line();
+
+    this.heading(4, '2.1.4 Conclussion');
+    this.line();
+    this.line('<ADD_CONTENT_HERE>Analyze token usage patterns here</ADD_CONTENT_HERE>');
+    this.line();
+  }
+
   private generateResults(): void {
     this.heading(2, '2. Results');
     this.line();
@@ -291,93 +439,10 @@ class ReportGenerator {
         }
       }
     );
+    const mandatories = sortedAggregated.filter(x => x.variant == 'mandatory');
     
     // 2.1 Token Efficiency Analysis
-    const optionals = sortedAggregated.filter(x => x.variant == 'optional');
-    const mandatories = sortedAggregated.filter(x => x.variant == 'mandatory');
-
-    const optionalLowestTokenCost = optionals.reduce((min, a) => a.totalTokensUsed < min.totalTokensUsed ? a : min);
-    const mandatoryLowestTokenCost = mandatories.reduce((min, a) => a.totalTokensUsed < min.totalTokensUsed ? a : min);
-    const optionalHighestTokenCost = optionals.reduce((max, a) => a.totalTokensUsed > max.totalTokensUsed ? a : max);
-    const mandatoryHighestTokenCost = mandatories.reduce((max, a) => a.totalTokensUsed > max.totalTokensUsed ? a : max);
-
-    const optionalLowestOutputTokensDriftPerc = optionals.reduce((min, a) => a.absOutputTokensDriftPerc < min.absOutputTokensDriftPerc ? a : min);
-    const mandatoryLowestOutputTokensDriftPerc = mandatories.reduce((min, a) => a.absOutputTokensDriftPerc < min.absOutputTokensDriftPerc ? a : min);
-    const optionalHighestOutputTokensDriftPerc = optionals.reduce((max, a) => a.absOutputTokensDriftPerc > max.absOutputTokensDriftPerc ? a : max);
-    const mandatoryHighestOutputTokensDriftPerc = mandatories.reduce((max, a) => a.absOutputTokensDriftPerc > max.absOutputTokensDriftPerc ? a : max);
-        
-    const optionalHighestAccuracy = optionals.reduce((max, a) => a.avgAccuracyPercent > max.avgAccuracyPercent ? a : max);
-    const mandatoryHighestAccuracy = mandatories.reduce((max, a) => a.avgAccuracyPercent > max.avgAccuracyPercent ? a : max);
-    const optionalLowestAccuracy = optionals.reduce((min, a) => a.avgAccuracyPercent < min.avgAccuracyPercent ? a : min);
-    const mandatoryLowestAccuracy = mandatories.reduce((min, a) => a.avgAccuracyPercent < min.avgAccuracyPercent ? a : min);
-
-    const optionalMostUsedTokens = optionals.reduce((max, a) => a.efficientlyUsedTokens > max.efficientlyUsedTokens ? a : max);
-    const mandatoryMostUsedTokens = mandatories.reduce((max, a) => a.efficientlyUsedTokens > max.efficientlyUsedTokens ? a : max);
-    const optionaMostWastedTokens = optionals.reduce((max, a) => a.costOfInaccuracy > max.costOfInaccuracy ? a : max);
-    const mandatoryMostWastedTokens = mandatories.reduce((max, a) => a.costOfInaccuracy > max.costOfInaccuracy ? a : max);
-    
-    const optionalHighestTokenEfficiency = optionals.reduce((max, a) => a.efficiencyScore > max.efficiencyScore ? a : max);
-    const mandatoryHighestTokenEfficiency = mandatories.reduce((max, a) => a.efficiencyScore > max.efficiencyScore ? a : max);
-    const optionalLowestTokenEfficiency = optionals.reduce((min, a) => a.efficiencyScore < min.efficiencyScore ? a : min);
-    const mandatoryLowestTokenEfficiency = mandatories.reduce((min, a) => a.efficiencyScore < min.efficiencyScore ? a : min);
-    
-    const lowestTotalTokensDelta = sortedAggregated.reduce((min, a) => a.totalTokensDelta < min.totalTokensDelta ? a : min);
-    const highestTotalTokensDelta = sortedAggregated.reduce((max, a) => a.totalTokensDelta > max.totalTokensDelta ? a : max);
-    const lowestAccuracyDelta = sortedAggregated.reduce((min, a) => Math.abs(a.accuracyDelta) < Math.abs(min.accuracyDelta) ? a : min);
-    const highestAccuracyDelta = sortedAggregated.reduce((max, a) => Math.abs(a.accuracyDelta) > Math.abs(max.accuracyDelta) ? a : max);
-    const lowestEfficiencyDelta = sortedAggregated.reduce((min, a) => Math.abs(a.efficiencyDelta) < Math.abs(min.efficiencyDelta) ? a : min);
-    const highestEfficiencyDelta = sortedAggregated.reduce((max, a) => Math.abs(a.efficiencyDelta) > Math.abs(max.efficiencyDelta) ? a : max);
-
-    this.heading(3, '2.1 TLDR: Token Efficiency Analysis');
-    this.line();
-    this.heading(4, '2.1.1 Best results');
-    this.line();
-    this.line('- Lowest total token cost:');
-    this.line(`   - Optional: ${optionalLowestTokenCost.format.toUpperCase()} ${Math.round(optionalLowestTokenCost.totalTokensUsed)} tokens`);
-    this.line(`   - Mandatory: ${mandatoryLowestTokenCost.format.toUpperCase()} ${Math.round(mandatoryLowestTokenCost.totalTokensUsed)} tokens`);
-    this.line('- Lowest output token drift:');
-    this.line(`   - Optional: ${optionalLowestOutputTokensDriftPerc.format.toUpperCase()} ↓ ${optionalLowestOutputTokensDriftPerc.minOutputTokensDriftPerc.toFixed(2)} % ↑ ${optionalLowestOutputTokensDriftPerc.maxOutputTokensDriftPerc.toFixed(2)} %`);
-    this.line(`   - Mandatory: ${mandatoryLowestOutputTokensDriftPerc.format.toUpperCase()} ↓ ${mandatoryLowestOutputTokensDriftPerc.minOutputTokensDriftPerc.toFixed(2)} % ↑ ${mandatoryLowestOutputTokensDriftPerc.maxOutputTokensDriftPerc.toFixed(2)} %`);
-    this.line('- Highest accuracy:');
-    this.line(`   - Optional: ${optionalHighestAccuracy.format.toUpperCase()} ${optionalHighestAccuracy.avgAccuracyPercent.toFixed(2)} %`);
-    this.line(`   - Mandatory: ${mandatoryHighestAccuracy.format.toUpperCase()} ${mandatoryHighestAccuracy.avgAccuracyPercent.toFixed(2)} %`);
-    this.line('- Most useful tokens:');    
-    this.line(`   - Optional: ${optionalMostUsedTokens.format.toUpperCase()} ${Math.round(optionalMostUsedTokens.efficientlyUsedTokens)} / ${Math.round(optionalMostUsedTokens.totalTokensUsed)} tokens`);
-    this.line(`   - Mandatory: ${mandatoryMostUsedTokens.format.toUpperCase()} ${Math.round(mandatoryMostUsedTokens.efficientlyUsedTokens)} / ${Math.round(mandatoryMostUsedTokens.totalTokensUsed)} tokens`);
-    this.line('- Highest token efficiency (%/token):');
-    this.line(`   - Optional: ${optionalHighestTokenEfficiency.format.toUpperCase()} ${optionalHighestTokenEfficiency.efficiencyScore.toFixed(2)}`);
-    this.line(`   - Mandatory: ${mandatoryHighestTokenEfficiency.format.toUpperCase()} ${mandatoryHighestTokenEfficiency.efficiencyScore.toFixed(2)}`);
-    this.line('- Lowest delta (optional-mandatory):');
-    this.line(`   - Total tokens: ${lowestTotalTokensDelta.format.toUpperCase()} ${Math.round(lowestTotalTokensDelta.totalTokensDelta)} tokens`);
-    this.line(`   - Accuracy: ${lowestAccuracyDelta.format.toUpperCase()} ${lowestAccuracyDelta.accuracyDelta.toFixed(2)} %`);
-    this.line(`   - Token efficiency: ${lowestEfficiencyDelta.format.toUpperCase()} ${lowestEfficiencyDelta.efficiencyDelta.toFixed(2)}`);
-    this.line();
-    this.heading(4, '2.1.2 Worst results');
-    this.line();
-    this.line('- Highest total token cost:');
-    this.line(`   - Optional: ${optionalHighestTokenCost.format.toUpperCase()} ${Math.round(optionalHighestTokenCost.totalTokensUsed)} tokens`);
-    this.line(`   - Mandatory: ${mandatoryHighestTokenCost.format.toUpperCase()} ${Math.round(mandatoryHighestTokenCost.totalTokensUsed)} tokens`);
-    this.line('- Highest output token drift:');
-    this.line(`   - Optional: ${optionalHighestOutputTokensDriftPerc.format.toUpperCase()} ↓ ${optionalHighestOutputTokensDriftPerc.minOutputTokensDriftPerc.toFixed(2)} % ↑ ${optionalHighestOutputTokensDriftPerc.maxOutputTokensDriftPerc.toFixed(2)} %`);
-    this.line(`   - Mandatory: ${mandatoryHighestOutputTokensDriftPerc.format.toUpperCase()} ↓ ${mandatoryHighestOutputTokensDriftPerc.minOutputTokensDriftPerc.toFixed(2)} % ↑ ${mandatoryHighestOutputTokensDriftPerc.maxOutputTokensDriftPerc.toFixed(2)} %`);
-    this.line('- Lowest accuracy:');
-    this.line(`   - Optional: ${optionalLowestAccuracy.format.toUpperCase()} ${optionalLowestAccuracy.avgAccuracyPercent.toFixed(2)} %`);
-    this.line(`   - Mandatory: ${mandatoryLowestAccuracy.format.toUpperCase()} ${mandatoryLowestAccuracy.avgAccuracyPercent.toFixed(2)} %`);
-    this.line('- Most wasted tokens:');    
-    this.line(`   - Optional: ${optionaMostWastedTokens.format.toUpperCase()} ${Math.round(optionaMostWastedTokens.costOfInaccuracy)} / ${Math.round(optionaMostWastedTokens.totalTokensUsed)} tokens`);
-    this.line(`   - Mandatory: ${mandatoryMostWastedTokens.format.toUpperCase()} ${Math.round(mandatoryMostWastedTokens.costOfInaccuracy)} / ${Math.round(mandatoryMostWastedTokens.totalTokensUsed)} tokens`);
-    this.line('- Lowest token efficiency (%/token):');
-    this.line(`   - Optional: ${optionalLowestTokenEfficiency.format.toUpperCase()} ${optionalLowestTokenEfficiency.efficiencyScore.toFixed(2)}`);
-    this.line(`   - Mandatory: ${mandatoryLowestTokenEfficiency.format.toUpperCase()} ${mandatoryLowestTokenEfficiency.efficiencyScore.toFixed(2)}`);
-    this.line('- Highest delta (optional-mandatory):');
-    this.line(`   - Total tokens: ${highestTotalTokensDelta.format.toUpperCase()} ${Math.round(highestTotalTokensDelta.totalTokensDelta)} tokens`);
-    this.line(`   - Accuracy: ${highestAccuracyDelta.format.toUpperCase()} ${highestAccuracyDelta.accuracyDelta.toFixed(2)} %`);
-    this.line(`   - Token efficiency: ${highestEfficiencyDelta.format.toUpperCase()} ${highestEfficiencyDelta.efficiencyDelta.toFixed(2)}`);
-    this.line();
-    this.heading(4, '2.1.3 Conclussion');
-    this.line();
-    this.line('<ADD_CONTENT_HERE>Analyze token usage patterns here</ADD_CONTENT_HERE>');
-    this.line();
+    this.generateSummaryTLDRFormatRanking(sortedAggregated);
 
     // 2.2 Comprehensive Benchmark Metrics
     const rows = sortedAggregated.map(item => [
@@ -399,7 +464,7 @@ class ReportGenerator {
 
     this.heading(3, '2.2 Comprehensive Benchmark Metrics');
     this.table(
-      ['Format', 'Variant', 'Read Tokens', 'Output Tokens', 'Total', 'Tokens/Char', 'Info/Token', 'Token/Answer', 'Raw Acc (%)', 'Wtd Acc (%)', 'Used Tokens', 'Wasted Tokens', 'Eff Score', 'Wtd Eff Score'],
+      ['Format', 'Variant', 'Read Tokens', 'Output Tokens', 'Total', 'Tokens/Char', 'Info/Token', 'Token/Answer', 'Acc (%)', 'Wtd Acc (%)', 'Used Tokens', 'Wasted Tokens', 'Eff Score', 'Wtd Eff Score'],
       rows
     );
 
@@ -552,7 +617,7 @@ class ReportGenerator {
     this.heading(3, '2.6 Answer Quality Breakdown');
     this.heading(4, '2.6.1 Metrics'); 
     this.table(
-      ['Format', 'Variant', 'Correct Answers', 'Incorrect Answers', 'No Answers',  'Raw Acc (%)'],
+      ['Format', 'Variant', 'Correct Answers', 'Incorrect Answers', 'No Answers',  'Acc (%)'],
       answerQualityRows
     );
 
@@ -572,7 +637,7 @@ class ReportGenerator {
     this.heading(3, '2.7 Token Utilization Efficiency');
     this.heading(4, '2.7.1 Metrics'); 
     this.table(
-      ['Format', 'Variant', 'Total Tokens', 'Useful Tokens', 'Wasted Tokens','Raw Acc (%)', 'Wtd Acc (%)', 'Eff Score',  'Wtd Eff Score', ],
+      ['Format', 'Variant', 'Total Tokens', 'Useful Tokens', 'Wasted Tokens','Acc (%)', 'Wtd Acc (%)', 'Eff Score',  'Wtd Eff Score', ],
       effTokenRows
     );
 
@@ -597,7 +662,7 @@ class ReportGenerator {
     this.heading(3, '2.8 Category Performance Analysis');
     this.heading(4, '2.8.1 Metrics'); 
     this.table(
-      ['Format', 'Variant', 'Raw Acc (%)', 'Field Retrieval (%)', 'Structure Awareness (%)', 'Filtering (%)', 'Aggregation (%)'],
+      ['Format', 'Variant', 'Acc (%)', 'Field Retrieval (%)', 'Structure Awareness (%)', 'Filtering (%)', 'Aggregation (%)'],
       categoryRows
     );
 
@@ -819,7 +884,7 @@ class ReportGenerator {
       (item.avgWeightedAccuracyPercent - item.avgAccuracyPercent).toFixed(2),
     ]);
     this.table(
-      ['Format', 'Records', 'Variant', 'Raw Accuracy (%)', 'Weighted Accuracy (%)', 'Delta (%)'],
+      ['Format', 'Records', 'Variant', 'Accuracy (%)', 'Weighted Accuracy (%)', 'Delta (%)'],
       accRows
     );
 
