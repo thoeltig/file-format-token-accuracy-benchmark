@@ -15,6 +15,7 @@ export interface AggregatedMetric extends Metrics {
   readDurationInMillisecondsDelta: number;
   outputDurationInMillisecondsDelta: number;
   absOutputDurationDriftPerc: number;
+  totalDurationInMilliseconds: number;
   totalDurationInMillisecondsDelta: number;
   readTokensDelta: number;
   outputTokensDelta: number;
@@ -135,6 +136,7 @@ export function aggregateMetrics(metrics: TestMetrics[]): AggregatedMetric[] {
       informationValuePerTokenDelta: 0,
       readDurationInMillisecondsDelta: 0,
       outputDurationInMillisecondsDelta: 0,
+      totalDurationInMilliseconds: 0,
       totalDurationInMillisecondsDelta: 0,
       charsPerTokenDelta: 0,
       tokensPerValueDelta: 0,
@@ -155,7 +157,8 @@ export function aggregateMetrics(metrics: TestMetrics[]): AggregatedMetric[] {
       avgTest.avgReasoningDurationInMilliseconds += t.avgReasoningDurationInMilliseconds;
       avgTest.minReasoningDurationDriftPerc += t.minReasoningDurationDriftPerc;
       avgTest.maxReasoningDurationDriftPerc += t.maxReasoningDurationDriftPerc;
-      avgTest.avgReasoningTokensPerMillisecond += t.avgReasoningTokensPerMillisecond;
+      avgTest.avgReasoningTokensPerMillisecond += t.avgReasoningTokensPerMillisecond;      
+      avgTest.totalDurationInMilliseconds = t.readDurationInMilliseconds + t.avgReasoningDurationInMilliseconds;
       avgTest.totalQuestions += t.totalQuestions;
       avgTest.avgNoAnswers += t.avgNoAnswers;
       avgTest.avgIncorrectAnswers += t.avgIncorrectAnswers;
@@ -190,6 +193,7 @@ export function aggregateMetrics(metrics: TestMetrics[]): AggregatedMetric[] {
     avgTest.minReasoningDurationDriftPerc /= count;
     avgTest.maxReasoningDurationDriftPerc /= count;
     avgTest.avgReasoningTokensPerMillisecond /= count;
+    avgTest.totalDurationInMilliseconds /= count;
     avgTest.totalQuestions /= count;
     avgTest.avgNoAnswers /= count;
     avgTest.avgIncorrectAnswers /= count;
@@ -246,7 +250,7 @@ export function aggregateMetrics(metrics: TestMetrics[]): AggregatedMetric[] {
       item.informationValuePerTokenDelta = optional.informationValuePerToken - mandatory.informationValuePerToken;
       item.readDurationInMillisecondsDelta = optional.readDurationInMilliseconds - mandatory.readDurationInMilliseconds;
       item.outputDurationInMillisecondsDelta = optional.avgReasoningDurationInMilliseconds - mandatory.avgReasoningDurationInMilliseconds;
-      item.totalDurationInMillisecondsDelta = (optional.readDurationInMilliseconds+optional.avgReasoningDurationInMilliseconds) - (mandatory.readDurationInMilliseconds+mandatory.avgReasoningDurationInMilliseconds);
+      item.totalDurationInMillisecondsDelta = optional.totalDurationInMilliseconds - mandatory.totalDurationInMilliseconds;
     }
   });
 

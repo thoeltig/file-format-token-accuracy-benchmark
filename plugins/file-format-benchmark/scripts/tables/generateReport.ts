@@ -372,43 +372,55 @@ class ReportGenerator {
     this.line(`   - Token efficiency: ${highestEfficiencyDelta.format.toUpperCase()} ${highestEfficiencyDelta.efficiencyDelta.toFixed(2)}`);
     this.line();
 
-    const sortedByTotalTokensOptionals = [...optionals].sort((ob1, ob2) => ob1.totalTokensUsed > ob2.totalTokensUsed ? 1 : ob1.totalTokensUsed < ob2.totalTokensUsed ? -1 : 0).map(x => x.format);
-    const sortedByTotalTokensMandatories = [...mandatories].sort((ob1, ob2) => ob1.totalTokensUsed > ob2.totalTokensUsed ? 1 : ob1.totalTokensUsed < ob2.totalTokensUsed ? -1 : 0).map(x => x.format);
-    const sortedByEfficientlyUsedTokensOptionals = [...optionals].sort((ob1, ob2) => ob1.efficientlyUsedTokens < ob2.efficientlyUsedTokens ? 1 : ob1.efficientlyUsedTokens > ob2.efficientlyUsedTokens ? -1 : 0).map(x => x.format);
-    const sortedByEfficientlyUsedTokensMandatories = [...mandatories].sort((ob1, ob2) => ob1.efficientlyUsedTokens < ob2.efficientlyUsedTokens ? 1 : ob1.efficientlyUsedTokens > ob2.efficientlyUsedTokens ? -1 : 0).map(x => x.format);
-    const sortedByCostOfInaccuracyOptionals = [...optionals].sort((ob1, ob2) => ob1.costOfInaccuracy > ob2.costOfInaccuracy ? 1 : ob1.costOfInaccuracy < ob2.costOfInaccuracy ? -1 : 0).map(x => x.format);
-    const sortedByCostOfInaccuracyMandatories = [...mandatories].sort((ob1, ob2) => ob1.costOfInaccuracy > ob2.costOfInaccuracy ? 1 : ob1.costOfInaccuracy < ob2.costOfInaccuracy ? -1 : 0).map(x => x.format);
-    const sortedByAccuracyOptionals = [...optionals].sort((ob1, ob2) => ob1.avgAccuracyPercent < ob2.avgAccuracyPercent ? 1 : ob1.avgAccuracyPercent > ob2.avgAccuracyPercent ? -1 : 0).map(x => x.format);
-    const sortedByAccuracyMandatories = [...mandatories].sort((ob1, ob2) => ob1.avgAccuracyPercent < ob2.avgAccuracyPercent ? 1 : ob1.avgAccuracyPercent > ob2.avgAccuracyPercent ? -1 : 0).map(x => x.format);
-    const sortedByWeightedAccuracyOptionals = [...optionals].sort((ob1, ob2) => ob1.avgWeightedAccuracyPercent < ob2.avgWeightedAccuracyPercent ? 1 : ob1.avgWeightedAccuracyPercent > ob2.avgWeightedAccuracyPercent ? -1 : 0).map(x => x.format);
-    const sortedByWeightedAccuracyMandatories = [...mandatories].sort((ob1, ob2) => ob1.avgWeightedAccuracyPercent < ob2.avgWeightedAccuracyPercent ? 1 : ob1.avgWeightedAccuracyPercent > ob2.avgWeightedAccuracyPercent ? -1 : 0).map(x => x.format);
-    const sortedByEfficiencyScoreOptionals = [...optionals].sort((ob1, ob2) => ob1.efficiencyScore < ob2.efficiencyScore ? 1 : ob1.efficiencyScore > ob2.efficiencyScore ? -1 : 0).map(x => x.format);
-    const sortedByEfficiencyScoreMandatories = [...mandatories].sort((ob1, ob2) => ob1.efficiencyScore < ob2.efficiencyScore ? 1 : ob1.efficiencyScore > ob2.efficiencyScore ? -1 : 0).map(x => x.format);
-    const sortedByWeightedEfficiencyScoreOptionals = [...optionals].sort((ob1, ob2) => ob1.weightedEfficiencyScore < ob2.weightedEfficiencyScore ? 1 : ob1.weightedEfficiencyScore > ob2.weightedEfficiencyScore ? -1 : 0).map(x => x.format);
-    const sortedByWeightedEfficiencyScoreMandatories = [...mandatories].sort((ob1, ob2) => ob1.weightedEfficiencyScore < ob2.weightedEfficiencyScore ? 1 : ob1.weightedEfficiencyScore > ob2.weightedEfficiencyScore ? -1 : 0).map(x => x.format);
+    const sortedByTotalDurationOptionals = [...optionals].sort((ob1, ob2) => ob1.totalDurationInMilliseconds > ob2.totalDurationInMilliseconds ? 1 : ob1.totalDurationInMilliseconds < ob2.totalDurationInMilliseconds ? -1 : 0).map((x, i, arr) => x.format + (i > 0 ? ` (+${(arr[i].totalDurationInMilliseconds/arr[0].totalDurationInMilliseconds*100-100).toFixed(1)} %)` : ` ≈ ${Math.round(x.totalDurationInMilliseconds / 1000)} s`));
+    const sortedByTotalDurationMandatories = [...mandatories].sort((ob1, ob2) => ob1.totalDurationInMilliseconds > ob2.totalDurationInMilliseconds ? 1 : ob1.totalDurationInMilliseconds < ob2.totalDurationInMilliseconds ? -1 : 0).map((x, i, arr) => x.format + (i > 0 ? ` (+${(arr[i].totalDurationInMilliseconds/arr[0].totalDurationInMilliseconds*100-100).toFixed(1)} %)` : ` ≈ ${Math.round(x.totalDurationInMilliseconds / 1000)} s`));
+    const sortedByTotalTokensOptionals = [...optionals].sort((ob1, ob2) => ob1.totalTokensUsed > ob2.totalTokensUsed ? 1 : ob1.totalTokensUsed < ob2.totalTokensUsed ? -1 : 0).map((x, i, arr) => x.format + (i > 0 ? ` (+${(arr[i].totalTokensUsed/arr[0].totalTokensUsed*100-100).toFixed(1)} %)` : ` ≈ ${Math.round(x.totalTokensUsed)}`));
+    const sortedByTotalTokensMandatories = [...mandatories].sort((ob1, ob2) => ob1.totalTokensUsed > ob2.totalTokensUsed ? 1 : ob1.totalTokensUsed < ob2.totalTokensUsed ? -1 : 0).map((x, i, arr) => x.format + (i > 0 ? ` (+${(arr[i].totalTokensUsed/arr[0].totalTokensUsed*100-100).toFixed(1)} %)` : ` ≈ ${Math.round(x.totalTokensUsed)}`));
+    const sortedByCostOfInaccuracyOptionals = [...optionals].sort((ob1, ob2) => ob1.costOfInaccuracy > ob2.costOfInaccuracy ? 1 : ob1.costOfInaccuracy < ob2.costOfInaccuracy ? -1 : 0).map((x, i, arr) => x.format + (i > 0 ? ` (+${(arr[i].costOfInaccuracy/arr[0].costOfInaccuracy*100-100).toFixed(1)} %)` : ` ≈ ${Math.round(x.costOfInaccuracy)}`));
+    const sortedByCostOfInaccuracyMandatories = [...mandatories].sort((ob1, ob2) => ob1.costOfInaccuracy > ob2.costOfInaccuracy ? 1 : ob1.costOfInaccuracy < ob2.costOfInaccuracy ? -1 : 0).map((x, i, arr) => x.format + (i > 0 ? ` (+${(arr[i].costOfInaccuracy/arr[0].costOfInaccuracy*100-100).toFixed(1)} %)` : ` ≈ ${Math.round(x.costOfInaccuracy)}`));
+    const sortedByAccuracyOptionals = [...optionals].sort((ob1, ob2) => ob1.avgAccuracyPercent < ob2.avgAccuracyPercent ? 1 : ob1.avgAccuracyPercent > ob2.avgAccuracyPercent ? -1 : 0).map((x, i, arr) => x.format + (i > 0 ? ` (-${(arr[0].avgAccuracyPercent-arr[i].avgAccuracyPercent).toFixed(1)} %)` : ` ≈ ${Math.round(x.avgAccuracyPercent)} %`));
+    const sortedByAccuracyMandatories = [...mandatories].sort((ob1, ob2) => ob1.avgAccuracyPercent < ob2.avgAccuracyPercent ? 1 : ob1.avgAccuracyPercent > ob2.avgAccuracyPercent ? -1 : 0).map((x, i, arr) => x.format + (i > 0 ? ` (-${(arr[0].avgAccuracyPercent-arr[i].avgAccuracyPercent).toFixed(1)} %)` : ` ≈ ${Math.round(x.avgAccuracyPercent)} %`));
+    const sortedByWeightedAccuracyOptionals = [...optionals].sort((ob1, ob2) => ob1.avgWeightedAccuracyPercent < ob2.avgWeightedAccuracyPercent ? 1 : ob1.avgWeightedAccuracyPercent > ob2.avgWeightedAccuracyPercent ? -1 : 0).map((x, i, arr) => x.format + (i > 0 ? ` (-${(arr[0].avgWeightedAccuracyPercent-arr[i].avgWeightedAccuracyPercent).toFixed(1)} %)` : ` ≈ ${Math.round(x.avgWeightedAccuracyPercent)} %`));
+    const sortedByWeightedAccuracyMandatories = [...mandatories].sort((ob1, ob2) => ob1.avgWeightedAccuracyPercent < ob2.avgWeightedAccuracyPercent ? 1 : ob1.avgWeightedAccuracyPercent > ob2.avgWeightedAccuracyPercent ? -1 : 0).map((x, i, arr) => x.format + (i > 0 ? ` (-${(arr[0].avgWeightedAccuracyPercent-arr[i].avgWeightedAccuracyPercent).toFixed(1)} %)` : ` ≈ ${Math.round(x.avgWeightedAccuracyPercent)} %`));
+    const sortedByEfficiencyScoreOptionals = [...optionals].sort((ob1, ob2) => ob1.efficiencyScore < ob2.efficiencyScore ? 1 : ob1.efficiencyScore > ob2.efficiencyScore ? -1 : 0).map((x, i, arr) => x.format + (i > 0 ? ` (${(arr[i].efficiencyScore/arr[0].efficiencyScore*100-100).toFixed(1)} %)` : ` ≈ ${Math.round(x.efficiencyScore)}`));
+    const sortedByEfficiencyScoreMandatories = [...mandatories].sort((ob1, ob2) => ob1.efficiencyScore < ob2.efficiencyScore ? 1 : ob1.efficiencyScore > ob2.efficiencyScore ? -1 : 0).map((x, i, arr) => x.format + (i > 0 ? ` (${(arr[i].efficiencyScore/arr[0].efficiencyScore*100-100).toFixed(1)} %)` : ` ≈ ${Math.round(x.efficiencyScore)}`));
+    const sortedByWeightedEfficiencyScoreOptionals = [...optionals].sort((ob1, ob2) => ob1.weightedEfficiencyScore < ob2.weightedEfficiencyScore ? 1 : ob1.weightedEfficiencyScore > ob2.weightedEfficiencyScore ? -1 : 0).map((x, i, arr) => x.format + (i > 0 ? ` (${(arr[i].weightedEfficiencyScore/arr[0].weightedEfficiencyScore*100-100).toFixed(1)} %)` : ` ≈ ${Math.round(x.weightedEfficiencyScore)}`));
+    const sortedByWeightedEfficiencyScoreMandatories = [...mandatories].sort((ob1, ob2) => ob1.weightedEfficiencyScore < ob2.weightedEfficiencyScore ? 1 : ob1.weightedEfficiencyScore > ob2.weightedEfficiencyScore ? -1 : 0).map((x, i, arr) => x.format + (i > 0 ? ` (${(arr[i].weightedEfficiencyScore/arr[0].weightedEfficiencyScore*100-100).toFixed(1)} %)` : ` ≈ ${Math.round(x.weightedEfficiencyScore)}`));
 
-    const rows = mandatories.map((_, i) => [
-      sortedByTotalTokensOptionals[i],
+    const manRows = mandatories.map((_, i) => [
+      sortedByTotalDurationMandatories[i],
       sortedByTotalTokensMandatories[i],
-      sortedByEfficientlyUsedTokensOptionals[i],
-      sortedByEfficientlyUsedTokensMandatories[i],
-      sortedByCostOfInaccuracyOptionals[i],
       sortedByCostOfInaccuracyMandatories[i],
-      sortedByAccuracyOptionals[i],
       sortedByAccuracyMandatories[i],
-      sortedByWeightedAccuracyOptionals[i],
       sortedByWeightedAccuracyMandatories[i],
-      sortedByEfficiencyScoreOptionals[i],
       sortedByEfficiencyScoreMandatories[i],
-      sortedByWeightedEfficiencyScoreOptionals[i],
       sortedByWeightedEfficiencyScoreMandatories[i],
+    ]);
+    
+    const optRows = mandatories.map((_, i) => [
+      sortedByTotalDurationOptionals[i],
+      sortedByTotalTokensOptionals[i],
+      sortedByCostOfInaccuracyOptionals[i],
+      sortedByAccuracyOptionals[i],
+      sortedByWeightedAccuracyOptionals[i],
+      sortedByEfficiencyScoreOptionals[i],
+      sortedByWeightedEfficiencyScoreOptionals[i],
     ]);
 
     this.heading(4, '2.1.3 Format Ranking');
     this.line();
+    this.heading(5, 'Mandatory');
+    this.line();
     this.table(
-      ['↑ Total Opt', '↑ Total Man', '↓ Used Tokens Opt', '↓ Used Tokens Man', '↑ Wasted Tokens Opt', '↑ Wasted Tokens Man', '↓ Acc (%) Opt', '↓ Acc (%) Man', '↓ Wtd Acc (%) Opt', '↓ Wtd Acc (%) Man', '↓ Eff Score Opt', '↓ Eff Score Man', '↓ Wtd Eff Score Opt', '↓ Wtd Eff Score Man'],
-      rows
+      ['↑ Total Duration', '↑ Total Tokens', '↑ Wasted Tokens','↓ Acc', '↓ Wtd Acc', '↓ Eff Score','↓ Wtd Eff Score'],
+      manRows
+    );
+    this.line();
+    this.heading(5, 'Optional');
+    this.line();
+    this.table(
+      ['↑ Total Duration)', '↑ Total Tokens', '↑ Wasted Tokens','↓ Acc', '↓ Wtd Acc', '↓ Eff Score','↓ Wtd Eff Score'],
+      optRows
     );
     this.line();
 

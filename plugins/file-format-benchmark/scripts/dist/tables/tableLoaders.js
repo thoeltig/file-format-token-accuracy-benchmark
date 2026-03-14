@@ -105,6 +105,7 @@ function aggregateMetrics(metrics) {
             informationValuePerTokenDelta: 0,
             readDurationInMillisecondsDelta: 0,
             outputDurationInMillisecondsDelta: 0,
+            totalDurationInMilliseconds: 0,
             totalDurationInMillisecondsDelta: 0,
             charsPerTokenDelta: 0,
             tokensPerValueDelta: 0,
@@ -125,6 +126,7 @@ function aggregateMetrics(metrics) {
             avgTest.minReasoningDurationDriftPerc += t.minReasoningDurationDriftPerc;
             avgTest.maxReasoningDurationDriftPerc += t.maxReasoningDurationDriftPerc;
             avgTest.avgReasoningTokensPerMillisecond += t.avgReasoningTokensPerMillisecond;
+            avgTest.totalDurationInMilliseconds = t.readDurationInMilliseconds + t.avgReasoningDurationInMilliseconds;
             avgTest.totalQuestions += t.totalQuestions;
             avgTest.avgNoAnswers += t.avgNoAnswers;
             avgTest.avgIncorrectAnswers += t.avgIncorrectAnswers;
@@ -158,6 +160,7 @@ function aggregateMetrics(metrics) {
         avgTest.minReasoningDurationDriftPerc /= count;
         avgTest.maxReasoningDurationDriftPerc /= count;
         avgTest.avgReasoningTokensPerMillisecond /= count;
+        avgTest.totalDurationInMilliseconds /= count;
         avgTest.totalQuestions /= count;
         avgTest.avgNoAnswers /= count;
         avgTest.avgIncorrectAnswers /= count;
@@ -207,7 +210,7 @@ function aggregateMetrics(metrics) {
             item.informationValuePerTokenDelta = optional.informationValuePerToken - mandatory.informationValuePerToken;
             item.readDurationInMillisecondsDelta = optional.readDurationInMilliseconds - mandatory.readDurationInMilliseconds;
             item.outputDurationInMillisecondsDelta = optional.avgReasoningDurationInMilliseconds - mandatory.avgReasoningDurationInMilliseconds;
-            item.totalDurationInMillisecondsDelta = (optional.readDurationInMilliseconds + optional.avgReasoningDurationInMilliseconds) - (mandatory.readDurationInMilliseconds + mandatory.avgReasoningDurationInMilliseconds);
+            item.totalDurationInMillisecondsDelta = optional.totalDurationInMilliseconds - mandatory.totalDurationInMilliseconds;
         }
     });
     return aggregated;
