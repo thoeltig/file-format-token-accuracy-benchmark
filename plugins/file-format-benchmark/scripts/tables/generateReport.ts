@@ -32,7 +32,7 @@
 
 import * as fs from 'fs';
 import * as path from 'path';
-import { loadAnalyticsResults, aggregateMetrics, loadValidationResults, AggregatedMetric, ValidationSummary } from './tableLoaders';
+import { loadAnalyticsResults, aggregateMetrics, loadValidationResults, AggregatedMetric, ValidationSummary, AllQuestionCategory } from './tableLoaders';
 import { AnalyticsOutput, QuestionCategory } from '../types';
 
 interface ReportConfig {
@@ -434,26 +434,74 @@ class ReportGenerator {
       optRows
     );
     this.line();
+    
+    // 2.1.4 Category Accuracy Ranking
+    const formats: string[] = [...new Set(this.validations.map(x => x.format))];
+    const mandatoriesVals: MappingType[] = this.validations.filter(x=>x.variant === 'mandatory').flatMap(v => v.accuracy.map<MappingType>(x => ({ format: v.format, category: x.category, accuracyPercent: x.accuracyPercent})));
+    const optionalsVals: MappingType[] = this.validations.filter(x=>x.variant === 'optional').flatMap(v => v.accuracy.map<MappingType>(x => ({ format: v.format, category: x.category, accuracyPercent: x.accuracyPercent})));
+
+    const manSortedByFieldRetrieval = mandatoriesVals.filter(x => x.category === 'field_retrieval').sort((ob1, ob2) => ob1.accuracyPercent < ob2.accuracyPercent ? 1 : ob1.accuracyPercent > ob2.accuracyPercent ? -1 : 0).map((x, i, arr) => this.getRankingOfPercentageDisplay(x.format, i, arr[i].accuracyPercent, arr[0].accuracyPercent));
+    const manSortedByStructureAwareness = mandatoriesVals.filter(x => x.category === 'structure_awareness').sort((ob1, ob2) => ob1.accuracyPercent < ob2.accuracyPercent ? 1 : ob1.accuracyPercent > ob2.accuracyPercent ? -1 : 0).map((x, i, arr) => this.getRankingOfPercentageDisplay(x.format, i, arr[i].accuracyPercent, arr[0].accuracyPercent));
+    const manSortedByFiltering = mandatoriesVals.filter(x => x.category === 'filtering').sort((ob1, ob2) => ob1.accuracyPercent < ob2.accuracyPercent ? 1 : ob1.accuracyPercent > ob2.accuracyPercent ? -1 : 0).map((x, i, arr) => this.getRankingOfPercentageDisplay(x.format, i, arr[i].accuracyPercent, arr[0].accuracyPercent));
+    const manSortedByAggregation = mandatoriesVals.filter(x => x.category === 'aggregation').sort((ob1, ob2) => ob1.accuracyPercent < ob2.accuracyPercent ? 1 : ob1.accuracyPercent > ob2.accuracyPercent ? -1 : 0).map((x, i, arr) => this.getRankingOfPercentageDisplay(x.format, i, arr[i].accuracyPercent, arr[0].accuracyPercent));
+    
+    const manValsRows = formats.map((_, i) => [
+      manSortedByFieldRetrieval[i],
+      manSortedByStructureAwareness[i],
+      manSortedByFiltering[i],
+      manSortedByAggregation[i],
+    ]);
+
+    const prefixArrowDown = '↓ ';
+    const suffix = ' %';
+    const fieldRetrievalLabel = prefixArrowDown + this.getQuestionCategoryLabel('field_retrieval') + suffix;
+    const aggregationLabel = prefixArrowDown + this.getQuestionCategoryLabel('aggregation') + suffix;
+    const filteringLabel = prefixArrowDown + this.getQuestionCategoryLabel('filtering') + suffix;
+    const structureAwarenessLabel = prefixArrowDown + this.getQuestionCategoryLabel('structure_awareness') + suffix;
+
+    this.heading(4, '2.1.4 Category Accuracy Ranking');
     this.line();
     this.heading(5, 'Mandatory');
     this.line();
     this.table(
-      ['↑ Total Duration', '↑ Total Tokens', '↑ Wasted Tokens','↓ Acc', '↓ Wtd Acc', '↓ Eff Score','↓ Wtd Eff Score'],
-      manRows
+      [fieldRetrievalLabel, structureAwarenessLabel, filteringLabel, aggregationLabel],
+      manValsRows
     );
     this.line();
+    
+    const optSortedByFieldRetrieval = optionalsVals.filter(x => x.category === 'field_retrieval').sort((ob1, ob2) => ob1.accuracyPercent < ob2.accuracyPercent ? 1 : ob1.accuracyPercent > ob2.accuracyPercent ? -1 : 0).map((x, i, arr) => this.getRankingOfPercentageDisplay(x.format, i, arr[i].accuracyPercent, arr[0].accuracyPercent));
+    const optSortedByStructureAwareness = optionalsVals.filter(x => x.category === 'structure_awareness').sort((ob1, ob2) => ob1.accuracyPercent < ob2.accuracyPercent ? 1 : ob1.accuracyPercent > ob2.accuracyPercent ? -1 : 0).map((x, i, arr) => this.getRankingOfPercentageDisplay(x.format, i, arr[i].accuracyPercent, arr[0].accuracyPercent));
+    const optSortedByFiltering = optionalsVals.filter(x => x.category === 'filtering').sort((ob1, ob2) => ob1.accuracyPercent < ob2.accuracyPercent ? 1 : ob1.accuracyPercent > ob2.accuracyPercent ? -1 : 0).map((x, i, arr) => this.getRankingOfPercentageDisplay(x.format, i, arr[i].accuracyPercent, arr[0].accuracyPercent));
+    const optSortedByAggregation = optionalsVals.filter(x => x.category === 'aggregation').sort((ob1, ob2) => ob1.accuracyPercent < ob2.accuracyPercent ? 1 : ob1.accuracyPercent > ob2.accuracyPercent ? -1 : 0).map((x, i, arr) => this.getRankingOfPercentageDisplay(x.format, i, arr[i].accuracyPercent, arr[0].accuracyPercent));
+    
+    const optValsRows = formats.map((_, i) => [
+      optSortedByFieldRetrieval[i],
+      optSortedByStructureAwareness[i],
+      optSortedByFiltering[i],
+      optSortedByAggregation[i],
+    ]);
+
     this.heading(5, 'Optional');
     this.line();
     this.table(
-      ['↑ Total Duration)', '↑ Total Tokens', '↑ Wasted Tokens','↓ Acc', '↓ Wtd Acc', '↓ Eff Score','↓ Wtd Eff Score'],
-      optRows
+      [fieldRetrievalLabel, structureAwarenessLabel, filteringLabel, aggregationLabel],
+      optValsRows
     );
     this.line();
 
-    this.heading(4, '2.1.4 Conclussion');
+    // 2.1.5 Conclussion
+    this.heading(4, '2.1.5 Conclussion');
     this.line();
-    this.line('<ADD_CONTENT_HERE>Analyze token usage patterns here</ADD_CONTENT_HERE>');
+    this.line('<ADD_CONTENT_HERE>Analyze here</ADD_CONTENT_HERE>');
     this.line();
+  }
+  
+  private getRankingOfAmountDisplay(format: string, idx: number, current: number, first: number, suffix: string = ''){
+    return format + (idx > 0 ? ` (${(current > first ?' +' : '')}${(current/first*100-100).toFixed(1)} %)` : ` ≈ ${Math.round(current)} ${suffix}`);
+  }
+  
+  private getRankingOfPercentageDisplay(format: string, idx: number, current: number, first: number){
+    return format + (idx > 0 ? ` (${(current > first ?' +' : '')}${(current-first).toFixed(1)} %)` : ` ≈ ${Math.round(current)} %`);
   }
 
   private generateResults(): void {
