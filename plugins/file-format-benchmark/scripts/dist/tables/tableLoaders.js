@@ -98,6 +98,7 @@ function aggregateMetrics(metrics) {
             costOfInaccuracyDelta: 0,
             correctAnswersDelta: 0,
             incorrectAnswersDelta: 0,
+            noAnswersDelta: 0,
             accuracyDelta: 0,
             weightedAccuracyDelta: 0,
             efficiencyDelta: 0,
@@ -161,10 +162,10 @@ function aggregateMetrics(metrics) {
         avgTest.maxReasoningDurationDriftPerc /= count;
         avgTest.avgReasoningTokensPerMillisecond /= count;
         avgTest.totalDurationInMilliseconds /= count;
-        avgTest.totalQuestions /= count;
-        avgTest.avgNoAnswers /= count;
-        avgTest.avgIncorrectAnswers /= count;
-        avgTest.avgCorrectAnswers /= count;
+        avgTest.totalQuestions = Math.round(avgTest.totalQuestions / count);
+        avgTest.avgNoAnswers = Math.round(avgTest.avgNoAnswers / count);
+        avgTest.avgIncorrectAnswers = Math.round(avgTest.avgIncorrectAnswers / count);
+        avgTest.avgCorrectAnswers = Math.round(avgTest.avgCorrectAnswers / count);
         avgTest.avgAccuracyPercent /= count;
         avgTest.minAccuracyDriftPercent /= count;
         avgTest.maxAccuracyDriftPercent /= count;
@@ -200,8 +201,9 @@ function aggregateMetrics(metrics) {
             item.costOfInaccuracyDelta = optional.costOfInaccuracy - mandatory.costOfInaccuracy;
             item.accuracyDelta = optional.avgAccuracyPercent - mandatory.avgAccuracyPercent;
             item.weightedAccuracyDelta = optional.avgWeightedAccuracyPercent - mandatory.avgWeightedAccuracyPercent;
-            item.correctAnswersDelta = optional.avgCorrectAnswers - mandatory.avgCorrectAnswers;
-            item.incorrectAnswersDelta = optional.avgIncorrectAnswers - mandatory.avgIncorrectAnswers;
+            item.correctAnswersDelta = Math.round(optional.avgCorrectAnswers - mandatory.avgCorrectAnswers);
+            item.incorrectAnswersDelta = Math.round(optional.avgIncorrectAnswers - mandatory.avgIncorrectAnswers);
+            item.noAnswersDelta = Math.round(optional.avgNoAnswers - mandatory.avgNoAnswers);
             item.efficiencyDelta = optional.efficiencyScore - mandatory.efficiencyScore;
             item.weightedEfficiencyDelta = optional.weightedEfficiencyScore - mandatory.weightedEfficiencyScore;
             item.charsPerTokenDelta = optional.charsPerToken - mandatory.charsPerToken;

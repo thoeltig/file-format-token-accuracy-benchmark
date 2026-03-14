@@ -25,6 +25,7 @@ export interface AggregatedMetric extends Metrics {
   costOfInaccuracyDelta: number;
   correctAnswersDelta: number;
   incorrectAnswersDelta: number;
+  noAnswersDelta: number;
   accuracyDelta: number;
   absAccuracyDriftPerc: number;
   weightedAccuracyDelta: number;
@@ -107,7 +108,7 @@ export function aggregateMetrics(metrics: TestMetrics[]): AggregatedMetric[] {
       avgCorrectAnswers: 0,
       avgAccuracyPercent: 0,
       minAccuracyDriftPercent: 0,
-      maxAccuracyDriftPercent: 0, 
+      maxAccuracyDriftPercent: 0,
       avgWeightedAccuracyPercent: 0,
       minWeightedAccuracyDriftPercent: 0,
       maxWeightedAccuracyDriftPercent: 0,
@@ -129,6 +130,7 @@ export function aggregateMetrics(metrics: TestMetrics[]): AggregatedMetric[] {
       costOfInaccuracyDelta: 0,
       correctAnswersDelta: 0,
       incorrectAnswersDelta: 0,
+      noAnswersDelta: 0,
       accuracyDelta: 0,
       weightedAccuracyDelta: 0,
       efficiencyDelta: 0,
@@ -194,10 +196,10 @@ export function aggregateMetrics(metrics: TestMetrics[]): AggregatedMetric[] {
     avgTest.maxReasoningDurationDriftPerc /= count;
     avgTest.avgReasoningTokensPerMillisecond /= count;
     avgTest.totalDurationInMilliseconds /= count;
-    avgTest.totalQuestions /= count;
-    avgTest.avgNoAnswers /= count;
-    avgTest.avgIncorrectAnswers /= count;
-    avgTest.avgCorrectAnswers /= count;
+    avgTest.totalQuestions = Math.round(avgTest.totalQuestions / count);
+    avgTest.avgNoAnswers = Math.round(avgTest.avgNoAnswers / count);
+    avgTest.avgIncorrectAnswers = Math.round(avgTest.avgIncorrectAnswers / count);
+    avgTest.avgCorrectAnswers = Math.round(avgTest.avgCorrectAnswers / count);
     avgTest.avgAccuracyPercent /= count;
     avgTest.minAccuracyDriftPercent /= count;
     avgTest.maxAccuracyDriftPercent /= count;
@@ -240,8 +242,9 @@ export function aggregateMetrics(metrics: TestMetrics[]): AggregatedMetric[] {
       item.costOfInaccuracyDelta = optional.costOfInaccuracy - mandatory.costOfInaccuracy;
       item.accuracyDelta = optional.avgAccuracyPercent - mandatory.avgAccuracyPercent;
       item.weightedAccuracyDelta = optional.avgWeightedAccuracyPercent - mandatory.avgWeightedAccuracyPercent;
-      item.correctAnswersDelta = optional.avgCorrectAnswers - mandatory.avgCorrectAnswers;
-      item.incorrectAnswersDelta = optional.avgIncorrectAnswers - mandatory.avgIncorrectAnswers;
+      item.correctAnswersDelta = Math.round(optional.avgCorrectAnswers - mandatory.avgCorrectAnswers);
+      item.incorrectAnswersDelta = Math.round(optional.avgIncorrectAnswers - mandatory.avgIncorrectAnswers);
+      item.noAnswersDelta = Math.round(optional.avgNoAnswers - mandatory.avgNoAnswers);
       item.efficiencyDelta = optional.efficiencyScore - mandatory.efficiencyScore;
       item.weightedEfficiencyDelta = optional.weightedEfficiencyScore - mandatory.weightedEfficiencyScore;
       item.charsPerTokenDelta = optional.charsPerToken - mandatory.charsPerToken;
