@@ -563,26 +563,26 @@ class ReportGenerator {
         x.format.toUpperCase(),
         mandTotalTokensUsed.toString(),
         optTotalTokensUsed.toString(),
-        tokenDiff.toString(),
-        ((tokenDiff / mandTotalTokensUsed) * 100).toFixed(2),
+        this.displayDelta(tokenDiff, 0),
+        this.calcDeltaPercentage(mandTotalTokensUsed, tokenDiff),
         x.avgAccuracyPercent.toFixed(2),
         (x.avgAccuracyPercent + x.accuracyDelta).toFixed(2),
-        x.accuracyDelta.toFixed(2),
+        this.displayDelta(x.accuracyDelta),
         x.avgWeightedAccuracyPercent.toFixed(2),
         (x.avgWeightedAccuracyPercent + x.weightedAccuracyDelta).toFixed(2),
-        x.weightedAccuracyDelta.toFixed(2),
+        this.displayDelta(x.weightedAccuracyDelta),
         x.efficiencyScore.toFixed(2),
         (x.efficiencyScore + x.efficiencyDelta).toFixed(2),
-        x.efficiencyDelta.toFixed(2),
+        this.displayDelta(x.efficiencyDelta),
         x.weightedEfficiencyScore.toFixed(2),
         (x.weightedEfficiencyScore + x.weightedEfficiencyDelta).toFixed(2),
-        x.weightedEfficiencyDelta.toFixed(2),
+        this.displayDelta(x.weightedEfficiencyDelta, 2)
       ];
     });
     
     this.heading(3, '2.3 Format Robustness: Mandatory vs Optional');
     this.table(
-      ['Format', 'Tokens Man', 'Tokens Opt', 'Diff', 'Diff (%)', 'Acc Man (%)', 'Acc Opt (%)', 'Diff (%)', 'Wtd Acc Man (%)', 'Wtd Acc Opt (%)', 'Diff (%)', 'Eff Man (%)', 'Eff Opt (%)', 'Diff (%)'],
+      ['Format', 'Tokens Man', 'Tokens Opt', 'Diff', 'Diff (%)', 'Acc Man (%)', 'Acc Opt (%)', 'Diff (%)', 'Wtd Acc Man (%)', 'Wtd Acc Opt (%)', 'Diff (%)', 'Eff Score Man', 'Eff Score Opt', 'Diff', 'Wtd Eff Score Man', 'Wtd Eff Score Opt', 'Diff'],
       mandOptFormatDeltaRows
     );
 
@@ -625,16 +625,16 @@ class ReportGenerator {
         x.format.toUpperCase(),
         manReadDuration.toString(),
         (manReadDuration + readDurationDelta).toString(),
-        readDurationDelta.toString(),
-        ((readDurationDelta / manReadDuration) * 100).toFixed(2),
+        this.displayDelta(readDurationDelta, 0),
+        this.calcDeltaPercentage(manReadDuration, readDurationDelta),
         manOutputDuration.toFixed(2),
         (manOutputDuration + outputDurationDelta).toFixed(2),
-        outputDurationDelta.toFixed(2),
-        ((outputDurationDelta / manOutputDuration) * 100).toFixed(2),
+        this.displayDelta(outputDurationDelta, 2),
+        this.calcDeltaPercentage(manOutputDuration, outputDurationDelta),
         manTotalDuration.toFixed(2),
         (manTotalDuration + totalDurationDelta).toFixed(2),
-        totalDurationDelta.toFixed(2),
-        ((totalDurationDelta / manTotalDuration) * 100).toFixed(2),
+        this.displayDelta(totalDurationDelta, 2),
+        this.calcDeltaPercentage(manTotalDuration, totalDurationDelta),
       ];
     });
     
@@ -667,20 +667,20 @@ class ReportGenerator {
         x.format.toUpperCase(),
         x.charsPerToken.toFixed(3),
         (x.charsPerToken + x.charsPerTokenDelta).toFixed(3),
-        x.charsPerTokenDelta.toFixed(3),
-        ((x.charsPerTokenDelta / x.charsPerToken) * 100).toFixed(2),
+        this.displayDelta(x.charsPerTokenDelta, 3),
+        this.calcDeltaPercentage(x.charsPerToken, x.charsPerTokenDelta),
         x.tokensPerValue.toFixed(3),
         (x.tokensPerValue + x.tokensPerValueDelta).toFixed(3),
-        x.tokensPerValueDelta.toFixed(3),
-        ((x.tokensPerValueDelta / x.tokensPerValue) * 100).toFixed(2),
+        this.displayDelta(x.tokensPerValueDelta, 3),
+        this.calcDeltaPercentage(x.tokensPerValue, x.tokensPerValueDelta),
         x.tokensPerObject.toFixed(3),
         (x.tokensPerObject + x.tokensPerObjectDelta).toFixed(3),
-        x.tokensPerObjectDelta.toFixed(3),
-        ((x.tokensPerObjectDelta / x.tokensPerObject) * 100).toFixed(2),
+        this.displayDelta(x.tokensPerObjectDelta, 3),
+        this.calcDeltaPercentage(x.tokensPerObject, x.tokensPerObjectDelta),
         x.informationValuePerToken.toFixed(3),
         (x.informationValuePerToken + x.informationValuePerTokenDelta).toFixed(3),
-        x.informationValuePerTokenDelta.toFixed(3),
-        ((x.informationValuePerTokenDelta / x.informationValuePerToken) * 100).toFixed(2),
+        this.displayDelta(x.informationValuePerTokenDelta, 3),
+        this.calcDeltaPercentage(x.informationValuePerToken, x.informationValuePerTokenDelta),
       ];
     });
     
@@ -690,21 +690,24 @@ class ReportGenerator {
       mandOptStructuralDeltaRows
     );
 
-    // 2.6 Answer Quality Breakdown
-    const answerQualityRows = sortedAggregated.map(item => [
+    // 2.6.1 Token Utilization Efficiency: Metrics
+    const effTokenRows = sortedAggregated.map(item => [
       item.format.toUpperCase(),
       item.variant.substring(0, 3),
-      Math.round(item.avgCorrectAnswers).toString(),
-      Math.round(item.avgIncorrectAnswers).toString(),
-      Math.round(item.avgNoAnswers).toString(),
+      Math.round(item.totalTokensUsed).toString(),
+      Math.round(item.efficientlyUsedTokens).toString(),
+      Math.round(item.costOfInaccuracy).toString(),
       item.avgAccuracyPercent.toFixed(2),
+      item.avgWeightedAccuracyPercent.toFixed(2),
+      item.efficiencyScore.toFixed(2),
+      item.weightedEfficiencyScore.toFixed(2),
     ]);
-    
-    this.heading(3, '2.6 Answer Quality Breakdown');
+
+    this.heading(3, '2.6 Token Utilization Efficiency');
     this.heading(4, '2.6.1 Metrics'); 
     this.table(
-      ['Format', 'Variant', 'Correct Answers', 'Incorrect Answers', 'No Answers',  'Acc (%)'],
-      answerQualityRows
+      ['Format', 'Variant', 'Total Tokens', 'Useful Tokens', 'Wasted Tokens','Acc (%)', 'Wtd Acc (%)', 'Eff Score',  'Wtd Eff Score', ],
+      effTokenRows
     );
 
     // 2.7 Token Utilization Efficiency
@@ -768,16 +771,24 @@ class ReportGenerator {
     this.hr();
   }
 
+  private calcDeltaPercentage(manVal: number, optManDelta: number, fixed: number = 2): string {
+    return this.displayDelta(manVal > 0 ? (optManDelta / manVal) * 100 : 0, fixed)
+  }
+  
+  private displayDelta(percentage: number, fixed: number = 2): string {
+    return (percentage > 0 ?' +' : '') + percentage.toFixed(fixed)
+  }
+
   private diffMandOptAccuracyPerCategory(idx:number, category: QuestionCategory): void { 
     this.heading(4, `2.8.${idx} ${this.getQuestionCategoryLabel(category)}: Mandatory vs Optional`); 
     this.line();
 
+    const mandatoriesVals: MappingType[] = this.validations.filter(x=>x.variant === 'mandatory').flatMap(v => v.accuracy.map<MappingType>(x => ({ format: v.format, category: x.category, accuracyPercent: x.accuracyPercent})));
+    const optionalsVals: MappingType[] = this.validations.filter(x=>x.variant === 'optional').flatMap(v => v.accuracy.map<MappingType>(x => ({ format: v.format, category: x.category, accuracyPercent: x.accuracyPercent})));
+
     const categoryMandOptRows = this.uniqueFormats.map(fmt => {
-      const mandValidation = this.validations.find(x => x.format === fmt && x.variant === 'mandatory' && x.recordCount === this.recordCounts[0]);
-      const mandRetrieval = mandValidation?.accuracy.find(x => x.category === category)?.accuracyPercent ?? 0;
-      
-      const optValidation = this.validations.find(x => x.format === fmt && x.variant === 'optional' && x.recordCount === this.recordCounts[0]);
-      const optRetrieval = optValidation?.accuracy.find(x => x.category === category)?.accuracyPercent ?? 0;
+      const mandRetrieval = mandatoriesVals.find(x => x.category === category && x.format == fmt)?.accuracyPercent ?? 0;
+      const optRetrieval = optionalsVals.find(x => x.category === category && x.format == fmt)?.accuracyPercent ?? 0;
 
       const diffRetrieval = optRetrieval - mandRetrieval;
 
@@ -785,7 +796,7 @@ class ReportGenerator {
         fmt.toUpperCase(),
         mandRetrieval.toFixed(2),
         optRetrieval.toFixed(2),
-        diffRetrieval.toFixed(2),
+        this.displayDelta(diffRetrieval),
       ];
     }).filter(r => r !== null) as string[][];
 
