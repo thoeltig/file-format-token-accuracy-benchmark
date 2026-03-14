@@ -818,15 +818,6 @@ class ReportGenerator {
     this.diffMandOptAccuracyPerCategory(3, 'structure_awareness');
     this.diffMandOptAccuracyPerCategory(4, 'filtering');
     this.diffMandOptAccuracyPerCategory(5, 'aggregation');
-
-    this.line();
-    this.generateCategoryAccuracyTables();
-    this.line('<ADD_CONTENT_HERE: Analyze performance across question categories>');
-    this.line('- Field retrieval performance:');
-    this.line('- Structure awareness patterns:');
-    this.line('- Aggregation/filtering challenges:');
-    this.line('- Per-format strengths and weaknesses:\n');
-
     this.hr();
   }
 
@@ -863,55 +854,6 @@ class ReportGenerator {
       ['Format', 'Mand (%)', 'Opt (%)', 'Diff (%)'],
       categoryMandOptRows
     );
-  }
-
-  private generateCategoryAccuracyTables(): void {
-    if (this.validations.length === 0) {
-      this.line('*Category accuracy data not available*\n');
-      return;
-    }
-
-    // Extract unique record counts and categories from validations
-    const recordCounts = [...new Set(this.validations.map(v => v.recordCount))].sort((a, b) => b - a);
-    const categories = [...new Set(this.validations.flatMap(v => v.accuracy.map(a => a.category)))].sort();
-
-    recordCounts.forEach(recCount => {    
-      // Category difficulty ranking
-      this.line(`\n#### Category Difficulty Ranking (${recCount}-Record Dataset):\n`);
-      this.line('| Rank | Category | Avg Accuracy (%) | Easiest Format | Hardest Format |');
-      this.line('|------|----------|--------------|----------------|----------------|');
-
-      if (categories.length > 0) {
-        const categoryStats = categories.map(cat => {
-          const accuracies = this.uniqueFormats.map(fmt => {
-            const vals = this.validations.filter(
-              v => v.format === fmt && v.recordCount === recCount
-            );
-            const avg = vals.length > 0
-              ? vals.reduce((sum, v) => {
-                  const catAcc = v.accuracy.find(a => a.category === cat)?.accuracyPercent || 0;
-                  return sum + catAcc;
-                }, 0) / vals.length
-              : 0;
-            return { format: fmt, accuracy: avg };
-          });
-
-          const avgAccuracy = accuracies.reduce((sum, a) => sum + a.accuracy, 0) / accuracies.length;
-          const easiest = accuracies.reduce((max, a) => a.accuracy > max.accuracy ? a : max);
-          const hardest = accuracies.reduce((min, a) => a.accuracy < min.accuracy ? a : min);
-
-          return { category: cat, avgAccuracy, easiest: easiest.format, hardest: hardest.format };
-        }).sort((a, b) => b.avgAccuracy - a.avgAccuracy);
-
-        categoryStats.forEach((stat, idx) => {
-          this.line(
-            `| ${idx + 1} | ${stat.category} | ${stat.avgAccuracy.toFixed(2)} | ${stat.easiest.toUpperCase()} | ${stat.hardest.toUpperCase()} |`
-          );
-        });
-      }
-
-      this.line();
-    });
   }
 
   private generateFormatAnalysis(): void {
@@ -995,100 +937,7 @@ class ReportGenerator {
   private generateAppendices(): void {
     this.heading(2, 'Appendices');
 
-    this.heading(3, 'Appendix A: Complete Data Tables');
-
-    this.heading(4, 'A.1 Token Cost Breakdown by Format and Variant');
-
-    // Sort by format then variant (alphabetically)
-    const sortedForAppendix = [...this.aggregated].sort((ob1, ob2) =>{
-        if (ob1.format > ob2.format) {
-          return 1;
-        } else if (ob1.format < ob2.format) { 
-            return -1;
-        }
-
-        if (ob1.variant < ob2.variant) { 
-            return -1;
-        } else if (ob1.variant > ob2.variant) {
-            return 1
-        } else {
-            return 0;
-        }
-      }
-    );
-
-    const tokenRows = sortedForAppendix.map(item => [
-      item.format.toUpperCase(),
-      item.recordCount.toString(),
-      item.variant.substring(0, 3),
-      Math.round(item.readTokens).toString(),
-      Math.round(item.avgOutputTokens).toString(),
-      Math.round(item.totalTokensUsed).toString(),
-    ]);
-    this.table(
-      ['Format', 'Records', 'Variant', 'Read Tokens', 'Output Tokens', 'Total Tokens'],
-      tokenRows
-    );
-
-    this.heading(4, 'A.2 Accuracy Comparison');
-    const accRows = sortedForAppendix.map(item => [
-      item.format.toUpperCase(),
-      item.recordCount.toString(),
-      item.variant.substring(0, 3),
-      item.avgAccuracyPercent.toFixed(2),
-      item.avgWeightedAccuracyPercent.toFixed(2),
-      (item.avgWeightedAccuracyPercent - item.avgAccuracyPercent).toFixed(2),
-    ]);
-    this.table(
-      ['Format', 'Records', 'Variant', 'Accuracy (%)', 'Weighted Accuracy (%)', 'Delta (%)'],
-      accRows
-    );
-
-    this.heading(4, 'A.3 Efficiency and Cost Analysis');
-    const effRows = sortedForAppendix.map(item => [
-      item.format.toUpperCase(),
-      item.recordCount.toString(),
-      item.variant.substring(0, 3),
-      item.informationValuePerToken.toFixed(3),
-      item.efficiencyScore.toFixed(2),
-      item.weightedEfficiencyScore.toFixed(2),
-      item.costOfInaccuracy.toFixed(3),
-    ]);
-    this.table(
-      ['Format', 'Records', 'Variant', 'Info/Token', 'Efficiency', 'Wtd Efficiency', 'Cost Inaccuracy'],
-      effRows
-    );
-
-    this.heading(3, 'Appendix B: Detailed Performance Data');
-
-    this.heading(4, 'B.1 Read & Output Performance');
-    this.line('| Format | Records | Variant | Output Tokens | Reasoning Duration (ms) | Q Count | Correct | Incorrect | Unanswered |');
-    this.line('|---|---|---|---|---|---|---|---|---|');
-    this.line('*Note: These detailed metrics are extracted from metrics.json*');
-    this.line('- Read duration shows file read performance');
-    this.line('- Reasoning duration shows inference/thinking time');
-    this.line('- Q Count and answer distribution shows answer quality');
-    this.line();
-
-    this.heading(4, 'B.2 Structural Efficiency (Per Value/Object)');
-    this.line('| Format | Records | Variant | Tokens/Value | Tokens/Object | Output/Answer |');
-    this.line('|---|---|---|---|---|---|');
-    this.line('*Note: These metrics show format overhead at different granularities*');
-    this.line('- Tokens/Value: Lower = less overhead per data element');
-    this.line('- Tokens/Object: Lower = less overhead per record');
-    this.line('- Output/Answer: Shows answer conciseness');
-    this.line();
-
-    this.heading(4, 'B.3 Token Utilization Details');
-    this.line('| Format | Records | Variant | Efficiently Used Tokens | Weighted Utilized | Utilization % |');
-    this.line('|---|---|---|---|---|---|');
-    this.line('*Note: These metrics break down token usage into utilized vs wasted*');
-    this.line('- Efficiently Used: Tokens that contributed to correct answers');
-    this.line('- Weighted Utilized: Same but weighted by question importance');
-    this.line('- Utilization %: Percentage of tokens producing useful output');
-    this.line();
-
-    this.heading(3, 'Appendix C: Test Infrastructure');
+    this.heading(3, 'Appendix A: Test Infrastructure');
     this.line(`- **Test Date**: ${new Date(this.metadata.generatedAt).toISOString().split('T')[0]}`);
     this.line(`- **Model**: ${this.metadata.model}`);
     this.line(`- **Extended Thinking**: ${this.metadata.thinking}`);
@@ -1097,7 +946,7 @@ class ReportGenerator {
     this.line(`- **Record Counts**: ${this.recordCounts.join(', ')}`);
     this.line(`- **Total Test Cases**: ${this.aggregated.length}`);
 
-    this.heading(3, 'Appendix D: Benchmark Configuration');
+    this.heading(3, 'Appendix B: Benchmark Configuration');
     this.metadata.questionDistribution.forEach((q: any) => {
       const weight = this.metadata.questionWeightDistribution.find((w: any) => w[0] === q[0]);
       const weightPercent = weight ? (weight[1] * 100).toFixed(2) : '0.0';
