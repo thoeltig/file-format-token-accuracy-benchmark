@@ -71,6 +71,12 @@ interface Metadata {
   questionWeightDistribution: [QuestionCategory, number][];
 };
 
+  interface MappingType {
+    format: string;
+    category: AllQuestionCategory;
+    accuracyPercent: number;
+  };
+
 function extractMetadata(analyticsData: AnalyticsOutput): Metadata {
   return {
     generatedAt: new Date().toISOString(),
@@ -274,6 +280,7 @@ class ReportGenerator {
     const optionals = sortedAggregated.filter(x => x.variant == 'optional');
     const mandatories = sortedAggregated.filter(x => x.variant == 'mandatory');
 
+    // 2.1.1 Best results
     const optionalLowestTokenCost = optionals.reduce((min, a) => a.totalTokensUsed < min.totalTokensUsed ? a : min);
     const mandatoryLowestTokenCost = mandatories.reduce((min, a) => a.totalTokensUsed < min.totalTokensUsed ? a : min);
 
@@ -324,6 +331,7 @@ class ReportGenerator {
     this.line(`   - Token efficiency: ${lowestEfficiencyDelta.format.toUpperCase()} ${lowestEfficiencyDelta.efficiencyDelta.toFixed(2)}`);
     this.line();
 
+    // 2.1.2 Worst results
     const optionalHighestTokenCost = optionals.reduce((max, a) => a.totalTokensUsed > max.totalTokensUsed ? a : max);
     const mandatoryHighestTokenCost = mandatories.reduce((max, a) => a.totalTokensUsed > max.totalTokensUsed ? a : max);
     
@@ -372,20 +380,14 @@ class ReportGenerator {
     this.line(`   - Token efficiency: ${highestEfficiencyDelta.format.toUpperCase()} ${highestEfficiencyDelta.efficiencyDelta.toFixed(2)}`);
     this.line();
 
-    const sortedByTotalDurationOptionals = [...optionals].sort((ob1, ob2) => ob1.totalDurationInMilliseconds > ob2.totalDurationInMilliseconds ? 1 : ob1.totalDurationInMilliseconds < ob2.totalDurationInMilliseconds ? -1 : 0).map((x, i, arr) => x.format + (i > 0 ? ` (+${(arr[i].totalDurationInMilliseconds/arr[0].totalDurationInMilliseconds*100-100).toFixed(1)} %)` : ` ≈ ${Math.round(x.totalDurationInMilliseconds / 1000)} s`));
-    const sortedByTotalDurationMandatories = [...mandatories].sort((ob1, ob2) => ob1.totalDurationInMilliseconds > ob2.totalDurationInMilliseconds ? 1 : ob1.totalDurationInMilliseconds < ob2.totalDurationInMilliseconds ? -1 : 0).map((x, i, arr) => x.format + (i > 0 ? ` (+${(arr[i].totalDurationInMilliseconds/arr[0].totalDurationInMilliseconds*100-100).toFixed(1)} %)` : ` ≈ ${Math.round(x.totalDurationInMilliseconds / 1000)} s`));
-    const sortedByTotalTokensOptionals = [...optionals].sort((ob1, ob2) => ob1.totalTokensUsed > ob2.totalTokensUsed ? 1 : ob1.totalTokensUsed < ob2.totalTokensUsed ? -1 : 0).map((x, i, arr) => x.format + (i > 0 ? ` (+${(arr[i].totalTokensUsed/arr[0].totalTokensUsed*100-100).toFixed(1)} %)` : ` ≈ ${Math.round(x.totalTokensUsed)}`));
-    const sortedByTotalTokensMandatories = [...mandatories].sort((ob1, ob2) => ob1.totalTokensUsed > ob2.totalTokensUsed ? 1 : ob1.totalTokensUsed < ob2.totalTokensUsed ? -1 : 0).map((x, i, arr) => x.format + (i > 0 ? ` (+${(arr[i].totalTokensUsed/arr[0].totalTokensUsed*100-100).toFixed(1)} %)` : ` ≈ ${Math.round(x.totalTokensUsed)}`));
-    const sortedByCostOfInaccuracyOptionals = [...optionals].sort((ob1, ob2) => ob1.costOfInaccuracy > ob2.costOfInaccuracy ? 1 : ob1.costOfInaccuracy < ob2.costOfInaccuracy ? -1 : 0).map((x, i, arr) => x.format + (i > 0 ? ` (+${(arr[i].costOfInaccuracy/arr[0].costOfInaccuracy*100-100).toFixed(1)} %)` : ` ≈ ${Math.round(x.costOfInaccuracy)}`));
-    const sortedByCostOfInaccuracyMandatories = [...mandatories].sort((ob1, ob2) => ob1.costOfInaccuracy > ob2.costOfInaccuracy ? 1 : ob1.costOfInaccuracy < ob2.costOfInaccuracy ? -1 : 0).map((x, i, arr) => x.format + (i > 0 ? ` (+${(arr[i].costOfInaccuracy/arr[0].costOfInaccuracy*100-100).toFixed(1)} %)` : ` ≈ ${Math.round(x.costOfInaccuracy)}`));
-    const sortedByAccuracyOptionals = [...optionals].sort((ob1, ob2) => ob1.avgAccuracyPercent < ob2.avgAccuracyPercent ? 1 : ob1.avgAccuracyPercent > ob2.avgAccuracyPercent ? -1 : 0).map((x, i, arr) => x.format + (i > 0 ? ` (-${(arr[0].avgAccuracyPercent-arr[i].avgAccuracyPercent).toFixed(1)} %)` : ` ≈ ${Math.round(x.avgAccuracyPercent)} %`));
-    const sortedByAccuracyMandatories = [...mandatories].sort((ob1, ob2) => ob1.avgAccuracyPercent < ob2.avgAccuracyPercent ? 1 : ob1.avgAccuracyPercent > ob2.avgAccuracyPercent ? -1 : 0).map((x, i, arr) => x.format + (i > 0 ? ` (-${(arr[0].avgAccuracyPercent-arr[i].avgAccuracyPercent).toFixed(1)} %)` : ` ≈ ${Math.round(x.avgAccuracyPercent)} %`));
-    const sortedByWeightedAccuracyOptionals = [...optionals].sort((ob1, ob2) => ob1.avgWeightedAccuracyPercent < ob2.avgWeightedAccuracyPercent ? 1 : ob1.avgWeightedAccuracyPercent > ob2.avgWeightedAccuracyPercent ? -1 : 0).map((x, i, arr) => x.format + (i > 0 ? ` (-${(arr[0].avgWeightedAccuracyPercent-arr[i].avgWeightedAccuracyPercent).toFixed(1)} %)` : ` ≈ ${Math.round(x.avgWeightedAccuracyPercent)} %`));
-    const sortedByWeightedAccuracyMandatories = [...mandatories].sort((ob1, ob2) => ob1.avgWeightedAccuracyPercent < ob2.avgWeightedAccuracyPercent ? 1 : ob1.avgWeightedAccuracyPercent > ob2.avgWeightedAccuracyPercent ? -1 : 0).map((x, i, arr) => x.format + (i > 0 ? ` (-${(arr[0].avgWeightedAccuracyPercent-arr[i].avgWeightedAccuracyPercent).toFixed(1)} %)` : ` ≈ ${Math.round(x.avgWeightedAccuracyPercent)} %`));
-    const sortedByEfficiencyScoreOptionals = [...optionals].sort((ob1, ob2) => ob1.efficiencyScore < ob2.efficiencyScore ? 1 : ob1.efficiencyScore > ob2.efficiencyScore ? -1 : 0).map((x, i, arr) => x.format + (i > 0 ? ` (${(arr[i].efficiencyScore/arr[0].efficiencyScore*100-100).toFixed(1)} %)` : ` ≈ ${Math.round(x.efficiencyScore)}`));
-    const sortedByEfficiencyScoreMandatories = [...mandatories].sort((ob1, ob2) => ob1.efficiencyScore < ob2.efficiencyScore ? 1 : ob1.efficiencyScore > ob2.efficiencyScore ? -1 : 0).map((x, i, arr) => x.format + (i > 0 ? ` (${(arr[i].efficiencyScore/arr[0].efficiencyScore*100-100).toFixed(1)} %)` : ` ≈ ${Math.round(x.efficiencyScore)}`));
-    const sortedByWeightedEfficiencyScoreOptionals = [...optionals].sort((ob1, ob2) => ob1.weightedEfficiencyScore < ob2.weightedEfficiencyScore ? 1 : ob1.weightedEfficiencyScore > ob2.weightedEfficiencyScore ? -1 : 0).map((x, i, arr) => x.format + (i > 0 ? ` (${(arr[i].weightedEfficiencyScore/arr[0].weightedEfficiencyScore*100-100).toFixed(1)} %)` : ` ≈ ${Math.round(x.weightedEfficiencyScore)}`));
-    const sortedByWeightedEfficiencyScoreMandatories = [...mandatories].sort((ob1, ob2) => ob1.weightedEfficiencyScore < ob2.weightedEfficiencyScore ? 1 : ob1.weightedEfficiencyScore > ob2.weightedEfficiencyScore ? -1 : 0).map((x, i, arr) => x.format + (i > 0 ? ` (${(arr[i].weightedEfficiencyScore/arr[0].weightedEfficiencyScore*100-100).toFixed(1)} %)` : ` ≈ ${Math.round(x.weightedEfficiencyScore)}`));
+    // 2.1.3 Format Ranking
+    const sortedByTotalDurationMandatories = [...mandatories].sort((ob1, ob2) => ob1.totalDurationInMilliseconds > ob2.totalDurationInMilliseconds ? 1 : ob1.totalDurationInMilliseconds < ob2.totalDurationInMilliseconds ? -1 : 0).map((x, i, arr) => this.getRankingOfAmountDisplay(x.format, i, arr[i].totalDurationInMilliseconds, arr[0].totalDurationInMilliseconds, 's'));
+    const sortedByTotalTokensMandatories = [...mandatories].sort((ob1, ob2) => ob1.totalTokensUsed > ob2.totalTokensUsed ? 1 : ob1.totalTokensUsed < ob2.totalTokensUsed ? -1 : 0).map((x, i, arr) => this.getRankingOfAmountDisplay(x.format, i, arr[i].totalTokensUsed, arr[0].totalTokensUsed));
+    const sortedByCostOfInaccuracyMandatories = [...mandatories].sort((ob1, ob2) => ob1.costOfInaccuracy > ob2.costOfInaccuracy ? 1 : ob1.costOfInaccuracy < ob2.costOfInaccuracy ? -1 : 0).map((x, i, arr) => this.getRankingOfAmountDisplay(x.format, i, arr[i].costOfInaccuracy, arr[0].costOfInaccuracy));
+    const sortedByAccuracyMandatories = [...mandatories].sort((ob1, ob2) => ob1.avgAccuracyPercent < ob2.avgAccuracyPercent ? 1 : ob1.avgAccuracyPercent > ob2.avgAccuracyPercent ? -1 : 0).map((x, i, arr) => this.getRankingOfPercentageDisplay(x.format, i, arr[i].avgAccuracyPercent, arr[0].avgAccuracyPercent));
+    const sortedByWeightedAccuracyMandatories = [...mandatories].sort((ob1, ob2) => ob1.avgWeightedAccuracyPercent < ob2.avgWeightedAccuracyPercent ? 1 : ob1.avgWeightedAccuracyPercent > ob2.avgWeightedAccuracyPercent ? -1 : 0).map((x, i, arr) => this.getRankingOfPercentageDisplay(x.format, i, arr[i].avgWeightedAccuracyPercent, arr[0].avgWeightedAccuracyPercent));
+    const sortedByEfficiencyScoreMandatories = [...mandatories].sort((ob1, ob2) => ob1.efficiencyScore < ob2.efficiencyScore ? 1 : ob1.efficiencyScore > ob2.efficiencyScore ? -1 : 0).map((x, i, arr) => this.getRankingOfAmountDisplay(x.format, i, arr[i].efficiencyScore, arr[0].efficiencyScore));
+    const sortedByWeightedEfficiencyScoreMandatories = [...mandatories].sort((ob1, ob2) => ob1.weightedEfficiencyScore < ob2.weightedEfficiencyScore ? 1 : ob1.weightedEfficiencyScore > ob2.weightedEfficiencyScore ? -1 : 0).map((x, i, arr) => this.getRankingOfAmountDisplay(x.format, i, arr[i].weightedEfficiencyScore, arr[0].weightedEfficiencyScore));
 
     const manRows = mandatories.map((_, i) => [
       sortedByTotalDurationMandatories[i],
@@ -396,6 +398,24 @@ class ReportGenerator {
       sortedByEfficiencyScoreMandatories[i],
       sortedByWeightedEfficiencyScoreMandatories[i],
     ]);
+
+    this.heading(4, '2.1.3 Format Ranking');
+    this.line();
+    this.heading(5, 'Mandatory');
+    this.line();
+    this.table(
+      ['↑ Total Duration', '↑ Total Tokens', '↑ Wasted Tokens','↓ Acc', '↓ Wtd Acc', '↓ Eff Score','↓ Wtd Eff Score'],
+      manRows
+    );
+    this.line();
+    
+    const sortedByTotalDurationOptionals = [...optionals].sort((ob1, ob2) => ob1.totalDurationInMilliseconds > ob2.totalDurationInMilliseconds ? 1 : ob1.totalDurationInMilliseconds < ob2.totalDurationInMilliseconds ? -1 : 0).map((x, i, arr) => this.getRankingOfAmountDisplay(x.format, i, arr[i].totalDurationInMilliseconds, arr[0].totalDurationInMilliseconds, 's'));
+    const sortedByTotalTokensOptionals = [...optionals].sort((ob1, ob2) => ob1.totalTokensUsed > ob2.totalTokensUsed ? 1 : ob1.totalTokensUsed < ob2.totalTokensUsed ? -1 : 0).map((x, i, arr) => this.getRankingOfAmountDisplay(x.format, i, arr[i].totalTokensUsed, arr[0].totalTokensUsed));
+    const sortedByCostOfInaccuracyOptionals = [...optionals].sort((ob1, ob2) => ob1.costOfInaccuracy > ob2.costOfInaccuracy ? 1 : ob1.costOfInaccuracy < ob2.costOfInaccuracy ? -1 : 0).map((x, i, arr) => this.getRankingOfAmountDisplay(x.format, i, arr[i].costOfInaccuracy, arr[0].costOfInaccuracy));
+    const sortedByAccuracyOptionals = [...optionals].sort((ob1, ob2) => ob1.avgAccuracyPercent < ob2.avgAccuracyPercent ? 1 : ob1.avgAccuracyPercent > ob2.avgAccuracyPercent ? -1 : 0).map((x, i, arr) => this.getRankingOfPercentageDisplay(x.format, i, arr[i].avgAccuracyPercent, arr[0].avgAccuracyPercent));
+    const sortedByWeightedAccuracyOptionals = [...optionals].sort((ob1, ob2) => ob1.avgWeightedAccuracyPercent < ob2.avgWeightedAccuracyPercent ? 1 : ob1.avgWeightedAccuracyPercent > ob2.avgWeightedAccuracyPercent ? -1 : 0).map((x, i, arr) => this.getRankingOfPercentageDisplay(x.format, i, arr[i].avgWeightedAccuracyPercent, arr[0].avgWeightedAccuracyPercent));
+    const sortedByEfficiencyScoreOptionals = [...optionals].sort((ob1, ob2) => ob1.efficiencyScore < ob2.efficiencyScore ? 1 : ob1.efficiencyScore > ob2.efficiencyScore ? -1 : 0).map((x, i, arr) => this.getRankingOfAmountDisplay(x.format, i, arr[i].efficiencyScore, arr[0].efficiencyScore));
+    const sortedByWeightedEfficiencyScoreOptionals = [...optionals].sort((ob1, ob2) => ob1.weightedEfficiencyScore < ob2.weightedEfficiencyScore ? 1 : ob1.weightedEfficiencyScore > ob2.weightedEfficiencyScore ? -1 : 0).map((x, i, arr) => this.getRankingOfAmountDisplay(x.format, i, arr[i].weightedEfficiencyScore, arr[0].weightedEfficiencyScore));
     
     const optRows = mandatories.map((_, i) => [
       sortedByTotalDurationOptionals[i],
@@ -407,7 +427,13 @@ class ReportGenerator {
       sortedByWeightedEfficiencyScoreOptionals[i],
     ]);
 
-    this.heading(4, '2.1.3 Format Ranking');
+    this.heading(5, 'Optional');
+    this.line();
+    this.table(
+      ['↑ Total Duration)', '↑ Total Tokens', '↑ Wasted Tokens','↓ Acc', '↓ Wtd Acc', '↓ Eff Score','↓ Wtd Eff Score'],
+      optRows
+    );
+    this.line();
     this.line();
     this.heading(5, 'Mandatory');
     this.line();
