@@ -710,27 +710,86 @@ class ReportGenerator {
       effTokenRows
     );
 
-    // 2.7 Token Utilization Efficiency
-    const effTokenRows = sortedAggregated.map(item => [
+    // 2.6.2 Token Utilization Efficiency: Mandatory vs Optional Data
+    const mandOptEffTokenDeltaRows = mandatories.map(x =>{  
+      const totalTokensUsed = Math.round(x.totalTokensUsed);
+      const efficientlyUsedTokens = Math.round(x.efficientlyUsedTokens);
+      const wastedTokens = Math.round(x.costOfInaccuracy);
+      return [
+        x.format.toUpperCase(),
+        totalTokensUsed.toString(),
+        Math.round(totalTokensUsed + x.totalTokensDelta).toString(),
+        this.displayDelta(x.totalTokensDelta, 0),
+        this.calcDeltaPercentage(totalTokensUsed, x.totalTokensDelta),
+        efficientlyUsedTokens.toString(),
+        Math.round(efficientlyUsedTokens + x.efficientlyUsedTokensyDelta).toString(),
+        this.displayDelta(x.efficientlyUsedTokensyDelta, 0),
+        this.calcDeltaPercentage(efficientlyUsedTokens, x.efficientlyUsedTokensyDelta),
+        wastedTokens.toString(),
+        Math.round(wastedTokens + x.costOfInaccuracyDelta).toString(),
+        this.displayDelta(x.costOfInaccuracyDelta, 0),
+        this.calcDeltaPercentage(wastedTokens, x.costOfInaccuracyDelta),
+        x.avgAccuracyPercent.toFixed(2),
+        (x.avgAccuracyPercent + x.accuracyDelta).toFixed(2),
+        this.displayDelta(x.accuracyDelta),
+        x.efficiencyScore.toFixed(2),
+        (x.efficiencyScore + x.efficiencyDelta).toString(),
+        this.displayDelta(x.efficiencyDelta, 2),
+        this.calcDeltaPercentage(x.efficiencyScore, x.efficiencyDelta),
+      ];
+    });
+    
+    this.heading(4, '2.6.2 Mandatory vs Optional Data');
+    this.table(
+      ['Format', 'Total Tokens Man', 'Total Tokens Opt', 'Diff', 'Diff (%)', 'Useful Tokens Man', 'Useful Tokens Opt', 'Diff', 'Diff (%)', 'Wasted Tokens Man', 'Wasted Tokens Opt', 'Diff', 'Diff (%)', 'Acc (%) Man', 'Acc (%) Opt', 'Diff (%)', 'Eff Score Man', 'Eff Score Opt', 'Diff', 'Diff (%)'],
+      mandOptEffTokenDeltaRows
+    );
+    
+    // 2.7.1 Answer Quality Breakdown: Metrics
+    const answerQualityRows = sortedAggregated.map(item => [
       item.format.toUpperCase(),
       item.variant.substring(0, 3),
-      Math.round(item.totalTokensUsed).toString(),
-      Math.round(item.efficientlyUsedTokens).toString(),
-      Math.round(item.costOfInaccuracy).toString(),
+      item.avgCorrectAnswers.toString(),
+      item.avgIncorrectAnswers.toString(),
+      item.avgNoAnswers.toString(),
       item.avgAccuracyPercent.toFixed(2),
-      item.avgWeightedAccuracyPercent.toFixed(2),
-      item.efficiencyScore.toFixed(2),
-      item.weightedEfficiencyScore.toFixed(2),
     ]);
     
-    this.heading(3, '2.7 Token Utilization Efficiency');
+    this.heading(3, '2.7 Answer Per Format Breakdown');
     this.heading(4, '2.7.1 Metrics'); 
     this.table(
-      ['Format', 'Variant', 'Total Tokens', 'Useful Tokens', 'Wasted Tokens','Acc (%)', 'Wtd Acc (%)', 'Eff Score',  'Wtd Eff Score', ],
-      effTokenRows
+      ['Format', 'Variant', 'Correct Answers', 'Incorrect Answers', 'No Answers',  'Acc (%)'],
+      answerQualityRows
+    );
+    
+    // 2.7.2 Answer Per Format Breakdown: Mandatory vs Optional Data
+    const mandOptAnswerDeltaRows = mandatories.map(x =>{    
+      return [
+        x.format.toUpperCase(),
+        x.avgCorrectAnswers.toString(),
+        (x.avgCorrectAnswers + x.correctAnswersDelta).toString(),
+        this.displayDelta(x.correctAnswersDelta, 0),
+        this.calcDeltaPercentage(x.avgCorrectAnswers, x.correctAnswersDelta),
+        x.avgIncorrectAnswers.toString(),
+        (x.avgIncorrectAnswers + x.incorrectAnswersDelta).toString(),
+        this.displayDelta(x.incorrectAnswersDelta, 0),
+        this.calcDeltaPercentage(x.avgIncorrectAnswers, x.incorrectAnswersDelta),
+        x.avgNoAnswers.toString(),
+        (x.avgNoAnswers + x.noAnswersDelta).toString(),
+        this.displayDelta(x.noAnswersDelta, 0),
+        this.calcDeltaPercentage(x.avgNoAnswers, x.noAnswersDelta),
+        x.avgAccuracyPercent.toFixed(2),
+        (x.avgAccuracyPercent + x.accuracyDelta).toFixed(2),
+        this.displayDelta(x.accuracyDelta)
+      ];
+    });
+    
+    this.heading(4, '2.7.2 Mandatory vs Optional Data');
+    this.table(
+      ['Format', 'Correct Man', 'Correct Opt', 'Diff', 'Diff (%)', 'Incorrect Man', 'Incorrect Opt', 'Diff', 'Diff (%)', 'No Answers Man', 'No Answers Opt', 'Diff', 'Diff (%)', 'Acc (%) Man', 'Acc (%) Opt', 'Diff (%)'],
+      mandOptAnswerDeltaRows
     );
 
-    // 2.8 Category Performance Analysis
     const categoryRows = sortedAggregated.map(item => {
       const validation = this.validations.find(x => x.format === item.format && x.variant === item.variant && x.recordCount === item.recordCount);
       const retrieval = validation?.accuracy.find(x => x.category === 'field_retrieval')?.accuracyPercent ?? 0;
@@ -748,7 +807,7 @@ class ReportGenerator {
       aggregation.toFixed(2),
     ]});
     
-    this.heading(3, '2.8 Category Performance Analysis');
+    this.heading(3, '2.8 Accuracy Per Question Category Analysis');
     this.heading(4, '2.8.1 Metrics'); 
     this.table(
       ['Format', 'Variant', 'Acc (%)', 'Field Retrieval (%)', 'Structure Awareness (%)', 'Filtering (%)', 'Aggregation (%)'],
