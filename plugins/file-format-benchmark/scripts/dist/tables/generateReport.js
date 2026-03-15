@@ -57,6 +57,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const fs = __importStar(require("fs"));
 const path = __importStar(require("path"));
 const tableLoaders_1 = require("./tableLoaders");
+const consts_1 = require("../consts");
 // ============================================================================
 // CLI PARSING
 // ============================================================================
@@ -76,7 +77,7 @@ function extractMetadata(analyticsData) {
         generatedAt: new Date().toISOString(),
         model: 'Claude Haiku 4.5',
         thinking: 'off',
-        structure: 'flat',
+        structure: '<ADD_CONTENT_HERE>Structure tested</ADD_CONTENT_HERE>',
         formats: analyticsData.testConfigurations.formats || [],
         variants: analyticsData.testConfigurations.variants || [],
         recordCounts: analyticsData.testConfigurations.recordCounts || [],
@@ -107,9 +108,6 @@ class ReportGenerator {
     heading(level, text) {
         this.line('#'.repeat(level) + ' ' + text);
     }
-    hr() {
-        this.line('---\n');
-    }
     table(headers, rows) {
         this.line('| ' + headers.join(' | ') + ' |');
         this.line('|' + headers.map(() => '---|').join(''));
@@ -130,25 +128,23 @@ class ReportGenerator {
     }
     generateTitleAndMetadata() {
         this.heading(1, 'File Format Token Efficiency Benchmark: Comprehensive Report');
-        this.line(`**Date**: ${new Date(this.metadata.generatedAt).toISOString().split('T')[0]}`);
+        this.line(`- **Date**: ${new Date(this.metadata.generatedAt).toISOString().split('T')[0]}`);
         this.line(`- **Model**: ${this.metadata.model}`);
         this.line(`- **Extended Thinking**: ${this.metadata.thinking}`);
         this.line(`- **Data Structure**: ${this.metadata.structure}`);
         this.line(`- **Formats Tested**: ${this.uniqueFormats.length} (${this.uniqueFormats.map(f => f.toUpperCase()).join(', ')})`);
         this.line(`- **Record Counts**: ${this.recordCounts.join(', ')}`);
-        this.line(`- **Status**: First iteration\n`);
-        this.hr();
+        this.line(`- **Status**: First iteration`);
+        this.line();
     }
     generateExecutiveSummary() {
         this.heading(2, 'Executive Summary');
-        this.line('This benchmark evaluates token efficiency and information accuracy across ' +
-            this.uniqueFormats.length + ' file formats using ' + this.metadata.model +
-            ' as the inference model. The research addresses a critical but underexplored problem: **not all tokens are equally useful**. ' +
-            'A format that uses fewer tokens but produces inaccurate results wastes both tokens and context, while a format that accurately conveys information may justify higher token cost.');
+        this.line();
+        this.line(`This benchmark evaluates token efficiency and information accuracy across ${this.uniqueFormats.length} file formats using ${this.metadata.model} as the inference model. The research addresses a critical but underexplored problem: **not all tokens are equally useful**. A format that uses fewer tokens but produces inaccurate results wastes both tokens and context, while a format that accurately conveys information may justify higher token cost.`);
         this.line();
         this.heading(3, 'Key Findings');
         this.line();
-        this.line('<ADD_CONTENT_HERE: Insert 5-7 key findings from analysis>');
+        this.line('<ADD_CONTENT_HERE>Insert 5-7 key findings from analysis</ADD_CONTENT_HERE>');
         this.line();
         this.line('1. Finding 1');
         this.line();
@@ -160,7 +156,6 @@ class ReportGenerator {
         this.line();
         this.line('5. Finding 5');
         this.line();
-        this.hr();
     }
     generateMethodology() {
         this.heading(2, '1. Methodology');
@@ -181,43 +176,41 @@ class ReportGenerator {
         this.line('- 2 variants per format: mandatory (22 fields, dense) and optional (19 mandatory + 3 optional, sparse)');
         this.line(`- Record Counts: ${this.recordCounts.join(', ')}`);
         this.line();
-        if (this.metadata.questionDistribution && this.metadata.questionDistribution.length > 0) {
-            this.line('**Question Distribution:**');
-            this.line(`- ${this.metadata.questionDistribution.length} question categories reflecting practical use cases:`);
-            let fieledRetrivalAndStructureAwareness = 0;
-            let filteringAndAggregation = 0;
-            this.metadata.questionDistribution.forEach((q) => {
-                const weight = this.metadata.questionWeightDistribution.find((w) => w[0] === q[0]);
-                const weightPerc = weight ? (weight[1] * 100) : 0;
-                let questionCategoryDescription = '';
-                switch (q[0]) {
-                    case "field_retrieval":
-                        questionCategoryDescription = 'Extract specific values from specific records';
-                        fieledRetrivalAndStructureAwareness += weightPerc;
-                        break;
-                    case "structure_awareness":
-                        questionCategoryDescription = 'Understand data shape, organization, metadata';
-                        fieledRetrivalAndStructureAwareness += weightPerc;
-                        break;
-                    case "filtering":
-                        questionCategoryDescription = 'Count records matching criteria';
-                        filteringAndAggregation += weightPerc;
-                        break;
-                    case "aggregation":
-                        questionCategoryDescription = 'Sum, average, min/max calculations';
-                        filteringAndAggregation += weightPerc;
-                        break;
-                }
-                this.line(`   - **${this.getQuestionCategoryLabel(q[0])} (${q[1]} questions, ${weightPerc.toFixed(2)}% weight):** ${questionCategoryDescription}`);
-            });
-            this.line();
-            this.line('**Weighting Rationale:**');
-            this.line(`- Field retrieval + structure awareness = ${fieledRetrivalAndStructureAwareness.toFixed(2)}%`);
-            this.line(`   - These represent the file format itself. Understanding "what data exists and how it's organized" which is fundamental to avoiding context confusion.`);
-            this.line(`- Filtering + aggregation = ${filteringAndAggregation.toFixed(2)}%`);
-            this.line(`   - These represent more the "intellactual" aspect of the model and will differ greatly depending on the model. Also if done deterministic the model still needs to do field retrival and structure awarness on the result.`);
-            this.line();
-        }
+        this.line('**Question Distribution:**');
+        this.line(`- ${this.metadata.questionDistribution.length} question categories reflecting practical use cases:`);
+        let fieledRetrivalAndStructureAwareness = 0;
+        let filteringAndAggregation = 0;
+        this.metadata.questionDistribution.forEach((q) => {
+            const weight = this.metadata.questionWeightDistribution.find((w) => w[0] === q[0]);
+            const weightPerc = weight ? (weight[1] * 100) : 0;
+            let questionCategoryDescription = '';
+            switch (q[0]) {
+                case "field_retrieval":
+                    questionCategoryDescription = 'Extract specific values from specific records';
+                    fieledRetrivalAndStructureAwareness += weightPerc;
+                    break;
+                case "structure_awareness":
+                    questionCategoryDescription = 'Understand data shape, organization, metadata';
+                    fieledRetrivalAndStructureAwareness += weightPerc;
+                    break;
+                case "filtering":
+                    questionCategoryDescription = 'Count records matching criteria';
+                    filteringAndAggregation += weightPerc;
+                    break;
+                case "aggregation":
+                    questionCategoryDescription = 'Sum, average, min/max calculations';
+                    filteringAndAggregation += weightPerc;
+                    break;
+            }
+            this.line(`   - **${this.getQuestionCategoryLabel(q[0])} (${q[1]} questions, ${weightPerc.toFixed(2)}% weight):** ${questionCategoryDescription}`);
+        });
+        this.line();
+        this.line('**Weighting Rationale:**');
+        this.line(`- Field retrieval + structure awareness = ${fieledRetrivalAndStructureAwareness.toFixed(2)}%`);
+        this.line(`   - These represent the file format itself. Understanding "what data exists and how it's organized" which is fundamental to avoiding context confusion.`);
+        this.line(`- Filtering + aggregation = ${filteringAndAggregation.toFixed(2)}%`);
+        this.line(`   - These represent more the "intellectual" aspect of the model and will differ greatly depending on the model. Also if done deterministic the model still needs to do field retrival and structure awarness on the result.`);
+        this.line();
         this.heading(3, '1.3 Metrics Definition');
         this.line();
         this.line('**Token Metrics:**');
@@ -236,10 +229,14 @@ class ReportGenerator {
         this.line('**Efficiency Score:**');
         this.line('- Composite metric balancing accuracy with normalized token cost (favour towards accuracy)');
         this.line('- normalizedTokenCost = (((maxTotalTokens+10)-currenTotalTokens)/((maxTotalTokens+10)-(minTotalTokens-10)))*100');
-        this.line('- `efficiencyScore`: (accuracy% x 0.3) + (normalizedTokenCost * 0.3)');
-        this.line('- `weightedEfficiencyScore`: (weightedAccuracy% x 0.3) + (normalizedTokenCost * 0.3)');
+        this.line('- `efficiencyScore`: (accuracy% x 0.7) + (normalizedTokenCost * 0.3)');
+        this.line('- `weightedEfficiencyScore`: (weightedAccuracy% x 0.7) + (normalizedTokenCost * 0.3)');
         this.line();
-        this.hr();
+        this.heading(3, '1.4 Token Usage Measurements');
+        this.line();
+        this.line('Tokens usage measured in this benchmark are no estimates but the real token usage the model used in this test. The token usage is reported to the user indirectly in the conversation transcript. Both read and output Tokens are directly extracted from the transcripts of the subagents:');
+        this.line('- **Read Tokens**: For each data file a single read subagent is invoked with the only prompt to read the file at the provided filepath and return "Done" once finished and do nothing more. The tokens extraction script searches for the read tool use result and extracted the tokens for that action from it.');
+        this.line('- **Output Tokens**: For each data file a three full tests subagent are invoked with all necessary files and the test setup and the instruction to write a file once with the answers. The token extraction script searches for the write tool use result and extracted the tokens for that action from it.');
     }
     generateSummaryTLDRFormatRanking(sortedAggregated) {
         const optionals = sortedAggregated.filter(x => x.variant == 'optional');
@@ -261,6 +258,8 @@ class ReportGenerator {
         const lowestAccuracyDelta = sortedAggregated.reduce((min, a) => Math.abs(a.accuracyDelta) < Math.abs(min.accuracyDelta) ? a : min);
         const lowestEfficiencyDelta = sortedAggregated.reduce((min, a) => Math.abs(a.efficiencyDelta) < Math.abs(min.efficiencyDelta) ? a : min);
         this.heading(3, '2.1 TLDR: Token Efficiency Analysis');
+        this.line();
+        this.line('*Note: All columns ranked best-to-worst. ↑ = lower value is better (ascending). ↓ = higher value is better (descending).*');
         this.line();
         this.heading(4, '2.1.1 Best results');
         this.line();
@@ -411,10 +410,10 @@ class ReportGenerator {
         this.line();
         this.table([fieldRetrievalLabel, structureAwarenessLabel, filteringLabel, aggregationLabel], optValsRows);
         this.line();
-        // 2.1.5 Conclussion
-        this.heading(4, '2.1.5 Conclussion');
+        // 2.1.5 Conclusion
+        this.heading(4, '2.1.5 Conclusion');
         this.line();
-        this.line('<ADD_CONTENT_HERE>Analyze here</ADD_CONTENT_HERE>');
+        this.line('<ADD_CONTENT_HERE>Analysis here</ADD_CONTENT_HERE>');
         this.line();
     }
     getRankingOfAmountDisplay(format, idx, current, first, suffix = '') {
@@ -680,7 +679,6 @@ class ReportGenerator {
         this.diffMandOptAccuracyPerCategory(3, 'structure_awareness');
         this.diffMandOptAccuracyPerCategory(4, 'filtering');
         this.diffMandOptAccuracyPerCategory(5, 'aggregation');
-        this.hr();
     }
     calcDeltaPercentage(manVal, optManDelta, fixed = 2) {
         return this.displayDelta(manVal > 0 ? (optManDelta / manVal) * 100 : 0, fixed);
@@ -707,76 +705,96 @@ class ReportGenerator {
         this.table(['Format', 'Mand (%)', 'Opt (%)', 'Diff (%)'], categoryMandOptRows);
     }
     generateFormatAnalysis() {
-        this.heading(2, 'Format-Specific Analysis');
-        this.uniqueFormats.forEach(format => {
+        this.heading(2, '3. Format-Specific Analysis');
+        this.uniqueFormats.forEach((format, idx, _) => {
             const formatData = this.aggregated.filter(a => a.format === format);
             if (formatData.length === 0)
                 return;
-            const best = formatData.reduce((max, curr) => curr.avgWeightedAccuracyPercent > max.avgWeightedAccuracyPercent ? curr : max);
-            this.heading(3, format.toUpperCase() + ': Detailed Analysis');
-            this.line('**Performance Summary:**\n' +
-                `- Best Configuration: ${best.recordCount}-record ${best.variant} (${best.avgWeightedAccuracyPercent.toFixed(2)}% weighted accuracy)\n` +
-                `- Token Cost Range: ${Math.round(Math.min(...formatData.map(d => d.totalTokensUsed)))} - ${Math.round(Math.max(...formatData.map(d => d.totalTokensUsed)))} tokens\n` +
-                `- Average Weighted Accuracy: ${(formatData.reduce((sum, d) => sum + d.avgWeightedAccuracyPercent, 0) / formatData.length).toFixed(2)}%\n`);
-            this.line('**Strengths:**');
-            this.line('<ADD_CONTENT_HERE: List format strengths based on category and variant analysis>');
+            const num = idx + 1;
+            this.heading(3, `3.${num} Detailed Analysis: ${format.toUpperCase()}`);
+            this.line();
+            this.heading(4, `3.${num}.1 Performance Summary`);
+            this.line();
+            this.line(`- Token Duration Range: ${Math.round(Math.min(...formatData.map(d => d.totalDurationInMilliseconds / 1000)))} - ${Math.round(Math.max(...formatData.map(d => d.totalDurationInMilliseconds / 1000)))} seconds`);
+            this.line(`- Token Cost Range: ${Math.round(Math.min(...formatData.map(d => d.totalTokensUsed)))} - ${Math.round(Math.max(...formatData.map(d => d.totalTokensUsed)))} tokens`);
+            this.line(`- Wasted Token Range: ${Math.round(Math.min(...formatData.map(d => d.costOfInaccuracy)))} - ${Math.round(Math.max(...formatData.map(d => d.costOfInaccuracy)))} tokens`);
+            this.line(`- Accuracy Range: ${(Math.min(...formatData.map(d => d.avgAccuracyPercent))).toFixed(2)} - ${(Math.max(...formatData.map(d => d.avgAccuracyPercent))).toFixed(2)} %`);
+            this.line(`- Efficiency Score Range: ${(Math.min(...formatData.map(d => d.efficiencyScore))).toFixed(2)} - ${(Math.max(...formatData.map(d => d.efficiencyScore))).toFixed(2)}`);
+            this.line();
+            this.heading(4, `3.${num}.2 Strengths`);
+            this.line();
+            this.line('- <ADD_CONTENT_HERE>List format strengths based on category and variant analysis</ADD_CONTENT_HERE>');
             this.line('- ');
-            this.line('- \n');
-            this.line('**Weaknesses:**');
-            this.line('<ADD_CONTENT_HERE: List format weaknesses and failure modes>');
             this.line('- ');
-            this.line('- \n');
-            this.line('**Use Case Recommendation:**');
-            this.line('<ADD_CONTENT_HERE: When and why to use this format>');
-            this.line('- ✓ Use when:');
-            this.line('- ❌ Avoid when:\n');
-            this.line('**Trade-offs:**');
-            this.line('<ADD_CONTENT_HERE: Discuss accuracy vs token cost trade-offs specific to this format>\n');
-            this.hr();
+            this.line();
+            this.heading(4, `3.${num}.3 Weaknesses`);
+            this.line();
+            this.line('- <ADD_CONTENT_HERE>List format weaknesses and failure modes</ADD_CONTENT_HERE>');
+            this.line('- ');
+            this.line('- ');
+            this.line();
+            this.heading(4, `3.${num}.4 Use Case Recommendation`);
+            this.line();
+            this.line('- <ADD_CONTENT_HERE>When and why to use this format (✓ Use when, ❌ Avoid when)</ADD_CONTENT_HERE>');
+            this.line('- ');
+            this.line('- ');
+            this.line();
+            this.heading(4, `3.${num}.5 Trade-offs`);
+            this.line();
+            this.line('- <ADD_CONTENT_HERE>Discuss accuracy vs token cost trade-offs specific to this format</ADD_CONTENT_HERE>');
+            this.line('- ');
+            this.line('- ');
+            this.line();
         });
     }
     generateConclusions() {
-        this.heading(2, 'Conclusions & Recommendations');
-        this.heading(3, 'Format Selection Framework');
-        this.line('**Decision Matrix:**\n');
+        this.heading(2, '4. Conclusions & Recommendations');
+        this.line();
+        this.heading(3, '4.1 Format Selection Framework');
+        this.line();
         this.line('| Scenario | Recommended Format | Alternative | Avoid |');
         this.line('|----------|------------------|------------|-------|');
-        this.line('| <ADD_SCENARIO_1> | <FORMAT> | <FORMAT> | <FORMAT> |');
-        this.line('| <ADD_SCENARIO_2> | <FORMAT> | <FORMAT> | <FORMAT> |');
-        this.line('| <ADD_SCENARIO_3> | <FORMAT> | <FORMAT> | <FORMAT> |');
-        this.line('| <ADD_SCENARIO_4> | <FORMAT> | <FORMAT> | <FORMAT> |');
-        this.line('| <ADD_SCENARIO_5> | <FORMAT> | <FORMAT> | <FORMAT> |\n');
-        this.heading(3, 'Token Efficiency vs Accuracy Trade-off');
-        this.line('<ADD_CONTENT_HERE: Discuss the fundamental trade-off between token cost and accuracy>');
+        this.line('| <ADD_CONTENT_HERE>Scenario 1</ADD_CONTENT_HERE> | <FORMAT> | <FORMAT> | <FORMAT> |');
+        this.line('| <ADD_CONTENT_HERE>Scenario 2</ADD_CONTENT_HERE> | <FORMAT> | <FORMAT> | <FORMAT> |');
+        this.line('| <ADD_CONTENT_HERE>Scenario 3</ADD_CONTENT_HERE> | <FORMAT> | <FORMAT> | <FORMAT> |');
+        this.line('| <ADD_CONTENT_HERE>Scenario 4</ADD_CONTENT_HERE> | <FORMAT> | <FORMAT> | <FORMAT> |');
+        this.line('| <ADD_CONTENT_HERE>Scenario 5</ADD_CONTENT_HERE> | <FORMAT> | <FORMAT> | <FORMAT> |');
+        this.line();
+        this.heading(3, '4.2 Token Efficiency vs Accuracy Trade-off');
+        this.line('<ADD_CONTENT_HERE>Discuss the fundamental trade-off between token cost and accuracy</ADD_CONTENT_HERE>');
         this.line('- Cheapest format (tokens):');
         this.line('- Most accurate format:');
         this.line('- Best efficiency score:');
-        this.line('- Recommendation for different budgets:\n');
-        this.heading(3, 'Scaling Characteristics');
-        this.line('<ADD_CONTENT_HERE: Analyze how formats scale with record count and data complexity>');
+        this.line('- Recommendation for different budgets:');
+        this.line();
+        this.heading(3, '4.3 Scaling Characteristics');
+        this.line('<ADD_CONTENT_HERE>Analyze how formats scale with record count and data complexity</ADD_CONTENT_HERE>');
         this.line('- Linear scaling validation:');
         this.line('- Fixed overhead (per-format):');
-        this.line('- Recommendations for large datasets:\n');
-        this.heading(3, 'Open Research Questions');
-        this.line('<ADD_CONTENT_HERE: List questions for future iterations>');
+        this.line('- Recommendations for large datasets:');
+        this.line();
+        this.heading(3, '4.4 Open Research Questions');
+        this.line('<ADD_CONTENT_HERE>List questions for future iterations</ADD_CONTENT_HERE>');
         this.line('1. Questions 1');
         this.line('2. Questions 2');
         this.line('3. Questions 3');
         this.line('4. Questions 4');
-        this.line('5. Questions 5\n');
-        this.hr();
+        this.line('5. Questions 5');
+        this.line();
     }
     generateAppendices() {
-        this.heading(2, 'Appendices');
-        this.heading(3, 'Appendix A: Test Infrastructure');
+        this.heading(2, '5. Appendices');
+        this.line();
+        this.heading(3, '5.1 Appendix A: Test Infrastructure');
         this.line(`- **Test Date**: ${new Date(this.metadata.generatedAt).toISOString().split('T')[0]}`);
         this.line(`- **Model**: ${this.metadata.model}`);
         this.line(`- **Extended Thinking**: ${this.metadata.thinking}`);
-        this.line(`- **Structure**: <ADD_STRUCTURE>`);
+        this.line(`- **Structure**: <ADD_CONTENT_HERE>Structure tested</ADD_CONTENT_HERE>`);
         this.line(`- **Formats Tested**: ${this.metadata.formats.join(', ')}`);
         this.line(`- **Record Counts**: ${this.recordCounts.join(', ')}`);
         this.line(`- **Total Test Cases**: ${this.aggregated.length}`);
-        this.heading(3, 'Appendix B: Benchmark Configuration');
+        this.line();
+        this.heading(3, '5.2 Appendix B: Benchmark Configuration');
         this.metadata.questionDistribution.forEach((q) => {
             const weight = this.metadata.questionWeightDistribution.find((w) => w[0] === q[0]);
             const weightPercent = weight ? (weight[1] * 100).toFixed(2) : '0.0';
@@ -787,9 +805,11 @@ class ReportGenerator {
         this.line();
         this.line('- **Report Generated**: ' + new Date().toISOString().split('T')[0]);
         this.line('- **Written by**: [Thore Höltig](https://github.com/thoeltig)');
-        this.line('- **With the help of**: <ADD_MODEL_NAME>');
+        this.line('- **With the help of**: Claude Sonnet 4.6');
         this.line('- **Data Source**: `analytics_results.json`');
         this.line('- **Publication**: Open source research in [GitHub repository](https://github.com/thoeltig/file-format-token-accuracy-benchmark-results)');
+        this.line('- **Related Benchmark Results**: [Report1 <STRUCTURE> <THINKING>](https://github.com/thoeltig/file-format-token-accuracy-benchmark-results), [Report2 <STRUCTURE> <THINKING>](https://github.com/thoeltig/file-format-token-accuracy-benchmark-results), [Report3 <STRUCTURE> <THINKING>](https://github.com/thoeltig/file-format-token-accuracy-benchmark-results)');
+        this.line('- **Format Specifics**: [README](https://github.com/thoeltig/file-format-token-accuracy-benchmark#format-specifics)');
         this.line('- **Benchmark Tool**: Claude Code Plugin in [GitHub repository](https://github.com/thoeltig/file-format-token-accuracy-benchmark)');
     }
     getQuestionCategoryLabel(category) {
@@ -813,7 +833,7 @@ async function main() {
         const config = parseArgs(process.argv.slice(2));
         const benchmarkFolder = path.resolve(config.benchmarkFolder);
         // Construct fixed file paths
-        const jsonPath = path.join(benchmarkFolder, 'analytics_results.json');
+        const jsonPath = path.join(benchmarkFolder, consts_1.FILE_ANALYTICS_RESULT);
         const resultsPath = path.join(benchmarkFolder, 'results');
         const reportPath = path.join(benchmarkFolder, 'BENCHMARK_REPORT.md');
         // Verify files exist
