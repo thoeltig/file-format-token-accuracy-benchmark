@@ -81,9 +81,9 @@ interface Metadata {
 function extractMetadata(analyticsData: AnalyticsOutput): Metadata {
   return {
     generatedAt: new Date().toISOString(),
-    model: 'Claude Haiku 4.5',
-    thinking: 'off',
-    structure: '<ADD_CONTENT_HERE>Structure tested</ADD_CONTENT_HERE>',
+    model: analyticsData.testConfigurations.model,
+    thinking: analyticsData.testConfigurations.thinking,
+    structure: analyticsData.testConfigurations.structure,
     formats: analyticsData.testConfigurations.formats || [],
     variants: analyticsData.testConfigurations.variants || [],
     recordCounts: analyticsData.testConfigurations.recordCounts || [],
@@ -952,7 +952,7 @@ class ReportGenerator {
     this.line(`- **Test Date**: ${new Date(this.metadata.generatedAt).toISOString().split('T')[0]}`);
     this.line(`- **Model**: ${this.metadata.model}`);
     this.line(`- **Extended Thinking**: ${this.metadata.thinking}`);
-    this.line(`- **Structure**: <ADD_CONTENT_HERE>Structure tested</ADD_CONTENT_HERE>`);
+    this.line(`- **Structure**: ${this.metadata.structure}`);
     this.line(`- **Formats Tested**: ${this.metadata.formats.join(', ')}`);
     this.line(`- **Record Counts**: ${this.recordCounts.join(', ')}`);
     this.line(`- **Total Test Cases**: ${this.aggregated.length}`);
@@ -973,7 +973,7 @@ class ReportGenerator {
     this.line('- **With the help of**: Claude Sonnet 4.6');
     this.line('- **Data Source**: `analytics_results.json`');
     this.line('- **Publication**: Open source research in [GitHub repository](https://github.com/thoeltig/file-format-token-accuracy-benchmark-results)');
-    this.line('- **Related Benchmark Results**: [Report1 <STRUCTURE> <THINKING>](https://github.com/thoeltig/file-format-token-accuracy-benchmark-results), [Report2 <STRUCTURE> <THINKING>](https://github.com/thoeltig/file-format-token-accuracy-benchmark-results), [Report3 <STRUCTURE> <THINKING>](https://github.com/thoeltig/file-format-token-accuracy-benchmark-results)');
+    this.line('- **Related Benchmark Results**: [Report1](https://github.com/thoeltig/file-format-token-accuracy-benchmark-results), [Report2](https://github.com/thoeltig/file-format-token-accuracy-benchmark-results), [Report3](https://github.com/thoeltig/file-format-token-accuracy-benchmark-results)');
     this.line('- **Format Specifics**: [README](https://github.com/thoeltig/file-format-token-accuracy-benchmark#format-specifics)');
     this.line('- **Benchmark Tool**: Claude Code Plugin in [GitHub repository](https://github.com/thoeltig/file-format-token-accuracy-benchmark)');
   }

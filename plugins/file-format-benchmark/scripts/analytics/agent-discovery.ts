@@ -55,6 +55,7 @@ export function discoverAgents(sessionId: string): AgentIdsFile {
       variants: [...new Set(readonly.map(x => x.variant))],
       model: "Entered by user",
       thinking: "Entered by user",
+      structure: "Entered by user",
       timestamp: new Date().toISOString(),
     },
     readOnlyTests: readonly, 

@@ -221,6 +221,7 @@ class BenchmarkAnalytics {
                 metricsFile: this.metricsFile,
                 model: "Entered by user",
                 thinking: "Entered by user",
+                structure: "Entered by user",
                 formats,
                 variants,
                 recordCounts,

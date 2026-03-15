@@ -414,6 +414,7 @@ export interface AgentIdsFile {
     variants: string[];
     model: string;
     thinking: string;
+    structure: string;
     timestamp: string;
   };
   readOnlyTests: ReadOnlyAgentIdEntry[];
@@ -501,6 +502,7 @@ export interface AnalyticsOutput {
     metricsFile: string;
     model: string;
     thinking: string;
+    structure: string;
     formats: string[];
     variants: string[];
     recordCounts: number[];
