@@ -73,9 +73,7 @@ export interface UserRanking extends DataRecord{
 
 export interface ProductIdentity extends NestedSecondLevelDataRecord {
   productName: string;
-  additionalInfo: ProductAdditionalInfo;
   searchMetadata: SearchMetadata;
-  userRanking: UserRanking;
 }
 
 export interface ProductAdditionalInfo extends DataRecord {
@@ -116,6 +114,8 @@ export interface NestedProductRecord extends NestedFirstLevelDataRecord {
   productId: string;
   discontinuedDate?: string;
   identity: ProductIdentity;
+  additionalInfo: ProductAdditionalInfo;
+  userRanking: UserRanking;
   pricing: Pricing;
   inventory: Inventory;
   supplier: Supplier;
@@ -127,11 +127,11 @@ export interface DataRecord {
 }
 
 export interface NestedSecondLevelDataRecord {
-  [key: string]: InventoryStats | SearchMetadata | UserRanking | ProductAdditionalInfo | number | string | null | undefined;
+  [key: string]: InventoryStats | SearchMetadata | number | string | null | undefined;
 }
 
 export interface NestedFirstLevelDataRecord {
-  [key: string]: ProductIdentity | Pricing | Inventory | Supplier | PhysicalCharacteristics | string | null | undefined;
+  [key: string]: ProductIdentity | Pricing | Inventory | Supplier | PhysicalCharacteristics | UserRanking | ProductAdditionalInfo | string | null | undefined;
 }
 
 export interface FlatArrayDataSet {

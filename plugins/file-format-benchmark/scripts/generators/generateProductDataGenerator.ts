@@ -64,17 +64,17 @@ export class ProductDataGenerator {
           discontinuedDate: r.discontinuedDate,
           identity: {
             productName: r.productName,
-            additionalInfo: {
-              description: r.description,
-            },
             searchMetadata: {
               sku: r.sku,
               manufacturerCode: r.manufacturerCode
-            },
-            userRanking: {
-              category: r.category,
-              avgRating: r.avgRating
             }
+          },
+          additionalInfo: {
+            description: r.description,
+          },
+          userRanking: {
+            category: r.category,
+            avgRating: r.avgRating
           },
           pricing: {
             price: r.price,
