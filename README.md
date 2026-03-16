@@ -30,8 +30,8 @@ The initial benchmark run (Dec 19, 2025) with Claude 4.5 Haiku tested 8 formats 
 - CSV (baseline efficiency)
 - JSON Compact (recommended baseline)
 - JSON Pretty (formatting overhead reference)
-- TOON Safe (custom binary format)
-- TOON Unsafe (custom binary format)
+- TOON Default (custom binary format)
+- TOON Keyfold (custom binary format)
 - XML Compact (minified, lowest XML token usage)
 - XML Pretty (indented, readability reference)
 - YAML (highest accuracy, premium cost)
@@ -107,11 +107,11 @@ When you run a benchmark, it generates a folder like `benchmark_haiku_formats_al
 Use the `/benchmark` slash command to orchestrate a complete benchmarking run:
 
 ```bash
-/benchmark [--formats csv,json_compact,json_pretty,toon_safe,toon_unsafe,xml_pretty,xml_compact,yaml] [--variant optional,mandatory] [--structure flat,nested] [--model haiku|sonnet] [--thinking on|off] [--output PATH]
+/benchmark [--formats csv,json_compact,json_pretty,toon_default,toon_keyfold,xml_pretty,xml_compact,yaml] [--variant optional,mandatory] [--structure flat,nested] [--model haiku|sonnet] [--output PATH]
 ```
 
 **Default behavior** (if no arguments provided):
-- Tests all 8 formats (CSV, JSON Compact, JSON Pretty, TOON Safe, TOON Unsafe, XML Pretty, XML Compact, YAML)
+- Tests all 8 formats (CSV, JSON Compact, JSON Pretty, TOON Default, TOON Keyfold, XML Pretty, XML Compact, YAML)
 - Tests both mandatory and optional variants
 - Tests both flat and nested structures (flat only for CSV)
 - Uses Haiku model
@@ -137,7 +137,7 @@ cd scripts && node dist/orchestrator.js --output {OUTPUT_DIR}
 ```
 
 This generates:
-- 60-record data files in all formats (CSV, JSON Compact, JSON Pretty, TOON, XML, YAML)
+- 60-record data files in all formats (CSV, JSON Compact, JSON Pretty, TOON Default, TOON Keyfold, XML Compact, XML Pretty, YAML)
 - Flat and/or nested structure variants (flat only for CSV)
 - Mandatory and optional field variants
 - 125 test questions per variant
@@ -225,8 +225,8 @@ All formats contain the same 60-record product dataset with 22 fields:
 - **JSON Compact**: Same as JSON Pretty but minified (no whitespace or new lines).
 - **XML Pretty**: A format for storing structured data with hierarchical tags that separate information from its presentation. Indented for human readability.
 - **XML Compact**: Same as XML Pretty but minified (no whitespace or indentation). Approximately 11-19% smaller than XML Pretty depending on structure and field variants.
-- **TOON Safe**: A compact, human-readable encoding of the JSON data model for LLM prompts with safe key folding enabled. Collapses chains of single-key objects into dotted paths (e.g., `data.metadata.items`) when all segments are valid identifiers, guaranteeing lossless round-trip decoding (see [Token-Oriented Object Notation](https://toonformat.dev/)).
-- **TOON Unsafe**: Same encoding but with key folding disabled. Nested structures remain fully expanded without dot-separated collapsing. Produces larger output but valid regardless of key naming conventions.
+- **TOON Default**: Same encoding but with key folding disabled. Nested structures remain fully expanded without dot-separated collapsing. Produces larger output but valid regardless of key naming conventions.
+- **TOON Keyfold**: A compact, human-readable encoding of the JSON data model for LLM prompts with safe key folding enabled. Collapses chains of single-key objects into dotted paths (e.g., `data.metadata.items`) when all segments are valid identifiers, guaranteeing lossless round-trip decoding (see [Token-Oriented Object Notation](https://toonformat.dev/)).
 - **YAML**: A format for storing structured data with hierarchical indentation for human readability.
 
 ### Formatting Impact: Pretty vs Compact
@@ -238,12 +238,12 @@ To measure formatting overhead on token usage and accuracy, the benchmark tests 
 
 This comparison helps answer: **Do LLMs need human-readable formatting, or can compact versions deliver equivalent understanding with less token overhead?**
 
-### Key Folding Impact: Safe vs Disabled
+### Key Folding Impact: Keyfold vs Default
 
 To measure compression efficiency of TOON's optional key folding feature, the benchmark tests both safe key folding enabled and disabled:
 
-- **TOON Safe**: Enables safe key folding, which collapses chains of single-key objects into dotted paths (e.g., `data.metadata.items: value`). Segments must be valid identifiers (letters, digits, underscores only). Lossless—guarantees exact recovery of original structure via `expandPaths: 'safe'` during decoding.
-- **TOON Unsafe**: Disables key folding. Nested structures remain fully expanded across multiple indentation levels. No compression of single-key chains, but output is always valid regardless of key naming conventions.
+- **TOON Default**: Disables key folding which is the default. Nested structures remain fully expanded across multiple indentation levels. No compression of single-key chains, but output is always valid regardless of key naming conventions.
+- **TOON Keyfold**: Enables safe key folding, which collapses chains of single-key objects into dotted paths (e.g., `data.metadata.items: value`). Segments must be valid identifiers (letters, digits, underscores only). Lossless—guarantees exact recovery of original structure via `expandPaths: 'safe'` during decoding.
 
 The efficiency gain of key folding depends on data structure:
 - **Mandatory/Uniform Data**: Folding impact is minimal; nested structures are typically shallow. Efficiency gains modest.
@@ -324,7 +324,7 @@ See root [LICENSE](./LICENSE) for details.
 ## Support
 
 - **Issues**: [Report bugs or request features](https://github.com/thoeltig/file-format-token-accuracy-benchmark/issues)
-- **Repository**: [file-format-token-accuracy-benchmark](https://github.com/thoeltig/file-format-token-accuracy-benchmark)
+- **Repositories**: [Plugin](https://github.com/thoeltig/file-format-token-accuracy-benchmark) and [Benchmark Results](https://github.com/thoeltig/file-format-token-accuracy-benchmark-results)
 
 ---
 
