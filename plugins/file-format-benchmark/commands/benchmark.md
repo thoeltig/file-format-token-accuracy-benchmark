@@ -125,7 +125,7 @@ This:
 Read `${BENCHMARK_OUTPUT_DIR}/metadata.json` to get all test cases.
 
 For each format in the selected formats list:
-  For each data structure variant (flat - flat unavailable TOON keyfold, nested - nested unavailable for CSV):
+  For each data structure variant (flat - flat unavailable for TOON keyfold, nested - nested unavailable for CSV):
     For each content variant in the selected variant list:
       Create three test cases: `{format}_{structure}_{variant}_{model}_{one/two/three}`
 
