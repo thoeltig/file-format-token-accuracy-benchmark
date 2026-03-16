@@ -7,7 +7,7 @@
 // DATA TYPES
 // ============================================================================
 
-export type Format = "csv" | "json_pretty" | "json_compact" | "toon_safe" | "toon_unsafe" | "xml_pretty" | "xml_compact" | "yaml";
+export type Format = "csv" | "json_pretty" | "json_compact" | "toon_default" | "toon_keyfold" | "xml_pretty" | "xml_compact" | "yaml";
 export type Directory = "data" | "answers_validation" | "questions" | "answers_template" | "subagent_outputs" | "results";
 export type QuestionCategory = "field_retrieval" | "aggregation" | "filtering" | "structure_awareness";
 
@@ -61,16 +61,25 @@ export interface ProductRecord extends DataRecord {
 }
 
 export interface SearchMetadata extends DataRecord{
-  category: string;
   sku: string;
   manufacturerCode: string;
+}
+
+export interface UserRanking extends DataRecord{
+  // This object with two fields (one optional) exists only to comare TOON default and kefolding
+  category: string;
   avgRating?: number;
 }
 
 export interface ProductIdentity extends NestedSecondLevelDataRecord {
   productName: string;
-  description: string;
+  additionalInfo: ProductAdditionalInfo;
   searchMetadata: SearchMetadata;
+  userRanking: UserRanking;
+}
+
+export interface ProductAdditionalInfo extends DataRecord {
+  description: string;
 }
 
 export interface Pricing extends DataRecord {
@@ -118,7 +127,7 @@ export interface DataRecord {
 }
 
 export interface NestedSecondLevelDataRecord {
-  [key: string]: InventoryStats | SearchMetadata | number | string | null | undefined;
+  [key: string]: InventoryStats | SearchMetadata | UserRanking | ProductAdditionalInfo | number | string | null | undefined;
 }
 
 export interface NestedFirstLevelDataRecord {

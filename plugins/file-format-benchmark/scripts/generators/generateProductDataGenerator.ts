@@ -59,16 +59,20 @@ export class ProductDataGenerator {
 
     const records: NestedProductRecord[] = [];
     arrayDataSet.records.forEach(r => {
-      records.push({        
+      records.push({
           productId: r.productId,
           discontinuedDate: r.discontinuedDate,
           identity: {
             productName: r.productName,
-            description: r.description,
-            searchMetadata: {    
-              category: r.category,
+            additionalInfo: {
+              description: r.description,
+            },
+            searchMetadata: {
               sku: r.sku,
-              manufacturerCode: r.manufacturerCode,
+              manufacturerCode: r.manufacturerCode
+            },
+            userRanking: {
+              category: r.category,
               avgRating: r.avgRating
             }
           },
