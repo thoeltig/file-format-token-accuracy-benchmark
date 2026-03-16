@@ -59,7 +59,7 @@ A complete benchmark run consists of 5 steps:
 
 ## Output Directory Structure
 
-When you run a benchmark, it generates a folder like `benchmark_haiku_formats_all_variants_all_extended_thinking_off/` containing:
+When you run a benchmark, it generates a folder like `benchmark_format_all_structure_all_variant_all_haiku/` containing:
 
 ```
 {BENCHMARK_OUTPUT_DIR}/
@@ -115,16 +115,18 @@ Use the `/benchmark` slash command to orchestrate a complete benchmarking run:
 - Tests both mandatory and optional variants
 - Tests both flat and nested structures (flat only for CSV)
 - Uses Haiku model
-- Enables extended thinking
 - Auto-generates folder name like `benchmark_format_all_structure_all_variant_all_haiku_on/`
 
-**Important**: The analytics script groups results by format and variant only, not by structure. To get accurate per-structure comparisons, run separate benchmarks per structure:
-```bash
-/benchmark --structure flat --output ./benchmark_flat
-/benchmark --structure nested --output ./benchmark_nested
-```
-
-This ensures analytics output reflects the specific structure being tested.
+> [!IMPORTANT]
+>
+> Thinking has to be turned on or off in the harness by setting the thinking tokens to zero in the settings.
+>
+> And the analytics script groups results by format and variant, not by structure. To get accurate per-structure comparisons run separate benchmarks per structure.
+> ```bash
+> /benchmark --structure flat --output ./benchmark_flat
+> /benchmark --structure nested --output ./benchmark_nested
+> ```
+> This ensures analytics output reflects the specific structure being tested.
 
 ### Step 1: Prepare Output Folder
 
