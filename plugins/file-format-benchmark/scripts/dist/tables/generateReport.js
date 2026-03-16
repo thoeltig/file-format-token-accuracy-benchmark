@@ -122,7 +122,6 @@ class ReportGenerator {
         this.generateMethodology();
         this.generateResults();
         this.generateFormatAnalysis();
-        this.generateConclusions();
         this.generateAppendices();
         return this.content.join('\n');
     }
@@ -746,41 +745,6 @@ class ReportGenerator {
             this.line('- ');
             this.line();
         });
-    }
-    generateConclusions() {
-        this.heading(2, '4. Conclusions & Recommendations');
-        this.line();
-        this.heading(3, '4.1 Format Selection Framework');
-        this.line();
-        this.line('| Scenario | Recommended Format | Alternative | Avoid |');
-        this.line('|----------|------------------|------------|-------|');
-        this.line('| <ADD_CONTENT_HERE>Scenario 1</ADD_CONTENT_HERE> | <FORMAT> | <FORMAT> | <FORMAT> |');
-        this.line('| <ADD_CONTENT_HERE>Scenario 2</ADD_CONTENT_HERE> | <FORMAT> | <FORMAT> | <FORMAT> |');
-        this.line('| <ADD_CONTENT_HERE>Scenario 3</ADD_CONTENT_HERE> | <FORMAT> | <FORMAT> | <FORMAT> |');
-        this.line('| <ADD_CONTENT_HERE>Scenario 4</ADD_CONTENT_HERE> | <FORMAT> | <FORMAT> | <FORMAT> |');
-        this.line('| <ADD_CONTENT_HERE>Scenario 5</ADD_CONTENT_HERE> | <FORMAT> | <FORMAT> | <FORMAT> |');
-        this.line();
-        this.heading(3, '4.2 Token Efficiency vs Accuracy Trade-off');
-        this.line('<ADD_CONTENT_HERE>Discuss the fundamental trade-off between token cost and accuracy</ADD_CONTENT_HERE>');
-        this.line('- Cheapest format (tokens):');
-        this.line('- Most accurate format:');
-        this.line('- Best efficiency score:');
-        this.line('- Recommendation for different budgets:');
-        this.line();
-        this.heading(3, '4.3 Scaling Characteristics');
-        this.line('<ADD_CONTENT_HERE>Analyze how formats scale with record count and data complexity</ADD_CONTENT_HERE>');
-        this.line('- Linear scaling validation:');
-        this.line('- Fixed overhead (per-format):');
-        this.line('- Recommendations for large datasets:');
-        this.line();
-        this.heading(3, '4.4 Open Research Questions');
-        this.line('<ADD_CONTENT_HERE>List questions for future iterations</ADD_CONTENT_HERE>');
-        this.line('1. Questions 1');
-        this.line('2. Questions 2');
-        this.line('3. Questions 3');
-        this.line('4. Questions 4');
-        this.line('5. Questions 5');
-        this.line();
     }
     generateAppendices() {
         this.heading(2, '5. Appendices');
