@@ -8,7 +8,7 @@ export const DIRECTORY_SUBAGENT_OUTPUT:Directory  = "subagent_outputs";
 export const DIRECTORY_RESULTS:Directory  = "results";
 export const DIRECTORIES: Directory[] = [DIRECTORY_DATA, DIRECTORY_ANSWERS_VALIDATION, DIRECTORY_QUESTIONS, DIRECTORY_ANSWERS_TEMPLATE, DIRECTORY_SUBAGENT_OUTPUT, DIRECTORY_RESULTS];
 
-export const FORMATS: Format[] = ["csv", "json_pretty", "json_compact", "toon_safe", "toon_unsafe", "xml_pretty", "xml_compact", "yaml"];
+export const FORMATS: Format[] = ["csv", "json_pretty", "json_compact", "toon_default", "toon_keyfold", "xml_pretty", "xml_compact", "yaml"];
 
 export const FILE_AGENT_ID:string = 'agent_ids.json';
 export const FILE_METADATA:string = "metadata.json";
