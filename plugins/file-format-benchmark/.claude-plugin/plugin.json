@@ -1,7 +1,7 @@
 {
   "name": "file-format-benchmark",
   "description": "Benchmarking framework to analyse tokenization per file format.",
-  "version": "1.4.2.0",
+  "version": "1.5.0.0",
   "author": {
     "name": "Thore Höltig",
     "url": "https://github.com/thoeltig"
