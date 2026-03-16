@@ -17,15 +17,25 @@
  *   └── BENCHMARK_REPORT.md (output)
  *
  * Report Sections:
- *   - 2.1: Comprehensive Benchmark Metrics
- *   - 2.2: Token Efficiency Analysis
- *   - 2.3: Accuracy Analysis
- *   - 2.4: Format Robustness (Mandatory vs Optional)
- *   - 2.5: Performance Metrics (Duration & Speed)
- *   - 2.6: Structural Efficiency (Tokens/Value, Tokens/Object)
- *   - 2.7: Answer Quality Breakdown
- *   - 2.8: Token Utilization Efficiency
- *   - 2.9: Category Performance Analysis
+ *   - Executive Summary
+ *   - 1. Methodology
+ *   - 1.2 Test Design
+ *   - 1.3 Metrics Definition
+ *   - 1.4 Token Usage Measurements
+ *   - 2. Results
+ *   - 2.1 TLDR: Token Efficiency Analysis
+ *   - 2.2 Comprehensive Benchmark Metrics
+ *   - 2.3 Format Robustness: Mandatory vs Optional
+ *   - 2.4 Performance
+ *   - 2.5 Structural Efficiency
+ *   - 2.6 Token Utilization Efficiency
+ *   - 2.7 Answer Per Format Breakdown
+ *   - 2.8 Accuracy Per Question Category Analysis
+ *   - 3. Format-Specific Analysis
+ *   - 3.X Detailed Analysis: <FORMAT>
+ *   - 4. Appendices
+ *   - 4.1 Appendix A: Test Infrastructure
+ *   - 4.2 Appendix B: Benchmark Configuration
  *   - Appendix B: Detailed Performance Data
  *   - Appendix C: Test Infrastructure
  *   - Appendix D: Benchmark Configuration
@@ -747,9 +757,9 @@ class ReportGenerator {
         });
     }
     generateAppendices() {
-        this.heading(2, '5. Appendices');
+        this.heading(2, '4. Appendices');
         this.line();
-        this.heading(3, '5.1 Appendix A: Test Infrastructure');
+        this.heading(3, '4.1 Appendix A: Test Infrastructure');
         this.line(`- **Test Date**: ${new Date(this.metadata.generatedAt).toISOString().split('T')[0]}`);
         this.line(`- **Model**: ${this.metadata.model}`);
         this.line(`- **Extended Thinking**: ${this.metadata.thinking}`);
@@ -758,7 +768,7 @@ class ReportGenerator {
         this.line(`- **Record Counts**: ${this.recordCounts.join(', ')}`);
         this.line(`- **Total Test Cases**: ${this.aggregated.length}`);
         this.line();
-        this.heading(3, '5.2 Appendix B: Benchmark Configuration');
+        this.heading(3, '4.2 Appendix B: Benchmark Configuration');
         this.metadata.questionDistribution.forEach((q) => {
             const weight = this.metadata.questionWeightDistribution.find((w) => w[0] === q[0]);
             const weightPercent = weight ? (weight[1] * 100).toFixed(2) : '0.0';
