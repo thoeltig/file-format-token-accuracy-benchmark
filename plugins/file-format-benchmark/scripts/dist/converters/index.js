@@ -24,9 +24,9 @@ function convertToFormat(data, format) {
             return (0, xml_1.convertToXmlCompact)(data);
         case "yaml":
             return (0, yaml_1.convertToYaml)(data);
-        case "toon_safe":
+        case "toon_keyfold":
             return (0, toon_1.encode)(data.records, { keyFolding: 'safe' });
-        case "toon_unsafe":
+        case "toon_default":
             return (0, toon_1.encode)(data.records, { keyFolding: 'off' });
         default:
             const _exhaustive = format;
