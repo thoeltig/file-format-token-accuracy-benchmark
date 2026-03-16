@@ -52,13 +52,17 @@ class ProductDataGenerator {
                 discontinuedDate: r.discontinuedDate,
                 identity: {
                     productName: r.productName,
-                    description: r.description,
                     searchMetadata: {
-                        category: r.category,
                         sku: r.sku,
-                        manufacturerCode: r.manufacturerCode,
-                        avgRating: r.avgRating
+                        manufacturerCode: r.manufacturerCode
                     }
+                },
+                additionalInfo: {
+                    description: r.description,
+                },
+                userRanking: {
+                    category: r.category,
+                    avgRating: r.avgRating
                 },
                 pricing: {
                     price: r.price,

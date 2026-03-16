@@ -1,6 +1,6 @@
 ---
-description: Orchestrate comprehensive benchmarking tests for file format token efficiency (CSV, JSON (compact/pretty), TOON, XML (compact/pretty), YAML). Generates test data variants (flat and nested), executes sequential tests with configurable model (haiku/sonnet) and thinking mode, validates results, and calculates efficiency metrics. Triggers => benchmark, format efficiency, token measurement, performance testing
-argument-hint: [--formats csv,json_compact,json_pretty,toon_safe,toon_unsafe,xml_pretty,xml_compact,yaml] [--variant optional,mandatory] [--structure flat,nested] [--model haiku|sonnet] [--thinking on|off] [--output PATH]
+description: Orchestrate comprehensive benchmarking tests for different file format token efficiency. Generates test data variants, executes sequential tests with configurable model, validates results, and calculates efficiency metrics.
+argument-hint: [--formats csv,json_compact,json_pretty,toon_default,toon_keyfold,xml_pretty,xml_compact,yaml] [--variant optional,mandatory] [--structure flat,nested] [--model haiku|sonnet] [--output PATH]
 allowed-tools: Bash(node *)
 ---
 
@@ -11,11 +11,10 @@ You are orchestrating a comprehensive benchmarking test suite for measuring file
 ## Parse Arguments
 
 Extract from $ARGUMENTS:
-- `--formats`: Comma-separated list of formats to test (default: all - csv,json_compact,json_pretty,toon_safe,toon_unsafe,xml_pretty,xml_compact,yaml)
+- `--formats`: Comma-separated list of formats to test (default: all - csv,json_compact,json_pretty,toon_default,toon_keyfold,xml_pretty,xml_compact,yaml)
 - `--variant`: Data variant with optional or mandatory values (default: both - optional,mandatory)
 - `--structure`: Data structure (default: flat - flat,nested)
 - `--model`: haiku or sonnet (default: haiku)
-- `--thinking`: on or off (default: on)
 - `--output`: Output folder path for benchmark structure and test data (default: auto-generate in current directory)
 
 ### Output Folder
@@ -26,9 +25,9 @@ Extract from $ARGUMENTS:
 - Example: `--output /path/to/my/benchmark`
 
 **If `--output` is NOT provided (auto-generate):**
-- Generate folder name: `benchmark_{formats}_{structure}_{variant}_{model}_{thinking}` in current working directory
-- Example: `benchmark_csv_markdown_flat_optional_haiku_on`
-- Example: `benchmark_all_nested_optional_mandatory_sonnet_off` (if all formats)
+- Generate folder name: `benchmark_{formats}_{structure}_{variant}_{model}` in current working directory
+- Example: `benchmark_csv_markdown_flat_optional_haiku`
+- Example: `benchmark_all_nested_optional_mandatory_sonnet` (if all formats)
 
 **Resulting folder structure (in output folder):**
 ```
@@ -48,10 +47,10 @@ Extract from $ARGUMENTS:
 ### Argument Examples
 
 - `--formats csv,xml` → Test only CSV and XML
-- `--model sonnet --thinking off` → Use Sonnet without extended thinking
+- `--model sonnet` → Use Sonnet
 - `--output /path/to/benchmark` → Use custom folder path
 - `--formats csv --output ./csv_benchmark` → CSV only in custom folder
-- No args → Test all formats with Haiku and thinking, auto-generate folder in current directory
+- No args → Test all formats with Haiku, auto-generate folder in current directory
 
 ## Step 1: Prepare Output Folder
 
@@ -64,10 +63,10 @@ if [ -n "$OUTPUT_PATH" ]; then
   mkdir -p "$BENCHMARK_OUTPUT_DIR"
 else
   # Auto-generate folder name from parameters
-  # Format: benchmark_{formats}_{structure}_{variant}_{model}_{thinking}
+  # Format: benchmark_{formats}_{structure}_{variant}_{model}
   # Use shorthand for "all" cases to keep folder names reasonable
 
-  if [ "$FORMATS" = "csv,json_compact,json_pretty,toon_safe,toon_unsafe,xml_pretty,xml_compact,yaml" ]; then
+  if [ "$FORMATS" = "csv,json_compact,json_pretty,toon_default,toon_keyfold,xml_pretty,xml_compact,yaml" ]; then
     FORMATS_PART="format_all"
   else
     FORMATS_PART="${FORMATS//,/_}"
@@ -85,7 +84,7 @@ else
     STRUCTURE_PART="${STRUCTURE//,/_}"
   fi
 
-  BENCHMARK_OUTPUT_DIR="benchmark_${FORMATS_PART}_${STRUCTURE_PART}_${VARIANT_PART}_${MODEL}_${THINKING}"
+  BENCHMARK_OUTPUT_DIR="benchmark_${FORMATS_PART}_${STRUCTURE_PART}_${VARIANT_PART}_${MODEL}"
   mkdir -p "$BENCHMARK_OUTPUT_DIR"
   echo "Generated benchmark folder: $BENCHMARK_OUTPUT_DIR"
 fi
@@ -94,9 +93,9 @@ echo "Benchmark output folder: $BENCHMARK_OUTPUT_DIR"
 ```
 
 **Example generated folder names:**
-- All defaults: `benchmark_format_all_structure_all_variant_all_haiku_on`
-- Specific formats: `benchmark_csv_xml_flat_optional_haiku_on`
-- Specific variants: `benchmark_format_all_nested_optional_sonnet_off`
+- All defaults: `benchmark_format_all_structure_all_variant_all_haiku`
+- Specific formats: `benchmark_csv_xml_flat_optional_haiku`
+- Specific variants: `benchmark_format_all_nested_optional_sonnet`
 - Custom path: Use `--output /path/to/folder`
 
 ## Step 2: Generate Test Data
@@ -110,8 +109,10 @@ cd ${CLAUDE_PLUGIN_ROOT}/plugins/file-format-benchmark/scripts && node dist/orch
 This:
 1. Compiles TypeScript to JavaScript (orchestrator.ts, analytics.ts, etc.)
 2. Generates test data to `$BENCHMARK_OUTPUT_DIR`:
-   - Data files (CSV, JSON compact/pretty, TOON safe/unsafe, XML compact/pretty, YAML)
-   - 2 data structure variants: flat and nested (flat for CSV, both for others)
+   - Data files (CSV, JSON compact/pretty, TOON default/keyfold, XML compact/pretty, YAML)
+   - 2 data structure variants: flat and nested
+      - 7 formats for flat: CSV, JSON compact, JSON pretty, TOON default, XML pretty, XML compact, yaml
+      - 7 formats for nested: JSON compact, JSON pretty, TOON default, TOON keyfold, XML pretty, XML compact, yaml
    - 2 data content variants: optional, mandatory
    - Record count: 31
    - Questionnaires with 124 questions per dataset
@@ -124,17 +125,17 @@ This:
 Read `${BENCHMARK_OUTPUT_DIR}/metadata.json` to get all test cases.
 
 For each format in the selected formats list:
-  For each data structure variant (flat, nested - nested unavailable for CSV):
+  For each data structure variant (flat - flat unavailable for TOON keyfold, nested - nested unavailable for CSV):
     For each content variant in the selected variant list:
-      Create three test cases: `{format}_{structure}_{variant}_{model}_{thinking}_{one/two/three}`
+      Create three test cases: `{format}_{structure}_{variant}_{model}_{one/two/three}`
 
 Example test cases:
-- csv_flat_optional_haiku_on_1, csv_flat_optional_haiku_on_2, csv_flat_optional_haiku_on_3
-- json_compact_nested_mandatory_sonnet_off_1, json_compact_nested_mandatory_sonnet_off_2, json_compact_nested_mandatory_sonnet_off_3
+- csv_flat_optional_haiku_1, csv_flat_optional_haiku_2, csv_flat_optional_haiku_3
+- json_compact_nested_mandatory_sonnet_1, json_compact_nested_mandatory_sonnet_2, json_compact_nested_mandatory_sonnet_3
 
 **Total test cases**: selected_formats × data_structure_variants × selected_content_variants × 3 test runs
 
-If all 8 formats selected: 2 variants × 1 flat structure x 1 CSV format + 2 variants x 2 structures x 7 formats = 30 test cases
+If all formats selected: 2 variants × 1 flat structure x 1 CSV format + 2 variants × 1 nested structure x 1 TOON keyfold format + 2 variants x 2 structures x 6 formats = 24 test cases
 
 ## Step 4: Execute Tests - Format-Sequential Approach
 
@@ -153,9 +154,9 @@ If all 8 formats selected: 2 variants × 1 flat structure x 1 CSV format + 2 var
 - No task re-launches
 
 **Total Tests per Format:**
-- CSV: 1 structure × 2 content variants × (1 read + 3 full) = 8 tests
+- CSV or TOON keyfold: 1 structure × 2 content variants × (1 read + 3 full) = 8 tests
 - Others: 2 structure × 2 content variants × (1 read + 3 full) = 16 tests
-**Peak Parallel Tasks:** 4 (read + up to 3 fulls per combination)
+**Tasks per Test:** 4 (read + 3 fulls per combination)
 
 ### 4a. Launch Read-Only Test (Sequential - Wait for Completion)
 
@@ -201,7 +202,6 @@ for test_number in {1..3}; do
     description: "Full test {format}_{structure}_{variant} run-{test_number}/3",
     subagent_type: "benchmark-full-test",
     model: "{model}",
-    thinking_mode: "{thinking}",
     prompt: "
 Format: {format}
 Structure: {structure}
@@ -362,7 +362,7 @@ ${BENCHMARK_OUTPUT_DIR}/
 - `BENCHMARK_REPORT.md`: The structured report containing tables generated from `analytics_results.json` and `metrics.json`
 
 **Example:**
-- Generated folder: `benchmark_csv_optional_haiku_on/`
+- Generated folder: `benchmark_csv_optional_haiku/`
 - Custom path: `/path/to/my/benchmark/`
 
 This modularity allows running benchmarks for different format subsets at different times without conflicts.
@@ -372,8 +372,8 @@ This modularity allows running benchmarks for different format subsets at differ
 - csv → .csv
 - json_compact → .json
 - json_pretty → .json
-- toon_safe → .toon
-- toon_unsafe → .toon
+- toon_default → .toon
+- toon_keyfold → .toon
 - xml_compact → .xml
 - xml_pretty → .xml
 - yaml → .yaml
@@ -407,11 +407,9 @@ This modularity allows running benchmarks for different format subsets at differ
    - Generates combined `metrics.json` file
    - Runs comprehensive analysis
 
-6. **Default All Formats**: If --formats not specified, test all 8 formats (csv, json_compact, json_pretty, toon_safe, toon_unsafe, xml_pretty, xml_compact, yaml)
+6. **Default All Formats**: If --formats not specified, test all 8 formats (csv, json_compact, json_pretty, toon_default, toon_keyfold, xml_pretty, xml_compact, yaml)
 
 7. **Default Haiku**: If --model not specified, use haiku
-
-8. **Default With Thinking**: If --thinking not specified, use on
 
 ### Guardrails Summary - Preventing Data Corruption
 

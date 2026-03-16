@@ -24,9 +24,9 @@ export function convertToFormat(data: FlatArrayDataSet | NestedDataSet, format: 
       return convertToXmlCompact(data);
     case "yaml":
       return convertToYaml(data);
-    case "toon_safe":
+    case "toon_keyfold":
       return encode(data.records, { keyFolding: 'safe' });
-    case "toon_unsafe":
+    case "toon_default":
       return encode(data.records, { keyFolding: 'off' });
     default:
       const _exhaustive: never = format;
