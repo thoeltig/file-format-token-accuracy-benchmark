@@ -110,7 +110,9 @@ This:
 1. Compiles TypeScript to JavaScript (orchestrator.ts, analytics.ts, etc.)
 2. Generates test data to `$BENCHMARK_OUTPUT_DIR`:
    - Data files (CSV, JSON compact/pretty, TOON default/keyfold, XML compact/pretty, YAML)
-   - 2 data structure variants: flat and nested (flat for CSV, both for others)
+   - 2 data structure variants: flat and nested
+      - 7 formats for flat: CSV, JSON compact, JSON pretty, TOON default, XML pretty, XML compact, yaml
+      - 7 formats for nested: JSON compact, JSON pretty, TOON default, TOON keyfold, XML pretty, XML compact, yaml
    - 2 data content variants: optional, mandatory
    - Record count: 60
    - Questionnaires with 125 questions per dataset
@@ -123,7 +125,7 @@ This:
 Read `${BENCHMARK_OUTPUT_DIR}/metadata.json` to get all test cases.
 
 For each format in the selected formats list:
-  For each data structure variant (flat, nested - nested unavailable for CSV):
+  For each data structure variant (flat - flat unavailable TOON keyfold, nested - nested unavailable for CSV):
     For each content variant in the selected variant list:
       Create three test cases: `{format}_{structure}_{variant}_{model}_{one/two/three}`
 
@@ -133,7 +135,7 @@ Example test cases:
 
 **Total test cases**: selected_formats × data_structure_variants × selected_content_variants × 3 test runs
 
-If all 8 formats selected: 2 variants × 1 flat structure x 1 CSV format + 2 variants x 2 structures x 7 formats = 30 test cases
+If all formats selected: 2 variants × 1 flat structure x 1 CSV format + 2 variants × 1 nested structure x 1 TOON keyfold format + 2 variants x 2 structures x 6 formats = 24 test cases
 
 ## Step 4: Execute Tests - Format-Sequential Approach
 
@@ -152,9 +154,9 @@ If all 8 formats selected: 2 variants × 1 flat structure x 1 CSV format + 2 var
 - No task re-launches
 
 **Total Tests per Format:**
-- CSV: 1 structure × 2 content variants × (1 read + 3 full) = 8 tests
+- CSV or TOON keyfold: 1 structure × 2 content variants × (1 read + 3 full) = 8 tests
 - Others: 2 structure × 2 content variants × (1 read + 3 full) = 16 tests
-**Peak Parallel Tasks:** 4 (read + up to 3 fulls per combination)
+**Tasks per Test:** 4 (read + 3 fulls per combination)
 
 ### 4a. Launch Read-Only Test (Sequential - Wait for Completion)
 
