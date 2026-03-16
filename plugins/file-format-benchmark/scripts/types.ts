@@ -77,6 +77,7 @@ export interface ProductIdentity extends NestedSecondLevelDataRecord {
 }
 
 export interface ProductAdditionalInfo extends DataRecord {
+  // This object with two fields (one optional) exists only to comare TOON default and kefolding
   description: string;
 }
 
