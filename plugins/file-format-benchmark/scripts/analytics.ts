@@ -7,118 +7,9 @@ import * as fs from "fs";
 import * as path from "path";
 import { discoverAgents } from "./analytics/agent-discovery";
 import MetricsExtraction from "./analytics/metrics-extraction";
-import { GeneratorResult, MergedValidationReport, QuestionCategory, UserMetrics } from "./types";
+import { AnalyticsOutput, GeneratorResult, MergedValidationReport, Ranking, RankingEntry, TestMetrics, UserMetrics } from "./types";
 import ReportValidator from "./validators/reportValidator";
 import { DIRECTORY_ANSWERS_VALIDATION, FILE_AGENT_ID, FILE_ANALYTICS_RESULT, FILE_METADATA, FILE_METRICS, QUESTIONS_DISTRIBUTION, QUESTIONS_WEIGHT_DISTRIBUTION } from "./consts";
-
-interface TestMetrics {
-  testCase: string;
-  format: string;
-  variant: string;
-  hasOptionalData: boolean;
-  recordCount: number;
-  totalValues: number;
-  characterCount: number;
-
-  // Read-Only extraction script result
-  readTokens: number;
-  readDurationInMilliseconds: number;
-  readTokensPerMillisecond: number;
-  
-  // Full test extraction script result
-  avgOutputTokens: number;
-  minOutputTokensDriftPerc: number;
-  maxOutputTokensDriftPerc: number;
-  avgReasoningDurationInMilliseconds: number;
-  minReasoningDurationDriftPerc: number;
-  maxReasoningDurationDriftPerc: number;
-  avgReasoningTokensPerMillisecond: number;
-
-  // Validation script result
-  totalQuestions: number;
-  avgNoAnswers: number;
-  avgIncorrectAnswers: number;
-  avgCorrectAnswers: number;
-  avgAccuracyPercent: number;
-  avgWeightedAccuracyPercent: number;
-
-  // Calculated metrics section
-
-  // This is only interesting to see how the conversion rate from characters to tokens is.
-  charsPerToken: number;
-  // Information efficiency: tokens needed per data value. Lower is better - represents how densely packed the format is.
-  tokensPerValue: number;  
-  // Information efficiency: tokens needed per object. Lower is better - accounts for structural overhead.
-  tokensPerObject: number; 
-  // Reasoning cost per question answered. Indicates how complex the reasoning task is for this format
-  avgOutputTokensPerAnswer: number;
-  // Represents information density: how much accuracy per token consumed. Higher values indicate more information delivered per token.
-  informationValuePerToken: number;
-  // Tokens wasted on inaccurate output that increases context pollution. Higher values indicate format reliability risk.
-  costOfInaccuracy: number;
-  // Reading + reasoning tokens
-  totalTokensUsed: number;
-
-  // Results
-
-  // Effective tokens: assumes lower accuracy wastes tokens. Accounts for format quality via accuracy percentage.
-  efficientlyUsedTokens: number;
-  // Same as above but weighted by question importance: field retrieval and structure awareness questions weighted higher than aggregation and filtering.
-  weightedEfficientlyUsedTokens: number;
-  // Combined score (0-100): accuracy weighted 70% + token efficiency weighted 30%.
-  // Prioritizes correctness over token usage - a format that is accurate is preferred because inaccuracy will lead to multiple reads and more reasoning.
-  // normalizedAmountScore: lower token usage = higher score (max tokens used = 0, min tokens used = 100).
-  efficiencyScore: number;
-  // Same scoring as efficiencyScore but uses weighted accuracy: field retrieval and structure awareness answers count more than aggregation and filtering
-  weightedEfficiencyScore: number;
-}
-
-interface AnalyticsOutput {
-  timestamp: string;
-  testConfigurations: {
-    metadataFile: string;
-    agentIdsFile: string;
-    metricsFile: string;
-    model: string;
-    thinking: string;
-    formats: string[];
-    variants: string[];
-    recordCounts: number[];
-    questionDistribution: [QuestionCategory, number][];
-    questionWeightDistribution: [QuestionCategory, number][];
-  };
-  metrics: TestMetrics[];
-  rankings: Record<number, Ranking>;
-}
-
-interface Ranking { 
-  avgCharsPerToken: number; 
-  avgTokensPerValue: number; 
-  avgTokensPerObject: number; 
-  avgAccuracy: number;
-  mostTokenEfficient: RankingEntry[];
-  leastTokenUsage: RankingEntry[];
-  mostAccurate: RankingEntry[];
-  mostAccurateWeighted: RankingEntry[];
-  mostEfficiencyScore: RankingEntry[];
-  mostWeightedEfficiencyScore: RankingEntry[];
-}
-
-interface RankingEntry { 
-  format: string; 
-  hasOptionalData: boolean; 
-  recordCount: number; 
-  charsPerToken: number; 
-  tokensUsed: number; 
-  tokensPerValue: number; 
-  tokensPerObject: number; 
-  accuracyPercent: number; 
-  efficientlyUsedTokens: number; 
-  efficiencyScore: number;
-  weightedAccuracyPercent: number; 
-  weightedEfficientlyUsedTokens: number; 
-  weightedEfficiencyScore: number;
- }
 
 class BenchmarkAnalytics {
   private outputDir: string;
@@ -288,7 +179,11 @@ class BenchmarkAnalytics {
         avgIncorrectAnswers: validation.accuracy.incorrect,
         avgCorrectAnswers: validation.accuracy.correct,
         avgAccuracyPercent: validation.accuracy.accuracyPercent,
+        minAccuracyDriftPercent: validation.accuracy.accuracyDriftPercMin,
+        maxAccuracyDriftPercent: validation.accuracy.accuracyDriftPercMax,
         avgWeightedAccuracyPercent: validation.accuracy.weightedAccuracyPercent,
+        minWeightedAccuracyDriftPercent: validation.accuracy.weightedAccuracyDriftPercMin,
+        maxWeightedAccuracyDriftPercent: validation.accuracy.weightedAccuracyDriftPercMax,
 
         charsPerToken: parseFloat((datasetInfo.characterCount / userMetric.readTokens).toFixed(3)),
         tokensPerValue: parseFloat((userMetric.readTokens / datasetInfo.totalValues).toFixed(3)),
@@ -334,6 +229,7 @@ class BenchmarkAnalytics {
         metricsFile: this.metricsFile,
         model: "Entered by user",
         thinking: "Entered by user",
+        structure: "Entered by user",
         formats,
         variants, 
         recordCounts,

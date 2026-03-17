@@ -424,8 +424,130 @@ export interface AgentIdsFile {
     variants: string[];
     model: string;
     thinking: string;
+    structure: string;
     timestamp: string;
   };
   readOnlyTests: ReadOnlyAgentIdEntry[];
   fullTests: FullTestAgentIdEntry[];
+}
+
+// ============================================================================
+// Analytics
+// ============================================================================
+
+export interface Metrics {
+  format: string;
+  variant: string;
+  recordCount: number;
+
+  // Read-Only extraction script result
+  readTokens: number;
+  readDurationInMilliseconds: number;
+  readTokensPerMillisecond: number;
+  
+  // Full test extraction script result
+  avgOutputTokens: number;
+  minOutputTokensDriftPerc: number;
+  maxOutputTokensDriftPerc: number;
+  avgReasoningDurationInMilliseconds: number;
+  minReasoningDurationDriftPerc: number;
+  maxReasoningDurationDriftPerc: number;
+  avgReasoningTokensPerMillisecond: number;
+
+  // Validation script result
+  totalQuestions: number;
+  avgNoAnswers: number;
+  avgIncorrectAnswers: number;
+  avgCorrectAnswers: number;
+  avgAccuracyPercent: number;
+  minAccuracyDriftPercent: number;
+  maxAccuracyDriftPercent: number;
+  avgWeightedAccuracyPercent: number;
+  minWeightedAccuracyDriftPercent: number;
+  maxWeightedAccuracyDriftPercent: number;
+
+  // Calculated metrics section
+
+  // This is only interesting to see how the conversion rate from characters to tokens is.
+  charsPerToken: number;
+  // Information efficiency: tokens needed per data value. Lower is better - represents how densely packed the format is.
+  tokensPerValue: number;  
+  // Information efficiency: tokens needed per object. Lower is better - accounts for structural overhead.
+  tokensPerObject: number; 
+  // Reasoning cost per question answered. Indicates how complex the reasoning task is for this format
+  avgOutputTokensPerAnswer: number;
+  // Represents information density: how much accuracy per token consumed. Higher values indicate more information delivered per token.
+  informationValuePerToken: number;
+  // Tokens wasted on inaccurate output that increases context pollution. Higher values indicate format reliability risk.
+  costOfInaccuracy: number;
+  // Reading + reasoning tokens
+  totalTokensUsed: number;
+
+  // Results
+
+  // Effective tokens: assumes lower accuracy wastes tokens. Accounts for format quality via accuracy percentage.
+  efficientlyUsedTokens: number;
+  // Same as above but weighted by question importance: field retrieval and structure awareness questions weighted higher than aggregation and filtering.
+  weightedEfficientlyUsedTokens: number;
+  // Combined score (0-100): accuracy weighted 70% + token efficiency weighted 30%.
+  // Prioritizes correctness over token usage - a format that is accurate is preferred because inaccuracy will lead to multiple reads and more reasoning.
+  // normalizedAmountScore: lower token usage = higher score (max tokens used = 0, min tokens used = 100).
+  efficiencyScore: number;
+  // Same scoring as efficiencyScore but uses weighted accuracy: field retrieval and structure awareness answers count more than aggregation and filtering
+  weightedEfficiencyScore: number;
+}
+
+export interface TestMetrics extends Metrics {
+  testCase: string;
+  hasOptionalData: boolean;
+  totalValues: number;
+  characterCount: number;
+}
+
+export interface AnalyticsOutput {
+  timestamp: string;
+  testConfigurations: {
+    metadataFile: string;
+    agentIdsFile: string;
+    metricsFile: string;
+    model: string;
+    thinking: string;
+    structure: string;
+    formats: string[];
+    variants: string[];
+    recordCounts: number[];
+    questionDistribution: [QuestionCategory, number][];
+    questionWeightDistribution: [QuestionCategory, number][];
+  };
+  metrics: TestMetrics[];
+  rankings: Record<number, Ranking>;
+}
+
+export interface Ranking { 
+  avgCharsPerToken: number; 
+  avgTokensPerValue: number; 
+  avgTokensPerObject: number; 
+  avgAccuracy: number;
+  mostTokenEfficient: RankingEntry[];
+  leastTokenUsage: RankingEntry[];
+  mostAccurate: RankingEntry[];
+  mostAccurateWeighted: RankingEntry[];
+  mostEfficiencyScore: RankingEntry[];
+  mostWeightedEfficiencyScore: RankingEntry[];
+}
+
+export interface RankingEntry { 
+  format: string; 
+  hasOptionalData: boolean; 
+  recordCount: number; 
+  charsPerToken: number; 
+  tokensUsed: number; 
+  tokensPerValue: number; 
+  tokensPerObject: number; 
+  accuracyPercent: number; 
+  efficientlyUsedTokens: number; 
+  efficiencyScore: number;
+  weightedAccuracyPercent: number; 
+  weightedEfficientlyUsedTokens: number; 
+  weightedEfficiencyScore: number;
 }
