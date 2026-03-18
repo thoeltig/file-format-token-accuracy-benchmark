@@ -213,7 +213,7 @@ class ReportGenerator {
     this.line('**Question Distribution:**');
     this.line(`- ${this.metadata.questionDistribution.length} question categories reflecting practical use cases:`);
 
-    let fieledRetrivalAndStructureAwareness = 0;
+    let fieledretrievalAndStructureAwareness = 0;
     let filteringAndAggregation = 0;
     this.metadata.questionDistribution.forEach((q: any) => {
       const weight = this.metadata.questionWeightDistribution.find((w: any) => w[0] === q[0]);
@@ -224,11 +224,11 @@ class ReportGenerator {
       switch (q[0]) {
         case "field_retrieval":
           questionCategoryDescription = 'Extract specific values from specific records';
-          fieledRetrivalAndStructureAwareness += weightPerc;
+          fieledretrievalAndStructureAwareness += weightPerc;
           break;
         case "structure_awareness":
           questionCategoryDescription = 'Understand data shape, organization, metadata';
-          fieledRetrivalAndStructureAwareness += weightPerc;
+          fieledretrievalAndStructureAwareness += weightPerc;
           break;
         case "filtering":
           questionCategoryDescription = 'Count records matching criteria';
@@ -245,10 +245,10 @@ class ReportGenerator {
     this.line();
     
     this.line('**Weighting Rationale:**');
-    this.line(`- Field retrieval + structure awareness = ${fieledRetrivalAndStructureAwareness.toFixed(2)}%`);
+    this.line(`- Field retrieval + structure awareness = ${fieledretrievalAndStructureAwareness.toFixed(2)}%`);
     this.line(`   - These represent the file format itself. Understanding "what data exists and how it's organized" which is fundamental to avoiding context confusion.`);
     this.line(`- Filtering + aggregation = ${filteringAndAggregation.toFixed(2)}%`);
-    this.line(`   - These represent more the "intellectual" aspect of the model and will differ greatly depending on the model. Also if done deterministic the model still needs to do field retrival and structure awarness on the result.`);
+    this.line(`   - These represent more the "intellectual" aspect of the model and will differ greatly depending on the model. Also if done deterministic the model still needs to do field retrieval and structure awareness on the result.`);
     this.line();
     
     this.heading(3, '1.3 Metrics Definition');
@@ -278,6 +278,7 @@ class ReportGenerator {
     this.line('Tokens usage measured in this benchmark are no estimates but the real token usage the model used in this test. The token usage is reported to the user indirectly in the conversation transcript. Both read and output Tokens are directly extracted from the transcripts of the subagents:');
     this.line('- **Read Tokens**: For each data file a single read subagent is invoked with the only prompt to read the file at the provided filepath and return "Done" once finished and do nothing more. The tokens extraction script searches for the read tool use result and extracted the tokens for that action from it.');
     this.line('- **Output Tokens**: For each data file a three full tests subagent are invoked with all necessary files and the test setup and the instruction to write a file once with the answers. The token extraction script searches for the write tool use result and extracted the tokens for that action from it.');
+    this.line();
   }
 
   private generateSummaryTLDRFormatRanking(sortedAggregated: AggregatedMetric[]){
@@ -436,7 +437,7 @@ class ReportGenerator {
     this.heading(5, 'Optional');
     this.line();
     this.table(
-      ['↑ Total Duration)', '↑ Total Tokens', '↑ Wasted Tokens','↓ Acc', '↓ Wtd Acc', '↓ Eff Score','↓ Wtd Eff Score'],
+      ['↑ Total Duration', '↑ Total Tokens', '↑ Wasted Tokens','↓ Acc', '↓ Wtd Acc', '↓ Eff Score','↓ Wtd Eff Score'],
       optRows
     );
     this.line();
