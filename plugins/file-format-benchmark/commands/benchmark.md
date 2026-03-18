@@ -103,7 +103,7 @@ echo "Benchmark output folder: $BENCHMARK_OUTPUT_DIR"
 Build the TypeScript project and run test data generation to the output folder:
 
 ```bash
-cd ${CLAUDE_PLUGIN_ROOT}/plugins/file-format-benchmark/scripts && node dist/orchestrator.js --output ${BENCHMARK_OUTPUT_DIR}
+cd ${CLAUDE_PLUGIN_ROOT}/scripts && node dist/orchestrator.js --output ${BENCHMARK_OUTPUT_DIR}
 ```
 
 This:
@@ -245,7 +245,7 @@ After all tests complete, ask the user to execute `/status` which will display t
 5. Runs comprehensive analysis
 
 ```bash
-cd ${CLAUDE_PLUGIN_ROOT}/plugins/file-format-benchmark/scripts && node dist/analytics.js --session-id ${SESSION_ID} --output ${BENCHMARK_OUTPUT_DIR}
+cd ${CLAUDE_PLUGIN_ROOT}/scripts && node dist/analytics.js --session-id ${SESSION_ID} --output ${BENCHMARK_OUTPUT_DIR}
 ```
 
 **Automatic Processing During Analytics:**
@@ -317,7 +317,7 @@ cd ${CLAUDE_PLUGIN_ROOT}/plugins/file-format-benchmark/scripts && node dist/anal
 Generate detailed report with comparison tables of benchmark results and placeholder to fill in conclussion:
 
 ```bash
-cd ${CLAUDE_PLUGIN_ROOT}/plugins/file-format-benchmark/scripts node dist/tables/generateReport.js --output-folder ${BENCHMARK_OUTPUT_DIR}
+cd ${CLAUDE_PLUGIN_ROOT}/scripts node dist/tables/generateReport.js --output-folder ${BENCHMARK_OUTPUT_DIR}
 ```
 
 Per-topic analysis helps identify which formats excel at specific question types, enabling data format optimization based on your analysis needs. You can read the generated report `${BENCHMARK_OUTPUT_DIR}/BENCHMARK_REPORT.md` and discuss findings with the user.
