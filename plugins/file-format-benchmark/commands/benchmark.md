@@ -166,7 +166,7 @@ For each format + structure + variant combination:
 Task(
   description: "Readonly test: {format}_{structure}_{variant} data file read",
   subagent_type: "benchmark-read-only",
-  model: "haiku",
+  model: "{model}",
   prompt: "Read this file completely: ${BENCHMARK_OUTPUT_DIR}/data/{format}/{format}_with_{variant}_{recordCount}_{structure}_records.{ext} . Do not process or analyze."
 )
 ```
