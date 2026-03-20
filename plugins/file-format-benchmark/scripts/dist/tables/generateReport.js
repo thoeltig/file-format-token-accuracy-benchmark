@@ -139,7 +139,7 @@ class ReportGenerator {
         this.heading(1, 'File Format Token Efficiency Benchmark: Comprehensive Report');
         this.line(`- **Date**: ${new Date(this.metadata.generatedAt).toISOString().split('T')[0]}`);
         this.line(`- **Model**: ${this.metadata.model}`);
-        this.line(`- **Extended Thinking**: ${this.metadata.thinking}`);
+        this.line(`- **Thinking**: ${this.metadata.thinking}`);
         this.line(`- **Data Structure**: ${this.metadata.structure}`);
         this.line(`- **Formats Tested**: ${this.uniqueFormats.length} (${this.uniqueFormats.map(f => f.toUpperCase()).join(', ')})`);
         this.line(`- **Record Counts**: ${this.recordCounts.join(', ')}`);
@@ -187,7 +187,7 @@ class ReportGenerator {
         this.line();
         this.line('**Question Distribution:**');
         this.line(`- ${this.metadata.questionDistribution.length} question categories reflecting practical use cases:`);
-        let fieledRetrivalAndStructureAwareness = 0;
+        let fieledretrievalAndStructureAwareness = 0;
         let filteringAndAggregation = 0;
         this.metadata.questionDistribution.forEach((q) => {
             const weight = this.metadata.questionWeightDistribution.find((w) => w[0] === q[0]);
@@ -196,11 +196,11 @@ class ReportGenerator {
             switch (q[0]) {
                 case "field_retrieval":
                     questionCategoryDescription = 'Extract specific values from specific records';
-                    fieledRetrivalAndStructureAwareness += weightPerc;
+                    fieledretrievalAndStructureAwareness += weightPerc;
                     break;
                 case "structure_awareness":
                     questionCategoryDescription = 'Understand data shape, organization, metadata';
-                    fieledRetrivalAndStructureAwareness += weightPerc;
+                    fieledretrievalAndStructureAwareness += weightPerc;
                     break;
                 case "filtering":
                     questionCategoryDescription = 'Count records matching criteria';
@@ -215,10 +215,10 @@ class ReportGenerator {
         });
         this.line();
         this.line('**Weighting Rationale:**');
-        this.line(`- Field retrieval + structure awareness = ${fieledRetrivalAndStructureAwareness.toFixed(2)}%`);
+        this.line(`- Field retrieval + structure awareness = ${fieledretrievalAndStructureAwareness.toFixed(2)}%`);
         this.line(`   - These represent the file format itself. Understanding "what data exists and how it's organized" which is fundamental to avoiding context confusion.`);
         this.line(`- Filtering + aggregation = ${filteringAndAggregation.toFixed(2)}%`);
-        this.line(`   - These represent more the "intellectual" aspect of the model and will differ greatly depending on the model. Also if done deterministic the model still needs to do field retrival and structure awarness on the result.`);
+        this.line(`   - These represent more the "intellectual" aspect of the model and will differ greatly depending on the model. Also if done deterministic the model still needs to do field retrieval and structure awareness on the result.`);
         this.line();
         this.heading(3, '1.3 Metrics Definition');
         this.line();
@@ -228,7 +228,7 @@ class ReportGenerator {
         this.line('- `totalTokens`: readTokens + outputTokens');
         this.line();
         this.line('**Accuracy Metrics:**');
-        this.line('- `rawAccuracy`: Correct answers / total questions');
+        this.line('- `accuracy`: Correct answers / total questions');
         this.line('- `weightedAccuracy`: Accuracy weighted by question category importanc');
         this.line();
         this.line('**Information Value Metrics:**');
@@ -246,6 +246,7 @@ class ReportGenerator {
         this.line('Tokens usage measured in this benchmark are no estimates but the real token usage the model used in this test. The token usage is reported to the user indirectly in the conversation transcript. Both read and output Tokens are directly extracted from the transcripts of the subagents:');
         this.line('- **Read Tokens**: For each data file a single read subagent is invoked with the only prompt to read the file at the provided filepath and return "Done" once finished and do nothing more. The tokens extraction script searches for the read tool use result and extracted the tokens for that action from it.');
         this.line('- **Output Tokens**: For each data file a three full tests subagent are invoked with all necessary files and the test setup and the instruction to write a file once with the answers. The token extraction script searches for the write tool use result and extracted the tokens for that action from it.');
+        this.line();
     }
     generateSummaryTLDRFormatRanking(sortedAggregated) {
         const optionals = sortedAggregated.filter(x => x.variant == 'optional');
@@ -276,14 +277,14 @@ class ReportGenerator {
         this.line(`   - Optional: ${optionalLowestTokenCost.format.toUpperCase()} ${Math.round(optionalLowestTokenCost.totalTokensUsed)} tokens`);
         this.line(`   - Mandatory: ${mandatoryLowestTokenCost.format.toUpperCase()} ${Math.round(mandatoryLowestTokenCost.totalTokensUsed)} tokens`);
         this.line('- Lowest output token cost drift:');
-        this.line(`   - Optional: ${optionalLowestOutputTokensDriftPerc.format.toUpperCase()} ↓ ${optionalLowestOutputTokensDriftPerc.minOutputTokensDriftPerc.toFixed(2)} % ↑ ${optionalLowestOutputTokensDriftPerc.maxOutputTokensDriftPerc.toFixed(2)} %`);
-        this.line(`   - Mandatory: ${mandatoryLowestOutputTokensDriftPerc.format.toUpperCase()} ↓ ${mandatoryLowestOutputTokensDriftPerc.minOutputTokensDriftPerc.toFixed(2)} % ↑ ${mandatoryLowestOutputTokensDriftPerc.maxOutputTokensDriftPerc.toFixed(2)} %`);
+        this.line(`   - Optional: ${optionalLowestOutputTokensDriftPerc.format.toUpperCase()} ↓ ${optionalLowestOutputTokensDriftPerc.minOutputTokensDriftPerc.toFixed(2)}% ↑ ${optionalLowestOutputTokensDriftPerc.maxOutputTokensDriftPerc.toFixed(2)}%`);
+        this.line(`   - Mandatory: ${mandatoryLowestOutputTokensDriftPerc.format.toUpperCase()} ↓ ${mandatoryLowestOutputTokensDriftPerc.minOutputTokensDriftPerc.toFixed(2)}% ↑ ${mandatoryLowestOutputTokensDriftPerc.maxOutputTokensDriftPerc.toFixed(2)}%`);
         this.line('- Highest accuracy:');
-        this.line(`   - Optional: ${optionalHighestAccuracy.format.toUpperCase()} ${optionalHighestAccuracy.avgAccuracyPercent.toFixed(2)} %`);
-        this.line(`   - Mandatory: ${mandatoryHighestAccuracy.format.toUpperCase()} ${mandatoryHighestAccuracy.avgAccuracyPercent.toFixed(2)} %`);
+        this.line(`   - Optional: ${optionalHighestAccuracy.format.toUpperCase()} ${optionalHighestAccuracy.avgAccuracyPercent.toFixed(2)}%`);
+        this.line(`   - Mandatory: ${mandatoryHighestAccuracy.format.toUpperCase()} ${mandatoryHighestAccuracy.avgAccuracyPercent.toFixed(2)}%`);
         this.line('- Lowest accuracy drift:');
-        this.line(`   - Optional: ${optionalLowestAccuracyDriftPerc.format.toUpperCase()} ↓ ${optionalLowestAccuracyDriftPerc.minAccuracyDriftPercent.toFixed(2)} % ↑ ${optionalLowestAccuracyDriftPerc.maxAccuracyDriftPercent.toFixed(2)} %`);
-        this.line(`   - Mandatory: ${mandatoryLowestAccuracyDriftPerc.format.toUpperCase()} ↓ ${mandatoryLowestAccuracyDriftPerc.minAccuracyDriftPercent.toFixed(2)} % ↑ ${mandatoryLowestAccuracyDriftPerc.maxAccuracyDriftPercent.toFixed(2)} %`);
+        this.line(`   - Optional: ${optionalLowestAccuracyDriftPerc.format.toUpperCase()} ↓ ${optionalLowestAccuracyDriftPerc.minAccuracyDriftPercent.toFixed(2)}% ↑ ${optionalLowestAccuracyDriftPerc.maxAccuracyDriftPercent.toFixed(2)}%`);
+        this.line(`   - Mandatory: ${mandatoryLowestAccuracyDriftPerc.format.toUpperCase()} ↓ ${mandatoryLowestAccuracyDriftPerc.minAccuracyDriftPercent.toFixed(2)}% ↑ ${mandatoryLowestAccuracyDriftPerc.maxAccuracyDriftPercent.toFixed(2)}%`);
         this.line('- Most useful tokens:');
         this.line(`   - Optional: ${optionalMostUsedTokens.format.toUpperCase()} ${Math.round(optionalMostUsedTokens.efficientlyUsedTokens)} / ${Math.round(optionalMostUsedTokens.totalTokensUsed)} tokens`);
         this.line(`   - Mandatory: ${mandatoryMostUsedTokens.format.toUpperCase()} ${Math.round(mandatoryMostUsedTokens.efficientlyUsedTokens)} / ${Math.round(mandatoryMostUsedTokens.totalTokensUsed)} tokens`);
@@ -292,7 +293,7 @@ class ReportGenerator {
         this.line(`   - Mandatory: ${mandatoryHighestTokenEfficiency.format.toUpperCase()} ${mandatoryHighestTokenEfficiency.efficiencyScore.toFixed(2)}`);
         this.line('- Lowest delta (optional-mandatory):');
         this.line(`   - Total tokens: ${lowestTotalTokensDelta.format.toUpperCase()} ${Math.round(lowestTotalTokensDelta.totalTokensDelta)} tokens`);
-        this.line(`   - Accuracy: ${lowestAccuracyDelta.format.toUpperCase()} ${lowestAccuracyDelta.accuracyDelta.toFixed(2)} %`);
+        this.line(`   - Accuracy: ${lowestAccuracyDelta.format.toUpperCase()} ${lowestAccuracyDelta.accuracyDelta.toFixed(2)}%`);
         this.line(`   - Token efficiency: ${lowestEfficiencyDelta.format.toUpperCase()} ${lowestEfficiencyDelta.efficiencyDelta.toFixed(2)}`);
         this.line();
         // 2.1.2 Worst results
@@ -317,14 +318,14 @@ class ReportGenerator {
         this.line(`   - Optional: ${optionalHighestTokenCost.format.toUpperCase()} ${Math.round(optionalHighestTokenCost.totalTokensUsed)} tokens`);
         this.line(`   - Mandatory: ${mandatoryHighestTokenCost.format.toUpperCase()} ${Math.round(mandatoryHighestTokenCost.totalTokensUsed)} tokens`);
         this.line('- Highest output token drift:');
-        this.line(`   - Optional: ${optionalHighestOutputTokensDriftPerc.format.toUpperCase()} ↓ ${optionalHighestOutputTokensDriftPerc.minOutputTokensDriftPerc.toFixed(2)} % ↑ ${optionalHighestOutputTokensDriftPerc.maxOutputTokensDriftPerc.toFixed(2)} %`);
-        this.line(`   - Mandatory: ${mandatoryHighestOutputTokensDriftPerc.format.toUpperCase()} ↓ ${mandatoryHighestOutputTokensDriftPerc.minOutputTokensDriftPerc.toFixed(2)} % ↑ ${mandatoryHighestOutputTokensDriftPerc.maxOutputTokensDriftPerc.toFixed(2)} %`);
+        this.line(`   - Optional: ${optionalHighestOutputTokensDriftPerc.format.toUpperCase()} ↓ ${optionalHighestOutputTokensDriftPerc.minOutputTokensDriftPerc.toFixed(2)}% ↑ ${optionalHighestOutputTokensDriftPerc.maxOutputTokensDriftPerc.toFixed(2)}%`);
+        this.line(`   - Mandatory: ${mandatoryHighestOutputTokensDriftPerc.format.toUpperCase()} ↓ ${mandatoryHighestOutputTokensDriftPerc.minOutputTokensDriftPerc.toFixed(2)}% ↑ ${mandatoryHighestOutputTokensDriftPerc.maxOutputTokensDriftPerc.toFixed(2)}%`);
         this.line('- Lowest accuracy:');
-        this.line(`   - Optional: ${optionalLowestAccuracy.format.toUpperCase()} ${optionalLowestAccuracy.avgAccuracyPercent.toFixed(2)} %`);
-        this.line(`   - Mandatory: ${mandatoryLowestAccuracy.format.toUpperCase()} ${mandatoryLowestAccuracy.avgAccuracyPercent.toFixed(2)} %`);
+        this.line(`   - Optional: ${optionalLowestAccuracy.format.toUpperCase()} ${optionalLowestAccuracy.avgAccuracyPercent.toFixed(2)}%`);
+        this.line(`   - Mandatory: ${mandatoryLowestAccuracy.format.toUpperCase()} ${mandatoryLowestAccuracy.avgAccuracyPercent.toFixed(2)}%`);
         this.line('- Highest accuracy drift:');
-        this.line(`   - Optional: ${optionalHighestAccuracyDriftPerc.format.toUpperCase()} ↓ ${optionalHighestAccuracyDriftPerc.minAccuracyDriftPercent.toFixed(2)} % ↑ ${optionalHighestAccuracyDriftPerc.maxAccuracyDriftPercent.toFixed(2)} %`);
-        this.line(`   - Mandatory: ${mandatoryHighestAccuracyDriftPerc.format.toUpperCase()} ↓ ${mandatoryHighestAccuracyDriftPerc.minAccuracyDriftPercent.toFixed(2)} % ↑ ${mandatoryHighestAccuracyDriftPerc.maxAccuracyDriftPercent.toFixed(2)} %`);
+        this.line(`   - Optional: ${optionalHighestAccuracyDriftPerc.format.toUpperCase()} ↓ ${optionalHighestAccuracyDriftPerc.minAccuracyDriftPercent.toFixed(2)}% ↑ ${optionalHighestAccuracyDriftPerc.maxAccuracyDriftPercent.toFixed(2)}%`);
+        this.line(`   - Mandatory: ${mandatoryHighestAccuracyDriftPerc.format.toUpperCase()} ↓ ${mandatoryHighestAccuracyDriftPerc.minAccuracyDriftPercent.toFixed(2)}% ↑ ${mandatoryHighestAccuracyDriftPerc.maxAccuracyDriftPercent.toFixed(2)}%`);
         this.line('- Most wasted tokens:');
         this.line(`   - Optional: ${optionaMostWastedTokens.format.toUpperCase()} ${Math.round(optionaMostWastedTokens.costOfInaccuracy)} / ${Math.round(optionaMostWastedTokens.totalTokensUsed)} tokens`);
         this.line(`   - Mandatory: ${mandatoryMostWastedTokens.format.toUpperCase()} ${Math.round(mandatoryMostWastedTokens.costOfInaccuracy)} / ${Math.round(mandatoryMostWastedTokens.totalTokensUsed)} tokens`);
@@ -333,11 +334,11 @@ class ReportGenerator {
         this.line(`   - Mandatory: ${mandatoryLowestTokenEfficiency.format.toUpperCase()} ${mandatoryLowestTokenEfficiency.efficiencyScore.toFixed(2)}`);
         this.line('- Highest delta (optional-mandatory):');
         this.line(`   - Total tokens: ${highestTotalTokensDelta.format.toUpperCase()} ${Math.round(highestTotalTokensDelta.totalTokensDelta)} tokens`);
-        this.line(`   - Accuracy: ${highestAccuracyDelta.format.toUpperCase()} ${highestAccuracyDelta.accuracyDelta.toFixed(2)} %`);
+        this.line(`   - Accuracy: ${highestAccuracyDelta.format.toUpperCase()} ${highestAccuracyDelta.accuracyDelta.toFixed(2)}%`);
         this.line(`   - Token efficiency: ${highestEfficiencyDelta.format.toUpperCase()} ${highestEfficiencyDelta.efficiencyDelta.toFixed(2)}`);
         this.line();
         // 2.1.3 Format Ranking
-        const sortedByTotalDurationMandatories = [...mandatories].sort((ob1, ob2) => ob1.totalDurationInMilliseconds > ob2.totalDurationInMilliseconds ? 1 : ob1.totalDurationInMilliseconds < ob2.totalDurationInMilliseconds ? -1 : 0).map((x, i, arr) => this.getRankingOfAmountDisplay(x.format, i, arr[i].totalDurationInMilliseconds, arr[0].totalDurationInMilliseconds, 's'));
+        const sortedByTotalDurationMandatories = [...mandatories].sort((ob1, ob2) => ob1.totalDurationInMilliseconds > ob2.totalDurationInMilliseconds ? 1 : ob1.totalDurationInMilliseconds < ob2.totalDurationInMilliseconds ? -1 : 0).map((x, i, arr) => this.getRankingOfAmountDisplay(x.format, i, arr[i].totalDurationInMilliseconds / 1000, arr[0].totalDurationInMilliseconds / 1000, 's'));
         const sortedByTotalTokensMandatories = [...mandatories].sort((ob1, ob2) => ob1.totalTokensUsed > ob2.totalTokensUsed ? 1 : ob1.totalTokensUsed < ob2.totalTokensUsed ? -1 : 0).map((x, i, arr) => this.getRankingOfAmountDisplay(x.format, i, arr[i].totalTokensUsed, arr[0].totalTokensUsed));
         const sortedByCostOfInaccuracyMandatories = [...mandatories].sort((ob1, ob2) => ob1.costOfInaccuracy > ob2.costOfInaccuracy ? 1 : ob1.costOfInaccuracy < ob2.costOfInaccuracy ? -1 : 0).map((x, i, arr) => this.getRankingOfAmountDisplay(x.format, i, arr[i].costOfInaccuracy, arr[0].costOfInaccuracy));
         const sortedByAccuracyMandatories = [...mandatories].sort((ob1, ob2) => ob1.avgAccuracyPercent < ob2.avgAccuracyPercent ? 1 : ob1.avgAccuracyPercent > ob2.avgAccuracyPercent ? -1 : 0).map((x, i, arr) => this.getRankingOfPercentageDisplay(x.format, i, arr[i].avgAccuracyPercent, arr[0].avgAccuracyPercent));
@@ -357,9 +358,9 @@ class ReportGenerator {
         this.line();
         this.heading(5, 'Mandatory');
         this.line();
-        this.table(['↑ Total Duration', '↑ Total Tokens', '↑ Wasted Tokens', '↓ Acc', '↓ Wtd Acc', '↓ Eff Score', '↓ Wtd Eff Score'], manRows);
+        this.table(['↑ Total Duration', '↑ Total Tokens', '↑ Wasted Tokens', '↓ Accuracy', '↓ Wtd Accuracy', '↓ Eff Score', '↓ Wtd Eff Score'], manRows);
         this.line();
-        const sortedByTotalDurationOptionals = [...optionals].sort((ob1, ob2) => ob1.totalDurationInMilliseconds > ob2.totalDurationInMilliseconds ? 1 : ob1.totalDurationInMilliseconds < ob2.totalDurationInMilliseconds ? -1 : 0).map((x, i, arr) => this.getRankingOfAmountDisplay(x.format, i, arr[i].totalDurationInMilliseconds, arr[0].totalDurationInMilliseconds, 's'));
+        const sortedByTotalDurationOptionals = [...optionals].sort((ob1, ob2) => ob1.totalDurationInMilliseconds > ob2.totalDurationInMilliseconds ? 1 : ob1.totalDurationInMilliseconds < ob2.totalDurationInMilliseconds ? -1 : 0).map((x, i, arr) => this.getRankingOfAmountDisplay(x.format, i, arr[i].totalDurationInMilliseconds / 1000, arr[0].totalDurationInMilliseconds / 1000, 's'));
         const sortedByTotalTokensOptionals = [...optionals].sort((ob1, ob2) => ob1.totalTokensUsed > ob2.totalTokensUsed ? 1 : ob1.totalTokensUsed < ob2.totalTokensUsed ? -1 : 0).map((x, i, arr) => this.getRankingOfAmountDisplay(x.format, i, arr[i].totalTokensUsed, arr[0].totalTokensUsed));
         const sortedByCostOfInaccuracyOptionals = [...optionals].sort((ob1, ob2) => ob1.costOfInaccuracy > ob2.costOfInaccuracy ? 1 : ob1.costOfInaccuracy < ob2.costOfInaccuracy ? -1 : 0).map((x, i, arr) => this.getRankingOfAmountDisplay(x.format, i, arr[i].costOfInaccuracy, arr[0].costOfInaccuracy));
         const sortedByAccuracyOptionals = [...optionals].sort((ob1, ob2) => ob1.avgAccuracyPercent < ob2.avgAccuracyPercent ? 1 : ob1.avgAccuracyPercent > ob2.avgAccuracyPercent ? -1 : 0).map((x, i, arr) => this.getRankingOfPercentageDisplay(x.format, i, arr[i].avgAccuracyPercent, arr[0].avgAccuracyPercent));
@@ -377,7 +378,7 @@ class ReportGenerator {
         ]);
         this.heading(5, 'Optional');
         this.line();
-        this.table(['↑ Total Duration)', '↑ Total Tokens', '↑ Wasted Tokens', '↓ Acc', '↓ Wtd Acc', '↓ Eff Score', '↓ Wtd Eff Score'], optRows);
+        this.table(['↑ Total Duration', '↑ Total Tokens', '↑ Wasted Tokens', '↓ Acc', '↓ Wtd Acc', '↓ Eff Score', '↓ Wtd Eff Score'], optRows);
         this.line();
         // 2.1.4 Category Accuracy Ranking
         const formats = [...new Set(this.validations.map(x => x.format))];
@@ -394,11 +395,10 @@ class ReportGenerator {
             manSortedByAggregation[i],
         ]);
         const prefixArrowDown = '↓ ';
-        const suffix = ' %';
-        const fieldRetrievalLabel = prefixArrowDown + this.getQuestionCategoryLabel('field_retrieval') + suffix;
-        const aggregationLabel = prefixArrowDown + this.getQuestionCategoryLabel('aggregation') + suffix;
-        const filteringLabel = prefixArrowDown + this.getQuestionCategoryLabel('filtering') + suffix;
-        const structureAwarenessLabel = prefixArrowDown + this.getQuestionCategoryLabel('structure_awareness') + suffix;
+        const fieldRetrievalLabel = prefixArrowDown + this.getQuestionCategoryLabel('field_retrieval');
+        const aggregationLabel = prefixArrowDown + this.getQuestionCategoryLabel('aggregation');
+        const filteringLabel = prefixArrowDown + this.getQuestionCategoryLabel('filtering');
+        const structureAwarenessLabel = prefixArrowDown + this.getQuestionCategoryLabel('structure_awareness');
         this.heading(4, '2.1.4 Category Accuracy Ranking');
         this.line();
         this.heading(5, 'Mandatory');
@@ -426,10 +426,10 @@ class ReportGenerator {
         this.line();
     }
     getRankingOfAmountDisplay(format, idx, current, first, suffix = '') {
-        return format + (idx > 0 ? ` (${(current > first ? ' +' : '')}${(current / first * 100 - 100).toFixed(1)} %)` : ` ≈ ${Math.round(current)} ${suffix}`);
+        return format.toUpperCase() + (idx > 0 ? ` (${(current > first ? '+' : '')}${(current / first * 100 - 100).toFixed(1)}%)` : ` ≈ ${Math.round(current)}${suffix}`);
     }
     getRankingOfPercentageDisplay(format, idx, current, first) {
-        return format + (idx > 0 ? ` (${(current > first ? ' +' : '')}${(current - first).toFixed(1)} %)` : ` ≈ ${Math.round(current)} %`);
+        return format.toUpperCase() + (idx > 0 ? ` (${(current > first ? '+' : '')}${(current - first).toFixed(1)}%)` : ` ≈ ${Math.round(current)}%`);
     }
     generateResults() {
         this.heading(2, '2. Results');
@@ -473,7 +473,7 @@ class ReportGenerator {
             item.weightedEfficiencyScore.toFixed(2),
         ]);
         this.heading(3, '2.2 Comprehensive Benchmark Metrics');
-        this.table(['Format', 'Variant', 'Read Tokens', 'Output Tokens', 'Total', 'Tokens/Char', 'Info/Token', 'Token/Answer', 'Acc (%)', 'Wtd Acc (%)', 'Used Tokens', 'Wasted Tokens', 'Eff Score', 'Wtd Eff Score'], rows);
+        this.table(['Format', 'Variant', 'Read Tokens', 'Output Tokens', 'Total', 'Tokens/Char', 'Info/Token', 'Token/Answer', 'Accuracy (%)', 'Wtd Accuracy (%)', 'Used Tokens', 'Wasted Tokens', 'Eff Score', 'Wtd Eff Score'], rows);
         // 2.3 Format Robustness: Mandatory vs Optional
         const mandOptFormatDeltaRows = mandatories.map(x => {
             const mandTotalTokensUsed = Math.round(x.totalTokensUsed);
@@ -500,7 +500,7 @@ class ReportGenerator {
             ];
         });
         this.heading(3, '2.3 Format Robustness: Mandatory vs Optional');
-        this.table(['Format', 'Tokens Man', 'Tokens Opt', 'Diff', 'Diff (%)', 'Acc Man (%)', 'Acc Opt (%)', 'Diff (%)', 'Wtd Acc Man (%)', 'Wtd Acc Opt (%)', 'Diff (%)', 'Eff Score Man', 'Eff Score Opt', 'Diff', 'Wtd Eff Score Man', 'Wtd Eff Score Opt', 'Diff'], mandOptFormatDeltaRows);
+        this.table(['Format', 'Tokens Man', 'Tokens Opt', 'Diff', 'Diff (%)', 'Accuracy Man (%)', 'Accuracy Opt (%)', 'Diff (%)', 'Wtd Accuracy Man (%)', 'Wtd Accuracy Opt (%)', 'Diff (%)', 'Eff Score Man', 'Eff Score Opt', 'Diff', 'Wtd Eff Score Man', 'Wtd Eff Score Opt', 'Diff'], mandOptFormatDeltaRows);
         // 2.4 Performance
         // 2.4.1 Duration & Speed
         const readPerfRows = sortedAggregated.map(item => {
@@ -599,7 +599,7 @@ class ReportGenerator {
         ]);
         this.heading(3, '2.6 Token Utilization Efficiency');
         this.heading(4, '2.6.1 Metrics');
-        this.table(['Format', 'Variant', 'Total Tokens', 'Useful Tokens', 'Wasted Tokens', 'Acc (%)', 'Wtd Acc (%)', 'Eff Score', 'Wtd Eff Score',], effTokenRows);
+        this.table(['Format', 'Variant', 'Total Tokens', 'Useful Tokens', 'Wasted Tokens', 'Accuracy (%)', 'Wtd Accuracy (%)', 'Eff Score', 'Wtd Eff Score',], effTokenRows);
         // 2.6.2 Token Utilization Efficiency: Mandatory vs Optional Data
         const mandOptEffTokenDeltaRows = mandatories.map(x => {
             const totalTokensUsed = Math.round(x.totalTokensUsed);
@@ -629,7 +629,7 @@ class ReportGenerator {
             ];
         });
         this.heading(4, '2.6.2 Mandatory vs Optional Data');
-        this.table(['Format', 'Total Tokens Man', 'Total Tokens Opt', 'Diff', 'Diff (%)', 'Useful Tokens Man', 'Useful Tokens Opt', 'Diff', 'Diff (%)', 'Wasted Tokens Man', 'Wasted Tokens Opt', 'Diff', 'Diff (%)', 'Acc (%) Man', 'Acc (%) Opt', 'Diff (%)', 'Eff Score Man', 'Eff Score Opt', 'Diff', 'Diff (%)'], mandOptEffTokenDeltaRows);
+        this.table(['Format', 'Total Tokens Man', 'Total Tokens Opt', 'Diff', 'Diff (%)', 'Useful Tokens Man', 'Useful Tokens Opt', 'Diff', 'Diff (%)', 'Wasted Tokens Man', 'Wasted Tokens Opt', 'Diff', 'Diff (%)', 'Accuracy (%) Man', 'Accuracy (%) Opt', 'Diff (%)', 'Eff Score Man', 'Eff Score Opt', 'Diff', 'Diff (%)'], mandOptEffTokenDeltaRows);
         // 2.7.1 Answer Quality Breakdown: Metrics
         const answerQualityRows = sortedAggregated.map(item => [
             item.format.toUpperCase(),
@@ -641,7 +641,7 @@ class ReportGenerator {
         ]);
         this.heading(3, '2.7 Answer Per Format Breakdown');
         this.heading(4, '2.7.1 Metrics');
-        this.table(['Format', 'Variant', 'Correct Answers', 'Incorrect Answers', 'No Answers', 'Acc (%)'], answerQualityRows);
+        this.table(['Format', 'Variant', 'Correct Answers', 'Incorrect Answers', 'No Answers', 'Accuracy (%)'], answerQualityRows);
         // 2.7.2 Answer Per Format Breakdown: Mandatory vs Optional Data
         const mandOptAnswerDeltaRows = mandatories.map(x => {
             return [
@@ -664,7 +664,7 @@ class ReportGenerator {
             ];
         });
         this.heading(4, '2.7.2 Mandatory vs Optional Data');
-        this.table(['Format', 'Correct Man', 'Correct Opt', 'Diff', 'Diff (%)', 'Incorrect Man', 'Incorrect Opt', 'Diff', 'Diff (%)', 'No Answers Man', 'No Answers Opt', 'Diff', 'Diff (%)', 'Acc (%) Man', 'Acc (%) Opt', 'Diff (%)'], mandOptAnswerDeltaRows);
+        this.table(['Format', 'Correct Man', 'Correct Opt', 'Diff', 'Diff (%)', 'Incorrect Man', 'Incorrect Opt', 'Diff', 'Diff (%)', 'No Answers Man', 'No Answers Opt', 'Diff', 'Diff (%)', 'Accuracy (%) Man', 'Accuracy (%) Opt', 'Diff (%)'], mandOptAnswerDeltaRows);
         const categoryRows = sortedAggregated.map(item => {
             const validation = this.validations.find(x => x.format === item.format && x.variant === item.variant && x.recordCount === item.recordCount);
             const retrieval = validation?.accuracy.find(x => x.category === 'field_retrieval')?.accuracyPercent ?? 0;
@@ -683,7 +683,7 @@ class ReportGenerator {
         });
         this.heading(3, '2.8 Accuracy Per Question Category Analysis');
         this.heading(4, '2.8.1 Metrics');
-        this.table(['Format', 'Variant', 'Acc (%)', 'Field Retrieval (%)', 'Structure Awareness (%)', 'Filtering (%)', 'Aggregation (%)'], categoryRows);
+        this.table(['Format', 'Variant', 'Accuracy (%)', 'Field Retrieval (%)', 'Structure Awareness (%)', 'Filtering (%)', 'Aggregation (%)'], categoryRows);
         this.diffMandOptAccuracyPerCategory(2, 'field_retrieval');
         this.diffMandOptAccuracyPerCategory(3, 'structure_awareness');
         this.diffMandOptAccuracyPerCategory(4, 'filtering');
@@ -727,7 +727,7 @@ class ReportGenerator {
             this.line(`- Token Duration Range: ${Math.round(Math.min(...formatData.map(d => d.totalDurationInMilliseconds / 1000)))} - ${Math.round(Math.max(...formatData.map(d => d.totalDurationInMilliseconds / 1000)))} seconds`);
             this.line(`- Token Cost Range: ${Math.round(Math.min(...formatData.map(d => d.totalTokensUsed)))} - ${Math.round(Math.max(...formatData.map(d => d.totalTokensUsed)))} tokens`);
             this.line(`- Wasted Token Range: ${Math.round(Math.min(...formatData.map(d => d.costOfInaccuracy)))} - ${Math.round(Math.max(...formatData.map(d => d.costOfInaccuracy)))} tokens`);
-            this.line(`- Accuracy Range: ${(Math.min(...formatData.map(d => d.avgAccuracyPercent))).toFixed(2)} - ${(Math.max(...formatData.map(d => d.avgAccuracyPercent))).toFixed(2)} %`);
+            this.line(`- Accuracy Range: ${(Math.min(...formatData.map(d => d.avgAccuracyPercent))).toFixed(2)} - ${(Math.max(...formatData.map(d => d.avgAccuracyPercent))).toFixed(2)}%`);
             this.line(`- Efficiency Score Range: ${(Math.min(...formatData.map(d => d.efficiencyScore))).toFixed(2)} - ${(Math.max(...formatData.map(d => d.efficiencyScore))).toFixed(2)}`);
             this.line();
             this.heading(4, `3.${num}.2 Strengths`);
@@ -762,9 +762,9 @@ class ReportGenerator {
         this.heading(3, '4.1 Appendix A: Test Infrastructure');
         this.line(`- **Test Date**: ${new Date(this.metadata.generatedAt).toISOString().split('T')[0]}`);
         this.line(`- **Model**: ${this.metadata.model}`);
-        this.line(`- **Extended Thinking**: ${this.metadata.thinking}`);
+        this.line(`- **Thinking**: ${this.metadata.thinking}`);
         this.line(`- **Structure**: ${this.metadata.structure}`);
-        this.line(`- **Formats Tested**: ${this.metadata.formats.join(', ')}`);
+        this.line(`- **Formats Tested**: ${this.metadata.formats.map(f => f.toUpperCase()).join(', ')}`);
         this.line(`- **Record Counts**: ${this.recordCounts.join(', ')}`);
         this.line(`- **Total Test Cases**: ${this.aggregated.length}`);
         this.line();
@@ -782,7 +782,11 @@ class ReportGenerator {
         this.line('- **With the help of**: Claude Sonnet 4.6');
         this.line('- **Data Source**: `analytics_results.json`');
         this.line('- **Publication**: Open source research in [GitHub repository](https://github.com/thoeltig/file-format-token-accuracy-benchmark-results)');
-        this.line('- **Related Benchmark Results**: [Report1](https://github.com/thoeltig/file-format-token-accuracy-benchmark-results), [Report2](https://github.com/thoeltig/file-format-token-accuracy-benchmark-results), [Report3](https://github.com/thoeltig/file-format-token-accuracy-benchmark-results)');
+        this.line('- **Related Benchmark Results**:');
+        this.line('   - [Report - flat structure & thinking off](https://github.com/thoeltig/file-format-token-accuracy-benchmark-results)');
+        this.line('   - [Report - flat structure & thinking on](https://github.com/thoeltig/file-format-token-accuracy-benchmark-results)');
+        this.line('   - [Report - nested structure & thinking off](https://github.com/thoeltig/file-format-token-accuracy-benchmark-results)');
+        this.line('   - [Report - nested structure & thinking on](https://github.com/thoeltig/file-format-token-accuracy-benchmark-results)');
         this.line('- **Format Specifics**: [README](https://github.com/thoeltig/file-format-token-accuracy-benchmark#format-specifics)');
         this.line('- **Benchmark Tool**: Claude Code Plugin in [GitHub repository](https://github.com/thoeltig/file-format-token-accuracy-benchmark)');
     }
