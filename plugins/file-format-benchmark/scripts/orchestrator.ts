@@ -136,8 +136,8 @@ export class BenchmarkingOrchestrator {
         dataAndOutput: []
       };
 
-      // Generate array formats
-      for (const format of FORMATS) {
+      // Generate array formats (without TOON_KEYFOLD because it has the same output as TOON_DEFAULT in flat structure)
+      for (const format of FORMATS.filter(x => x !== 'toon_keyfold')) {
         console.log(`Generating ${format.toUpperCase()} file with ${fieldsMandatoryText} ${RECORD_COUNT} flat records`);
 
         // Convert to format
