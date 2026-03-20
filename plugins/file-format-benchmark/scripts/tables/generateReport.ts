@@ -158,7 +158,7 @@ class ReportGenerator {
     this.heading(1, 'File Format Token Efficiency Benchmark: Comprehensive Report');
     this.line(`- **Date**: ${new Date(this.metadata.generatedAt).toISOString().split('T')[0]}`);
     this.line(`- **Model**: ${this.metadata.model}`);
-    this.line(`- **Extended Thinking**: ${this.metadata.thinking}`);
+    this.line(`- **Thinking**: ${this.metadata.thinking}`);
     this.line(`- **Data Structure**: ${this.metadata.structure}`);
     this.line(`- **Formats Tested**: ${this.uniqueFormats.length} (${this.uniqueFormats.map(f => f.toUpperCase()).join(', ')})`);
     this.line(`- **Record Counts**: ${this.recordCounts.join(', ')}`);
@@ -920,7 +920,7 @@ class ReportGenerator {
     this.heading(3, '4.1 Appendix A: Test Infrastructure');
     this.line(`- **Test Date**: ${new Date(this.metadata.generatedAt).toISOString().split('T')[0]}`);
     this.line(`- **Model**: ${this.metadata.model}`);
-    this.line(`- **Extended Thinking**: ${this.metadata.thinking}`);
+    this.line(`- **Thinking**: ${this.metadata.thinking}`);
     this.line(`- **Structure**: ${this.metadata.structure}`);
     this.line(`- **Formats Tested**: ${this.metadata.formats.map(f => f.toUpperCase()).join(', ')}`);
     this.line(`- **Record Counts**: ${this.recordCounts.join(', ')}`);
@@ -942,7 +942,11 @@ class ReportGenerator {
     this.line('- **With the help of**: Claude Sonnet 4.6');
     this.line('- **Data Source**: `analytics_results.json`');
     this.line('- **Publication**: Open source research in [GitHub repository](https://github.com/thoeltig/file-format-token-accuracy-benchmark-results)');
-    this.line('- **Related Benchmark Results**: [Report1](https://github.com/thoeltig/file-format-token-accuracy-benchmark-results), [Report2](https://github.com/thoeltig/file-format-token-accuracy-benchmark-results), [Report3](https://github.com/thoeltig/file-format-token-accuracy-benchmark-results)');
+    this.line('- **Related Benchmark Results**:');
+    this.line('   - [Report - flat structure & thinking off](https://github.com/thoeltig/file-format-token-accuracy-benchmark-results)');
+    this.line('   - [Report - flat structure & thinking on](https://github.com/thoeltig/file-format-token-accuracy-benchmark-results)');
+    this.line('   - [Report - nested structure & thinking off](https://github.com/thoeltig/file-format-token-accuracy-benchmark-results)');
+    this.line('   - [Report - nested structure & thinking on](https://github.com/thoeltig/file-format-token-accuracy-benchmark-results)');
     this.line('- **Format Specifics**: [README](https://github.com/thoeltig/file-format-token-accuracy-benchmark#format-specifics)');
     this.line('- **Benchmark Tool**: Claude Code Plugin in [GitHub repository](https://github.com/thoeltig/file-format-token-accuracy-benchmark)');
   }
