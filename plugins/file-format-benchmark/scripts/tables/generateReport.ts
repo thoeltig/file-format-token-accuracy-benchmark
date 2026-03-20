@@ -388,7 +388,7 @@ class ReportGenerator {
     this.line();
 
     // 2.1.3 Format Ranking
-    const sortedByTotalDurationMandatories = [...mandatories].sort((ob1, ob2) => ob1.totalDurationInMilliseconds > ob2.totalDurationInMilliseconds ? 1 : ob1.totalDurationInMilliseconds < ob2.totalDurationInMilliseconds ? -1 : 0).map((x, i, arr) => this.getRankingOfAmountDisplay(x.format, i, arr[i].totalDurationInMilliseconds, arr[0].totalDurationInMilliseconds, 's'));
+    const sortedByTotalDurationMandatories = [...mandatories].sort((ob1, ob2) => ob1.totalDurationInMilliseconds > ob2.totalDurationInMilliseconds ? 1 : ob1.totalDurationInMilliseconds < ob2.totalDurationInMilliseconds ? -1 : 0).map((x, i, arr) => this.getRankingOfAmountDisplay(x.format, i, arr[i].totalDurationInMilliseconds / 1000, arr[0].totalDurationInMilliseconds / 1000, 's'));
     const sortedByTotalTokensMandatories = [...mandatories].sort((ob1, ob2) => ob1.totalTokensUsed > ob2.totalTokensUsed ? 1 : ob1.totalTokensUsed < ob2.totalTokensUsed ? -1 : 0).map((x, i, arr) => this.getRankingOfAmountDisplay(x.format, i, arr[i].totalTokensUsed, arr[0].totalTokensUsed));
     const sortedByCostOfInaccuracyMandatories = [...mandatories].sort((ob1, ob2) => ob1.costOfInaccuracy > ob2.costOfInaccuracy ? 1 : ob1.costOfInaccuracy < ob2.costOfInaccuracy ? -1 : 0).map((x, i, arr) => this.getRankingOfAmountDisplay(x.format, i, arr[i].costOfInaccuracy, arr[0].costOfInaccuracy));
     const sortedByAccuracyMandatories = [...mandatories].sort((ob1, ob2) => ob1.avgAccuracyPercent < ob2.avgAccuracyPercent ? 1 : ob1.avgAccuracyPercent > ob2.avgAccuracyPercent ? -1 : 0).map((x, i, arr) => this.getRankingOfPercentageDisplay(x.format, i, arr[i].avgAccuracyPercent, arr[0].avgAccuracyPercent));
@@ -416,7 +416,7 @@ class ReportGenerator {
     );
     this.line();
     
-    const sortedByTotalDurationOptionals = [...optionals].sort((ob1, ob2) => ob1.totalDurationInMilliseconds > ob2.totalDurationInMilliseconds ? 1 : ob1.totalDurationInMilliseconds < ob2.totalDurationInMilliseconds ? -1 : 0).map((x, i, arr) => this.getRankingOfAmountDisplay(x.format, i, arr[i].totalDurationInMilliseconds, arr[0].totalDurationInMilliseconds, 's'));
+    const sortedByTotalDurationOptionals = [...optionals].sort((ob1, ob2) => ob1.totalDurationInMilliseconds > ob2.totalDurationInMilliseconds ? 1 : ob1.totalDurationInMilliseconds < ob2.totalDurationInMilliseconds ? -1 : 0).map((x, i, arr) => this.getRankingOfAmountDisplay(x.format, i, arr[i].totalDurationInMilliseconds / 1000, arr[0].totalDurationInMilliseconds / 1000, 's'));
     const sortedByTotalTokensOptionals = [...optionals].sort((ob1, ob2) => ob1.totalTokensUsed > ob2.totalTokensUsed ? 1 : ob1.totalTokensUsed < ob2.totalTokensUsed ? -1 : 0).map((x, i, arr) => this.getRankingOfAmountDisplay(x.format, i, arr[i].totalTokensUsed, arr[0].totalTokensUsed));
     const sortedByCostOfInaccuracyOptionals = [...optionals].sort((ob1, ob2) => ob1.costOfInaccuracy > ob2.costOfInaccuracy ? 1 : ob1.costOfInaccuracy < ob2.costOfInaccuracy ? -1 : 0).map((x, i, arr) => this.getRankingOfAmountDisplay(x.format, i, arr[i].costOfInaccuracy, arr[0].costOfInaccuracy));
     const sortedByAccuracyOptionals = [...optionals].sort((ob1, ob2) => ob1.avgAccuracyPercent < ob2.avgAccuracyPercent ? 1 : ob1.avgAccuracyPercent > ob2.avgAccuracyPercent ? -1 : 0).map((x, i, arr) => this.getRankingOfPercentageDisplay(x.format, i, arr[i].avgAccuracyPercent, arr[0].avgAccuracyPercent));
