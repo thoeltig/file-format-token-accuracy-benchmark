@@ -483,12 +483,18 @@ export class QuestionnaireGenerator {
   }
   
   private getValues(record: DataRecord, fields: string[]): string[]{
-    const values:string[] = [];
-    fields.forEach(field => {
+    return fields.map(field => {
       const value = record[field];
-      return values.push(value ? value.toString() : '');
+
+      if(value === null){
+        return 'null';
+      }
+      else if(value === undefined){
+        return '';
+      }
+
+      return value.toString();
     });
-    return values;
   }
 
   splitMultipleCamelCases(fields: string[]):string{

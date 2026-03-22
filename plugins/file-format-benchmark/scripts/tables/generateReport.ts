@@ -556,7 +556,7 @@ class ReportGenerator {
 
     this.heading(3, '2.2 Comprehensive Benchmark Metrics');
     this.table(
-      ['Format', 'Variant', 'Read Tokens', 'Output Tokens', 'Total', 'Tokens/Char', 'Info/Token', 'Token/Answer', 'Accuracy (%)', 'Wtd Accuracy (%)', 'Used Tokens', 'Wasted Tokens', 'Eff Score', 'Wtd Eff Score'],
+      ['Format', 'Variant', 'Read Tokens', 'Output Tokens', 'Total', 'Char/Token', 'Info/Token', 'Token/Answer', 'Accuracy (%)', 'Wtd Accuracy (%)', 'Used Tokens', 'Wasted Tokens', 'Eff Score', 'Wtd Eff Score'],
       rows
     );
 

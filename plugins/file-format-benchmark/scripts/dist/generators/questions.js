@@ -416,12 +416,16 @@ class QuestionnaireGenerator {
         return questions;
     }
     getValues(record, fields) {
-        const values = [];
-        fields.forEach(field => {
+        return fields.map(field => {
             const value = record[field];
-            return values.push(value ? value.toString() : '');
+            if (value === null) {
+                return 'null';
+            }
+            else if (value === undefined) {
+                return '';
+            }
+            return value.toString();
         });
-        return values;
     }
     splitMultipleCamelCases(fields) {
         return fields.map(x => this.splitCamelCase(x)).join(", ");
