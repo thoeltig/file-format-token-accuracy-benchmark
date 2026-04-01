@@ -35,9 +35,6 @@
  *   - 4. Appendices
  *   - 4.1 Appendix A: Test Infrastructure
  *   - 4.2 Appendix B: Benchmark Configuration
- *   - Appendix B: Detailed Performance Data
- *   - Appendix C: Test Infrastructure
- *   - Appendix D: Benchmark Configuration
  */
 
 import * as fs from 'fs';
@@ -90,7 +87,7 @@ interface Metadata {
 
 function extractMetadata(analyticsData: AnalyticsOutput): Metadata {
   return {
-    generatedAt: new Date().toISOString(),
+    generatedAt: analyticsData.timestamp || new Date().toISOString(),
     model: analyticsData.testConfigurations.model,
     thinking: analyticsData.testConfigurations.thinking,
     structure: analyticsData.testConfigurations.structure,
@@ -276,8 +273,8 @@ class ReportGenerator {
     this.heading(3, '1.4 Token Usage Measurements');
     this.line();
     this.line('Tokens usage measured in this benchmark are no estimates but the real token usage the model used in this test. The token usage is reported to the user indirectly in the conversation transcript. Both read and output Tokens are directly extracted from the transcripts of the subagents:');
-    this.line('- **Read Tokens**: For each data file a single read subagent is invoked with the only prompt to read the file at the provided filepath and return "Done" once finished and do nothing more. The tokens extraction script searches for the read tool use result and extracted the tokens for that action from it.');
-    this.line('- **Output Tokens**: For each data file a three full tests subagent are invoked with all necessary files and the test setup and the instruction to write a file once with the answers. The token extraction script searches for the write tool use result and extracted the tokens for that action from it.');
+    this.line('- **Read Tokens**: For each data file a single read subagent is invoked with the only prompt to read the file at the provided filepath and return "Done" once finished and do nothing more. The token extraction script searches for the read tool result and extracts only the read tokens of it.');
+    this.line('- **Output Tokens**: For each data file three "benchmark-full-test" subagent are invoked with data, questions and answers template files and the instructions to read everything and answer all questions in a single write tool use. The token extraction script aggregates all output tokens until and including the write tool result.');
     this.line();
   }
 
@@ -939,7 +936,7 @@ class ReportGenerator {
     this.line();
     this.line('- **Report Generated**: ' + new Date().toISOString().split('T')[0]);
     this.line('- **Written by**: [Thore Höltig](https://github.com/thoeltig)');
-    this.line('- **With the help of**: Claude Sonnet 4.6');
+    this.line('- **Test run in**: Claude Code < 2.1.86');
     this.line('- **Data Source**: `analytics_results.json`');
     this.line('- **Publication**: Open source research in [GitHub repository](https://github.com/thoeltig/file-format-token-accuracy-benchmark-results)');
     this.line('- **Related Benchmark Results**:');
