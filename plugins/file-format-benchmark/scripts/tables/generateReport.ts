@@ -30,8 +30,6 @@
  *   - 2.6 Token Utilization Efficiency
  *   - 2.7 Answer Per Format Breakdown
  *   - 2.8 Accuracy Per Question Category Analysis
- *   - 3. Format-Specific Analysis
- *   - 3.X Detailed Analysis: <FORMAT>
  *   - 4. Appendices
  *   - 4.1 Appendix A: Test Infrastructure
  *   - 4.2 Appendix B: Benchmark Configuration
@@ -145,7 +143,6 @@ class ReportGenerator {
     this.generateExecutiveSummary();
     this.generateMethodology();
     this.generateResults();
-    this.generateFormatAnalysis();
     this.generateAppendices();
 
     return this.content.join('\n');
@@ -856,58 +853,6 @@ class ReportGenerator {
       ['Format', 'Mand (%)', 'Opt (%)', 'Diff (%)'],
       categoryMandOptRows
     );
-  }
-
-  private generateFormatAnalysis(): void {
-    this.heading(2, '3. Format-Specific Analysis');
-
-    this.uniqueFormats.forEach((format, idx, _)  => {
-      const formatData = this.aggregated.filter(a => a.format === format);
-
-      if (formatData.length === 0) return;
-
-      const num = idx+1;
-
-      this.heading(3, `3.${num} Detailed Analysis: ${format.toUpperCase()}`);
-      this.line();
-           
-      this.heading(4, `3.${num}.1 Performance Summary`);
-      this.line();
-      this.line(`- Token Duration Range: ${Math.round(Math.min(...formatData.map(d => d.totalDurationInMilliseconds / 1000)))} - ${Math.round(Math.max(...formatData.map(d => d.totalDurationInMilliseconds / 1000)))} seconds`);
-      this.line(`- Token Cost Range: ${Math.round(Math.min(...formatData.map(d => d.totalTokensUsed)))} - ${Math.round(Math.max(...formatData.map(d => d.totalTokensUsed)))} tokens`);
-      this.line(`- Wasted Token Range: ${Math.round(Math.min(...formatData.map(d => d.costOfInaccuracy)))} - ${Math.round(Math.max(...formatData.map(d => d.costOfInaccuracy)))} tokens`);
-      this.line(`- Accuracy Range: ${(Math.min(...formatData.map(d => d.avgAccuracyPercent))).toFixed(2)} - ${(Math.max(...formatData.map(d => d.avgAccuracyPercent))).toFixed(2)}%`);
-      this.line(`- Efficiency Score Range: ${(Math.min(...formatData.map(d => d.efficiencyScore))).toFixed(2)} - ${(Math.max(...formatData.map(d => d.efficiencyScore))).toFixed(2)}`);
-      this.line();
-
-      this.heading(4, `3.${num}.2 Strengths`);
-      this.line();
-      this.line('- <ADD_CONTENT_HERE>List format strengths based on category and variant analysis</ADD_CONTENT_HERE>');
-      this.line('- ');
-      this.line('- ');
-      this.line();
-
-      this.heading(4, `3.${num}.3 Weaknesses`);
-      this.line();
-      this.line('- <ADD_CONTENT_HERE>List format weaknesses and failure modes</ADD_CONTENT_HERE>');
-      this.line('- ');
-      this.line('- ');
-      this.line();
-
-      this.heading(4, `3.${num}.4 Use Case Recommendation`);
-      this.line();
-      this.line('- <ADD_CONTENT_HERE>When and why to use this format (✓ Use when, ❌ Avoid when)</ADD_CONTENT_HERE>');
-      this.line('- ');
-      this.line('- ');
-      this.line();
-
-      this.heading(4, `3.${num}.5 Trade-offs`);
-      this.line();
-      this.line('- <ADD_CONTENT_HERE>Discuss accuracy vs token cost trade-offs specific to this format</ADD_CONTENT_HERE>');
-      this.line('- ');
-      this.line('- ');
-      this.line();
-    });
   }
 
   private generateAppendices(): void {
