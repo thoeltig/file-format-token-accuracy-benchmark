@@ -282,6 +282,12 @@ class ReportGenerator {
     // 2.1.1 Best results
     const optionalLowestTokenCost = optionals.reduce((min, a) => a.totalTokensUsed < min.totalTokensUsed ? a : min);
     const mandatoryLowestTokenCost = mandatories.reduce((min, a) => a.totalTokensUsed < min.totalTokensUsed ? a : min);
+    
+    const optionalLowestReadTokenCost = optionals.reduce((min, a) => a.readTokens < min.readTokens ? a : min);
+    const mandatoryLowestReadTokenCost = mandatories.reduce((min, a) => a.readTokens < min.readTokens ? a : min);
+    
+    const optionalLowestOutputTokenCost = optionals.reduce((min, a) => a.avgOutputTokens < min.avgOutputTokens ? a : min);
+    const mandatoryLowestOutputTokenCost = mandatories.reduce((min, a) => a.avgOutputTokens < min.avgOutputTokens ? a : min);
 
     const optionalLowestOutputTokensDriftPerc = optionals.reduce((min, a) => a.absOutputTokensDriftPerc < min.absOutputTokensDriftPerc ? a : min);
     const mandatoryLowestOutputTokensDriftPerc = mandatories.reduce((min, a) => a.absOutputTokensDriftPerc < min.absOutputTokensDriftPerc ? a : min);
@@ -311,6 +317,12 @@ class ReportGenerator {
     this.line('- Lowest total token cost:');
     this.line(`   - Optional: ${optionalLowestTokenCost.format.toUpperCase()} ${Math.round(optionalLowestTokenCost.totalTokensUsed)} tokens`);
     this.line(`   - Mandatory: ${mandatoryLowestTokenCost.format.toUpperCase()} ${Math.round(mandatoryLowestTokenCost.totalTokensUsed)} tokens`);
+    this.line('- Lowest read token cost:');
+    this.line(`   - Optional: ${optionalLowestReadTokenCost.format.toUpperCase()} ${Math.round(optionalLowestReadTokenCost.readTokens)} tokens`);
+    this.line(`   - Mandatory: ${mandatoryLowestReadTokenCost.format.toUpperCase()} ${Math.round(mandatoryLowestReadTokenCost.readTokens)} tokens`);
+    this.line('- Lowest output token cost:');
+    this.line(`   - Optional: ${optionalLowestOutputTokenCost.format.toUpperCase()} ${Math.round(optionalLowestOutputTokenCost.avgOutputTokens)} tokens`);
+    this.line(`   - Mandatory: ${mandatoryLowestOutputTokenCost.format.toUpperCase()} ${Math.round(mandatoryLowestOutputTokenCost.avgOutputTokens)} tokens`);
     this.line('- Lowest output token cost drift:');
     this.line(`   - Optional: ${optionalLowestOutputTokensDriftPerc.format.toUpperCase()} ↓ ${optionalLowestOutputTokensDriftPerc.minOutputTokensDriftPerc.toFixed(2)}% ↑ ${optionalLowestOutputTokensDriftPerc.maxOutputTokensDriftPerc.toFixed(2)}%`);
     this.line(`   - Mandatory: ${mandatoryLowestOutputTokensDriftPerc.format.toUpperCase()} ↓ ${mandatoryLowestOutputTokensDriftPerc.minOutputTokensDriftPerc.toFixed(2)}% ↑ ${mandatoryLowestOutputTokensDriftPerc.maxOutputTokensDriftPerc.toFixed(2)}%`);
@@ -336,6 +348,12 @@ class ReportGenerator {
     const optionalHighestTokenCost = optionals.reduce((max, a) => a.totalTokensUsed > max.totalTokensUsed ? a : max);
     const mandatoryHighestTokenCost = mandatories.reduce((max, a) => a.totalTokensUsed > max.totalTokensUsed ? a : max);
     
+    const optionalHighestReadTokenCost = optionals.reduce((max, a) => a.readTokens > max.readTokens ? a : max);
+    const mandatoryHighestReadTokenCost = mandatories.reduce((max, a) => a.readTokens > max.readTokens ? a : max);
+    
+    const optionalHighestOutputTokenCost = optionals.reduce((max, a) => a.avgOutputTokens > max.avgOutputTokens ? a : max);
+    const mandatoryHighestOutputTokenCost = mandatories.reduce((max, a) => a.avgOutputTokens > max.avgOutputTokens ? a : max);
+        
     const optionalHighestOutputTokensDriftPerc = optionals.reduce((max, a) => a.absOutputTokensDriftPerc > max.absOutputTokensDriftPerc ? a : max);
     const mandatoryHighestOutputTokensDriftPerc = mandatories.reduce((max, a) => a.absOutputTokensDriftPerc > max.absOutputTokensDriftPerc ? a : max);
     
@@ -360,6 +378,12 @@ class ReportGenerator {
     this.line('- Highest total token cost:');
     this.line(`   - Optional: ${optionalHighestTokenCost.format.toUpperCase()} ${Math.round(optionalHighestTokenCost.totalTokensUsed)} tokens`);
     this.line(`   - Mandatory: ${mandatoryHighestTokenCost.format.toUpperCase()} ${Math.round(mandatoryHighestTokenCost.totalTokensUsed)} tokens`);
+    this.line('- Highest read token cost:');
+    this.line(`   - Optional: ${optionalHighestReadTokenCost.format.toUpperCase()} ${Math.round(optionalHighestReadTokenCost.readTokens)} tokens`);
+    this.line(`   - Mandatory: ${mandatoryHighestReadTokenCost.format.toUpperCase()} ${Math.round(mandatoryHighestReadTokenCost.readTokens)} tokens`);
+    this.line('- Highest output token cost:');
+    this.line(`   - Optional: ${optionalHighestOutputTokenCost.format.toUpperCase()} ${Math.round(optionalHighestOutputTokenCost.avgOutputTokens)} tokens`);
+    this.line(`   - Mandatory: ${mandatoryHighestOutputTokenCost.format.toUpperCase()} ${Math.round(mandatoryHighestOutputTokenCost.avgOutputTokens)} tokens`);
     this.line('- Highest output token drift:');
     this.line(`   - Optional: ${optionalHighestOutputTokensDriftPerc.format.toUpperCase()} ↓ ${optionalHighestOutputTokensDriftPerc.minOutputTokensDriftPerc.toFixed(2)}% ↑ ${optionalHighestOutputTokensDriftPerc.maxOutputTokensDriftPerc.toFixed(2)}%`);
     this.line(`   - Mandatory: ${mandatoryHighestOutputTokensDriftPerc.format.toUpperCase()} ↓ ${mandatoryHighestOutputTokensDriftPerc.minOutputTokensDriftPerc.toFixed(2)}% ↑ ${mandatoryHighestOutputTokensDriftPerc.maxOutputTokensDriftPerc.toFixed(2)}%`);
@@ -383,6 +407,8 @@ class ReportGenerator {
 
     // 2.1.3 Format Ranking
     const sortedByTotalDurationMandatories = [...mandatories].sort((ob1, ob2) => ob1.totalDurationInMilliseconds > ob2.totalDurationInMilliseconds ? 1 : ob1.totalDurationInMilliseconds < ob2.totalDurationInMilliseconds ? -1 : 0).map((x, i, arr) => this.getRankingOfAmountDisplay(x.format, i, arr[i].totalDurationInMilliseconds / 1000, arr[0].totalDurationInMilliseconds / 1000, 's'));
+    const sortedByReadTokensMandatories = [...mandatories].sort((ob1, ob2) => ob1.readTokens > ob2.readTokens ? 1 : ob1.readTokens < ob2.readTokens ? -1 : 0).map((x, i, arr) => this.getRankingOfAmountDisplay(x.format, i, arr[i].readTokens, arr[0].readTokens));
+    const sortedByOutputTokensMandatories = [...mandatories].sort((ob1, ob2) => ob1.avgOutputTokens > ob2.avgOutputTokens ? 1 : ob1.avgOutputTokens < ob2.avgOutputTokens ? -1 : 0).map((x, i, arr) => this.getRankingOfAmountDisplay(x.format, i, arr[i].avgOutputTokens, arr[0].avgOutputTokens));
     const sortedByTotalTokensMandatories = [...mandatories].sort((ob1, ob2) => ob1.totalTokensUsed > ob2.totalTokensUsed ? 1 : ob1.totalTokensUsed < ob2.totalTokensUsed ? -1 : 0).map((x, i, arr) => this.getRankingOfAmountDisplay(x.format, i, arr[i].totalTokensUsed, arr[0].totalTokensUsed));
     const sortedByCostOfInaccuracyMandatories = [...mandatories].sort((ob1, ob2) => ob1.costOfInaccuracy > ob2.costOfInaccuracy ? 1 : ob1.costOfInaccuracy < ob2.costOfInaccuracy ? -1 : 0).map((x, i, arr) => this.getRankingOfAmountDisplay(x.format, i, arr[i].costOfInaccuracy, arr[0].costOfInaccuracy));
     const sortedByAccuracyMandatories = [...mandatories].sort((ob1, ob2) => ob1.avgAccuracyPercent < ob2.avgAccuracyPercent ? 1 : ob1.avgAccuracyPercent > ob2.avgAccuracyPercent ? -1 : 0).map((x, i, arr) => this.getRankingOfPercentageDisplay(x.format, i, arr[i].avgAccuracyPercent, arr[0].avgAccuracyPercent));
@@ -392,6 +418,8 @@ class ReportGenerator {
 
     const manRows = mandatories.map((_, i) => [
       sortedByTotalDurationMandatories[i],
+      sortedByReadTokensMandatories[i],
+      sortedByOutputTokensMandatories[i],
       sortedByTotalTokensMandatories[i],
       sortedByCostOfInaccuracyMandatories[i],
       sortedByAccuracyMandatories[i],
@@ -405,12 +433,14 @@ class ReportGenerator {
     this.heading(5, 'Mandatory');
     this.line();
     this.table(
-      ['↑ Total Duration', '↑ Total Tokens', '↑ Wasted Tokens','↓ Accuracy', '↓ Wtd Accuracy', '↓ Eff Score','↓ Wtd Eff Score'],
+      ['↑ Total Duration', '↑ Read Tokens', '↑ Output Tokens', '↑ Total Tokens', '↑ Wasted Tokens','↓ Accuracy', '↓ Wtd Accuracy', '↓ Eff Score','↓ Wtd Eff Score'],
       manRows
     );
     this.line();
     
     const sortedByTotalDurationOptionals = [...optionals].sort((ob1, ob2) => ob1.totalDurationInMilliseconds > ob2.totalDurationInMilliseconds ? 1 : ob1.totalDurationInMilliseconds < ob2.totalDurationInMilliseconds ? -1 : 0).map((x, i, arr) => this.getRankingOfAmountDisplay(x.format, i, arr[i].totalDurationInMilliseconds / 1000, arr[0].totalDurationInMilliseconds / 1000, 's'));
+    const sortedByReadTokensOptionals = [...optionals].sort((ob1, ob2) => ob1.readTokens > ob2.readTokens ? 1 : ob1.readTokens < ob2.readTokens ? -1 : 0).map((x, i, arr) => this.getRankingOfAmountDisplay(x.format, i, arr[i].readTokens, arr[0].readTokens));
+    const sortedByOutputTokensOptionals = [...optionals].sort((ob1, ob2) => ob1.avgOutputTokens > ob2.avgOutputTokens ? 1 : ob1.avgOutputTokens < ob2.avgOutputTokens ? -1 : 0).map((x, i, arr) => this.getRankingOfAmountDisplay(x.format, i, arr[i].avgOutputTokens, arr[0].avgOutputTokens));
     const sortedByTotalTokensOptionals = [...optionals].sort((ob1, ob2) => ob1.totalTokensUsed > ob2.totalTokensUsed ? 1 : ob1.totalTokensUsed < ob2.totalTokensUsed ? -1 : 0).map((x, i, arr) => this.getRankingOfAmountDisplay(x.format, i, arr[i].totalTokensUsed, arr[0].totalTokensUsed));
     const sortedByCostOfInaccuracyOptionals = [...optionals].sort((ob1, ob2) => ob1.costOfInaccuracy > ob2.costOfInaccuracy ? 1 : ob1.costOfInaccuracy < ob2.costOfInaccuracy ? -1 : 0).map((x, i, arr) => this.getRankingOfAmountDisplay(x.format, i, arr[i].costOfInaccuracy, arr[0].costOfInaccuracy));
     const sortedByAccuracyOptionals = [...optionals].sort((ob1, ob2) => ob1.avgAccuracyPercent < ob2.avgAccuracyPercent ? 1 : ob1.avgAccuracyPercent > ob2.avgAccuracyPercent ? -1 : 0).map((x, i, arr) => this.getRankingOfPercentageDisplay(x.format, i, arr[i].avgAccuracyPercent, arr[0].avgAccuracyPercent));
@@ -420,6 +450,8 @@ class ReportGenerator {
     
     const optRows = mandatories.map((_, i) => [
       sortedByTotalDurationOptionals[i],
+      sortedByReadTokensOptionals[i],
+      sortedByOutputTokensOptionals[i],
       sortedByTotalTokensOptionals[i],
       sortedByCostOfInaccuracyOptionals[i],
       sortedByAccuracyOptionals[i],
@@ -431,7 +463,7 @@ class ReportGenerator {
     this.heading(5, 'Optional');
     this.line();
     this.table(
-      ['↑ Total Duration', '↑ Total Tokens', '↑ Wasted Tokens','↓ Acc', '↓ Wtd Acc', '↓ Eff Score','↓ Wtd Eff Score'],
+      ['↑ Total Duration', '↑ Read Tokens', '↑ Output Tokens', '↑ Total Tokens', '↑ Wasted Tokens','↓ Acc', '↓ Wtd Acc', '↓ Eff Score','↓ Wtd Eff Score'],
       optRows
     );
     this.line();
@@ -555,25 +587,35 @@ class ReportGenerator {
     );
 
     // 2.3 Format Robustness: Mandatory vs Optional
-    const mandOptFormatDeltaRows = mandatories.map(x =>{    
+    const mandOptFormatDeltaRows = mandatories.map(x =>{   
+      const mandReadTokensUsed = Math.round(x.readTokens);
+      const readTokenDiff = Math.round(x.readTokensDelta);  
+      const optReadTokensUsed = mandReadTokensUsed + readTokenDiff;
+
+      const mandOutputTokensUsed = Math.round(x.avgOutputTokens);
+      const outputTokenDiff = Math.round(x.outputTokensDelta);  
+      const optOutputTokensUsed = mandOutputTokensUsed + outputTokenDiff;
+
       const mandTotalTokensUsed = Math.round(x.totalTokensUsed);
-      const tokenDiff = Math.round(x.totalTokensDelta);  
-      const optTotalTokensUsed = mandTotalTokensUsed + tokenDiff;
+      const totalTokenDiff = Math.round(x.totalTokensDelta);  
+      const optTotalTokensUsed = mandTotalTokensUsed + totalTokenDiff;
       return [
         x.format.toUpperCase(),
+        mandReadTokensUsed.toString(),
+        optReadTokensUsed.toString(),
+        this.displayDelta(readTokenDiff, 0),
+        this.calcDeltaPercentage(mandReadTokensUsed, readTokenDiff),        
+        mandOutputTokensUsed.toString(),
+        optOutputTokensUsed.toString(),
+        this.displayDelta(outputTokenDiff, 0),
+        this.calcDeltaPercentage(mandOutputTokensUsed, outputTokenDiff),
         mandTotalTokensUsed.toString(),
         optTotalTokensUsed.toString(),
-        this.displayDelta(tokenDiff, 0),
-        this.calcDeltaPercentage(mandTotalTokensUsed, tokenDiff),
-        x.avgAccuracyPercent.toFixed(2),
-        (x.avgAccuracyPercent + x.accuracyDelta).toFixed(2),
-        this.displayDelta(x.accuracyDelta),
+        this.displayDelta(totalTokenDiff, 0),
+        this.calcDeltaPercentage(mandTotalTokensUsed, totalTokenDiff),
         x.avgWeightedAccuracyPercent.toFixed(2),
         (x.avgWeightedAccuracyPercent + x.weightedAccuracyDelta).toFixed(2),
         this.displayDelta(x.weightedAccuracyDelta),
-        x.efficiencyScore.toFixed(2),
-        (x.efficiencyScore + x.efficiencyDelta).toFixed(2),
-        this.displayDelta(x.efficiencyDelta),
         x.weightedEfficiencyScore.toFixed(2),
         (x.weightedEfficiencyScore + x.weightedEfficiencyDelta).toFixed(2),
         this.displayDelta(x.weightedEfficiencyDelta, 2)
@@ -582,7 +624,7 @@ class ReportGenerator {
     
     this.heading(3, '2.3 Format Robustness: Mandatory vs Optional');
     this.table(
-      ['Format', 'Tokens Man', 'Tokens Opt', 'Diff', 'Diff (%)', 'Accuracy Man (%)', 'Accuracy Opt (%)', 'Diff (%)', 'Wtd Accuracy Man (%)', 'Wtd Accuracy Opt (%)', 'Diff (%)', 'Eff Score Man', 'Eff Score Opt', 'Diff', 'Wtd Eff Score Man', 'Wtd Eff Score Opt', 'Diff'],
+      ['Format', 'Read Tokens Man', 'Read Tokens Opt', 'Diff', 'Diff (%)', 'Output Tokens Man', 'Output Tokens Opt', 'Diff', 'Diff (%)', 'Total Tokens Man', 'Total Tokens Opt', 'Diff', 'Diff (%)', 'Wtd Accuracy Man (%)', 'Wtd Accuracy Opt (%)', 'Diff (%)', 'Wtd Eff Score Man', 'Wtd Eff Score Opt', 'Diff'],
       mandOptFormatDeltaRows
     );
 
@@ -884,6 +926,7 @@ class ReportGenerator {
     this.line('- **Test run in**: Claude Code < 2.1.86');
     this.line('- **Data Source**: `analytics_results.json`');
     this.line('- **Publication**: Open source research in [GitHub repository](https://github.com/thoeltig/file-format-token-accuracy-benchmark-results)');
+    this.line('- **Licensed under**: [CC BY 4.0](https://github.com/thoeltig/file-format-token-accuracy-benchmark-results/LICENSE)');
     this.line('- **Related Benchmark Results**:');
     this.line('   - [Report - flat structure & thinking off](https://github.com/thoeltig/file-format-token-accuracy-benchmark-results)');
     this.line('   - [Report - flat structure & thinking on](https://github.com/thoeltig/file-format-token-accuracy-benchmark-results)');
