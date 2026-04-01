@@ -1,7 +1,7 @@
 "use strict";
 /**
  * Metrics Extraction Module
- * Extracts read and reasoning metrics from agent transcripts
+ * Extracts read and output tokens from agent transcripts
  * Combines both into a single metrics.json file
  */
 var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
@@ -378,33 +378,7 @@ class MetricsExtraction {
     extractFullTestMetrics(jsonlPath) {
         try {
             const lines = fs.readFileSync(jsonlPath, "utf-8").split("\n");
-            // Find the first Write tool_use to know when to stop tracking
-            let first_write_timestamp = null;
-            for (const line of lines) {
-                if (!line.trim())
-                    continue;
-                try {
-                    const data = JSON.parse(line);
-                    const msg = data.message || {};
-                    if (msg && msg.content) {
-                        const content = msg.content;
-                        if (Array.isArray(content)) {
-                            for (const item of content) {
-                                if (item && item.type === "tool_use" && item.name === "Write") {
-                                    first_write_timestamp = data.timestamp;
-                                    break;
-                                }
-                            }
-                        }
-                    }
-                    if (first_write_timestamp)
-                        break;
-                }
-                catch (e) {
-                    // Skip invalid JSON lines
-                }
-            }
-            // Second pass: accumulate metrics only until first Write tool call
+            // Accumulate output tokens only until first Write tool call
             let first_timestamp = null;
             let last_timestamp = null;
             let total_output_tokens = 0;
@@ -414,19 +388,12 @@ class MetricsExtraction {
                     continue;
                 try {
                     const data = JSON.parse(line);
-                    const timestamp = data.timestamp;
-                    // Stop processing once we hit the first Write tool call
-                    if (first_write_timestamp && timestamp && timestamp >= first_write_timestamp) {
-                        last_timestamp = timestamp;
-                        break;
-                    }
-                    if (timestamp) {
+                    if (data.timestamp) {
                         if (!first_timestamp) {
-                            first_timestamp = timestamp;
+                            first_timestamp = data.timestamp;
                         }
-                        last_timestamp = timestamp;
                     }
-                    // Extract usage information from assistant messages (before Write)
+                    // Extract output tokens from all assistant messages until Write
                     if (data.type === "assistant") {
                         const msg = data.message || {};
                         if (msg && msg.usage) {
@@ -434,6 +401,15 @@ class MetricsExtraction {
                             if (output > 0) {
                                 total_output_tokens += output;
                                 message_count++;
+                            }
+                            const content = msg.content;
+                            if (Array.isArray(content)) {
+                                for (const item of content) {
+                                    if (item && item.type === "tool_use" && item.name === "Write") {
+                                        last_timestamp = data.timestamp;
+                                        break;
+                                    }
+                                }
                             }
                         }
                     }
