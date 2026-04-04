@@ -9,14 +9,14 @@ import { QuestionCategory, MergedValidationReport, TestMetrics, AnalyticsOutput,
 export type AllQuestionCategory = QuestionCategory | "multiple_steps";
 
 export interface AggregatedMetric extends Metrics {
-  charsPerTokenDelta: number;
-  tokensPerValueDelta: number;
-  tokensPerObjectDelta: number;
-  readDurationInMillisecondsDelta: number;
-  outputDurationInMillisecondsDelta: number;
+  charsPerReadTokenDelta: number;
+  readTokensPerValueDelta: number;
+  readTokensPerObjectDelta: number;
+  readDurationInMsDelta: number;
+  outputDurationInMsDelta: number;
   absOutputDurationDriftPerc: number;
-  totalDurationInMilliseconds: number;
-  totalDurationInMillisecondsDelta: number;
+  totalDurationInMs: number;
+  totalDurationInMsDelta: number;
   readTokensDelta: number;
   outputTokensDelta: number;
   absOutputTokensDriftPerc: number;
@@ -93,36 +93,67 @@ export function aggregateMetrics(metrics: TestMetrics[]): AggregatedMetric[] {
       variant,
       recordCount,
       readTokens: 0,
-      readDurationInMilliseconds: 0,
-      readTokensPerMillisecond: 0,
-      avgOutputTokens: 0,
-      minOutputTokensDriftPerc: 0,
-      maxOutputTokensDriftPerc: 0,
-      avgReasoningDurationInMilliseconds: 0,
-      minReasoningDurationDriftPerc: 0,
-      maxReasoningDurationDriftPerc: 0,
-      avgReasoningTokensPerMillisecond: 0,
+      readDurationInMs: 0,
+      readTokensPerMs: 0,
+      outputTokensBeforeWrite: 0,
+      outputTokensBeforeWriteDriftPercMin: 0,
+      outputTokensBeforeWriteDriftPercMax: 0,
+      outputTokensWrite: 0,
+      outputTokensWriteDriftPercMin: 0,
+      outputTokensWriteDriftPercMax: 0,
+      outputTokensTotal: 0,
+      outputTokensTotalDriftPercMin: 0,
+      outputTokensTotalDriftPercMax: 0,
+      outputDurationBeforeWriteInMs: 0,
+      outputDurationBeforeWriteDriftPercMin: 0,
+      outputDurationBeforeWriteDriftPercMax: 0,
+      outputDurationWriteInMs: 0,
+      outputDurationWriteDriftPercMin: 0,
+      outputDurationWriteDriftPercMax: 0,
+      outputDurationTotalInMs: 0,
+      outputDurationTotalDriftPercMin: 0,
+      outputDurationTotalDriftPercMax: 0,
+      outputTokensBeforeWritePerMs: 0,
+      outputTokensWritePerMs: 0,
+      outputTokensTotalPerMs: 0,
       totalQuestions: 0,
-      avgNoAnswers: 0,
-      avgIncorrectAnswers: 0,
-      avgCorrectAnswers: 0,
-      avgAccuracyPercent: 0,
-      minAccuracyDriftPercent: 0,
-      maxAccuracyDriftPercent: 0,
-      avgWeightedAccuracyPercent: 0,
-      minWeightedAccuracyDriftPercent: 0,
-      maxWeightedAccuracyDriftPercent: 0,
-      charsPerToken: 0,
-      tokensPerValue: 0,
-      tokensPerObject: 0,
-      avgOutputTokensPerAnswer: 0,
-      informationValuePerToken: 0,
-      costOfInaccuracy: 0,
-      totalTokensUsed: 0,
-      efficientlyUsedTokens: 0,
-      weightedEfficientlyUsedTokens: 0,
-      efficiencyScore: 0,
-      weightedEfficiencyScore: 0,
+      noAnswers: 0,
+      incorrectAnswers: 0,
+      correctAnswers: 0,
+      accuracyPercent: 0,
+      accuracyDriftPercentMin: 0,
+      accuracyDriftPercentMax: 0,
+      weightedAccuracyPercent: 0,
+      weightedAccuracyDriftPercentMin: 0,
+      weightedAccuracyDriftPercentMax: 0,
+      charsPerReadToken: 0,
+      readTokensPerValue: 0,
+      readTokensPerObject: 0,
+      outputTokensPerAnswer: 0,
+      informationValuePerReadTokens: 0,
+      informationValuePerOutputTokens: 0,
+      informationValuePerTotalTokens: 0,
+      totalTokens: 0,
+      totalTokensDriftPercMin: 0,
+      totalTokensDriftPercMax: 0,
+      wastedReadTokens: 0,
+      wastedOutputTokens: 0,
+      wastedTotalTokens: 0,
+      usefulReadTokens: 0,
+      usefulOutputTokens: 0,
+      usefulTotalTokens: 0,
+      weightedWastedReadTokens: 0,
+      weightedWastedOutputTokens: 0,
+      weightedWastedTotalTokens: 0,
+      weightedUsefulReadTokens: 0,
+      weightedUsefulOutputTokens: 0,
+      weightedUsefulTotalTokens: 0,
+      efficiencyScoreRead: 0,
+      efficiencyScoreOutput: 0,
+      efficiencyScoreTotal: 0,
+      weightedEfficiencyScoreRead: 0,
+      weightedEfficiencyScoreOutput: 0,
+      weightedEfficiencyScoreTotal: 0,
       readTokensDelta: 0,
       outputTokensDelta: 0,
       totalTokensDelta: 0,
@@ -136,13 +167,13 @@ export function aggregateMetrics(metrics: TestMetrics[]): AggregatedMetric[] {
       efficiencyDelta: 0,
       weightedEfficiencyDelta: 0,
       informationValuePerTokenDelta: 0,
-      readDurationInMillisecondsDelta: 0,
-      outputDurationInMillisecondsDelta: 0,
-      totalDurationInMilliseconds: 0,
-      totalDurationInMillisecondsDelta: 0,
-      charsPerTokenDelta: 0,
-      tokensPerValueDelta: 0,
-      tokensPerObjectDelta: 0,
+      readDurationInMsDelta: 0,
+      outputDurationInMsDelta: 0,
+      totalDurationInMs: 0,
+      totalDurationInMsDelta: 0,
+      charsPerReadTokenDelta: 0,
+      readTokensPerValueDelta: 0,
+      readTokensPerObjectDelta: 0,
       absOutputDurationDriftPerc: 0,
       absOutputTokensDriftPerc: 0,
       absAccuracyDriftPerc: 0,
@@ -151,76 +182,137 @@ export function aggregateMetrics(metrics: TestMetrics[]): AggregatedMetric[] {
 
     tests.forEach(t => {
       avgTest.readTokens += t.readTokens;
-      avgTest.readDurationInMilliseconds += t.readDurationInMilliseconds;
-      avgTest.readTokensPerMillisecond += t.readTokensPerMillisecond;
-      avgTest.avgOutputTokens += t.avgOutputTokens;
-      avgTest.minOutputTokensDriftPerc += t.minOutputTokensDriftPerc;
-      avgTest.maxOutputTokensDriftPerc += t.maxOutputTokensDriftPerc;
-      avgTest.avgReasoningDurationInMilliseconds += t.avgReasoningDurationInMilliseconds;
-      avgTest.minReasoningDurationDriftPerc += t.minReasoningDurationDriftPerc;
-      avgTest.maxReasoningDurationDriftPerc += t.maxReasoningDurationDriftPerc;
-      avgTest.avgReasoningTokensPerMillisecond += t.avgReasoningTokensPerMillisecond;      
-      avgTest.totalDurationInMilliseconds = t.readDurationInMilliseconds + t.avgReasoningDurationInMilliseconds;
+      avgTest.readDurationInMs += t.readDurationInMs;
+      avgTest.readTokensPerMs += t.readTokensPerMs;
+      avgTest.outputTokensBeforeWrite += t.outputTokensBeforeWrite;
+      avgTest.outputTokensBeforeWriteDriftPercMin += t.outputTokensBeforeWriteDriftPercMin;
+      avgTest.outputTokensBeforeWriteDriftPercMax += t.outputTokensBeforeWriteDriftPercMax;
+      avgTest.outputTokensWrite += t.outputTokensWrite;
+      avgTest.outputTokensWriteDriftPercMin += t.outputTokensWriteDriftPercMin;
+      avgTest.outputTokensWriteDriftPercMax += t.outputTokensWriteDriftPercMax;
+      avgTest.outputTokensTotal += t.outputTokensTotal;
+      avgTest.outputTokensTotalDriftPercMin += t.outputTokensTotalDriftPercMin;
+      avgTest.outputTokensTotalDriftPercMax += t.outputTokensTotalDriftPercMax;
+      avgTest.outputDurationBeforeWriteInMs += t.outputDurationBeforeWriteInMs;
+      avgTest.outputDurationBeforeWriteDriftPercMin += t.outputDurationBeforeWriteDriftPercMin;
+      avgTest.outputDurationBeforeWriteDriftPercMax += t.outputDurationBeforeWriteDriftPercMax;
+      avgTest.outputDurationWriteInMs += t.outputDurationWriteInMs;
+      avgTest.outputDurationWriteDriftPercMin += t.outputDurationWriteDriftPercMin;
+      avgTest.outputDurationWriteDriftPercMax += t.outputDurationWriteDriftPercMax;
+      avgTest.outputDurationTotalInMs += t.outputDurationTotalInMs;
+      avgTest.outputDurationTotalDriftPercMin += t.outputDurationTotalDriftPercMin;
+      avgTest.outputDurationTotalDriftPercMax += t.outputDurationTotalDriftPercMax;
+      avgTest.outputTokensBeforeWritePerMs += t.outputTokensBeforeWritePerMs;
+      avgTest.outputTokensWritePerMs += t.outputTokensWritePerMs;
+      avgTest.outputTokensTotalPerMs += t.outputTokensTotalPerMs;
       avgTest.totalQuestions += t.totalQuestions;
-      avgTest.avgNoAnswers += t.avgNoAnswers;
-      avgTest.avgIncorrectAnswers += t.avgIncorrectAnswers;
-      avgTest.avgCorrectAnswers += t.avgCorrectAnswers;
-      avgTest.avgAccuracyPercent += t.avgAccuracyPercent;
-      avgTest.minAccuracyDriftPercent += t.minAccuracyDriftPercent;
-      avgTest.maxAccuracyDriftPercent += t.maxAccuracyDriftPercent;
-      avgTest.avgWeightedAccuracyPercent += t.avgWeightedAccuracyPercent;
-      avgTest.minWeightedAccuracyDriftPercent += t.minWeightedAccuracyDriftPercent;
-      avgTest.maxWeightedAccuracyDriftPercent += t.maxWeightedAccuracyDriftPercent;
-      avgTest.charsPerToken += t.charsPerToken;
-      avgTest.tokensPerValue += t.tokensPerValue;
-      avgTest.tokensPerObject += t.tokensPerObject;
-      avgTest.avgOutputTokensPerAnswer += t.avgOutputTokensPerAnswer;
-      avgTest.informationValuePerToken += t.informationValuePerToken;
-      avgTest.costOfInaccuracy += t.costOfInaccuracy;
-      avgTest.totalTokensUsed += t.totalTokensUsed;
-      avgTest.efficientlyUsedTokens += t.efficientlyUsedTokens;
-      avgTest.weightedEfficientlyUsedTokens += t.weightedEfficientlyUsedTokens;
-      avgTest.efficiencyScore += t.efficiencyScore;
-      avgTest.weightedEfficiencyScore += t.weightedEfficiencyScore;
+      avgTest.noAnswers += t.noAnswers;
+      avgTest.incorrectAnswers += t.incorrectAnswers;
+      avgTest.correctAnswers += t.correctAnswers;
+      avgTest.accuracyPercent += t.accuracyPercent;
+      avgTest.accuracyDriftPercentMin += t.accuracyDriftPercentMin;
+      avgTest.accuracyDriftPercentMax += t.accuracyDriftPercentMax;
+      avgTest.weightedAccuracyPercent += t.weightedAccuracyPercent;
+      avgTest.weightedAccuracyDriftPercentMin += t.weightedAccuracyDriftPercentMin;
+      avgTest.weightedAccuracyDriftPercentMax += t.weightedAccuracyDriftPercentMax;
+      avgTest.charsPerReadToken += t.charsPerReadToken;
+      avgTest.readTokensPerValue += t.readTokensPerValue;
+      avgTest.readTokensPerObject += t.readTokensPerObject;
+      avgTest.outputTokensPerAnswer += t.outputTokensPerAnswer;
+      avgTest.informationValuePerReadTokens += t.informationValuePerReadTokens;
+      avgTest.informationValuePerOutputTokens += t.informationValuePerOutputTokens;
+      avgTest.informationValuePerTotalTokens += t.informationValuePerTotalTokens;
+      avgTest.totalTokens += t.totalTokens;
+      avgTest.totalTokensDriftPercMin += t.totalTokensDriftPercMin;
+      avgTest.totalTokensDriftPercMax += t.totalTokensDriftPercMax;
+      avgTest.wastedReadTokens += t.wastedReadTokens;
+      avgTest.wastedOutputTokens += t.wastedOutputTokens;
+      avgTest.wastedTotalTokens += t.wastedTotalTokens;
+      avgTest.usefulReadTokens += t.usefulReadTokens;
+      avgTest.usefulOutputTokens += t.usefulOutputTokens;
+      avgTest.usefulTotalTokens += t.usefulTotalTokens;
+      avgTest.weightedWastedReadTokens += t.weightedWastedReadTokens;
+      avgTest.weightedWastedOutputTokens += t.weightedWastedOutputTokens;
+      avgTest.weightedWastedTotalTokens += t.weightedWastedTotalTokens;
+      avgTest.weightedUsefulReadTokens += t.weightedUsefulReadTokens;
+      avgTest.weightedUsefulOutputTokens += t.weightedUsefulOutputTokens;
+      avgTest.weightedUsefulTotalTokens += t.weightedUsefulTotalTokens;
+      avgTest.efficiencyScoreRead += t.efficiencyScoreRead;
+      avgTest.efficiencyScoreOutput += t.efficiencyScoreOutput;
+      avgTest.efficiencyScoreTotal += t.efficiencyScoreTotal;
+      avgTest.weightedEfficiencyScoreRead += t.weightedEfficiencyScoreRead;
+      avgTest.weightedEfficiencyScoreOutput += t.weightedEfficiencyScoreOutput;
+      avgTest.weightedEfficiencyScoreTotal += t.weightedEfficiencyScoreTotal;
     });
 
     const count = tests.length;
     avgTest.readTokens /= count;
-    avgTest.readDurationInMilliseconds /= count;
-    avgTest.readTokensPerMillisecond /= count;
-    avgTest.avgOutputTokens /= count;
-    avgTest.minOutputTokensDriftPerc /= count;
-    avgTest.maxOutputTokensDriftPerc /= count;
-    avgTest.avgReasoningDurationInMilliseconds /= count;
-    avgTest.minReasoningDurationDriftPerc /= count;
-    avgTest.maxReasoningDurationDriftPerc /= count;
-    avgTest.avgReasoningTokensPerMillisecond /= count;
-    avgTest.totalDurationInMilliseconds /= count;
+    avgTest.readDurationInMs /= count;
+    avgTest.readTokensPerMs /= count;
+    avgTest.outputTokensBeforeWrite /= count;
+    avgTest.outputTokensBeforeWriteDriftPercMin /= count;
+    avgTest.outputTokensBeforeWriteDriftPercMax /= count;
+    avgTest.outputTokensWrite /= count;
+    avgTest.outputTokensWriteDriftPercMin /= count;
+    avgTest.outputTokensWriteDriftPercMax /= count;
+    avgTest.outputTokensTotal /= count;
+    avgTest.outputTokensTotalDriftPercMin /= count;
+    avgTest.outputTokensTotalDriftPercMax /= count;
+    avgTest.outputDurationBeforeWriteInMs /= count;
+    avgTest.outputDurationBeforeWriteDriftPercMin /= count;
+    avgTest.outputDurationBeforeWriteDriftPercMax /= count;
+    avgTest.outputDurationWriteInMs /= count;
+    avgTest.outputDurationWriteDriftPercMin /= count;
+    avgTest.outputDurationWriteDriftPercMax /= count;
+    avgTest.outputDurationTotalInMs /= count;
+    avgTest.outputDurationTotalDriftPercMin /= count;
+    avgTest.outputDurationTotalDriftPercMax /= count;
+    avgTest.outputTokensBeforeWritePerMs /= count;
+    avgTest.outputTokensWritePerMs /= count;
+    avgTest.outputTokensTotalPerMs /= count;
+    avgTest.totalDurationInMs /= count;
     avgTest.totalQuestions = Math.round(avgTest.totalQuestions / count);
-    avgTest.avgNoAnswers = Math.round(avgTest.avgNoAnswers / count);
-    avgTest.avgIncorrectAnswers = Math.round(avgTest.avgIncorrectAnswers / count);
-    avgTest.avgCorrectAnswers = Math.round(avgTest.avgCorrectAnswers / count);
-    avgTest.avgAccuracyPercent /= count;
-    avgTest.minAccuracyDriftPercent /= count;
-    avgTest.maxAccuracyDriftPercent /= count;
-    avgTest.avgWeightedAccuracyPercent /= count;
-    avgTest.minWeightedAccuracyDriftPercent /= count;
-    avgTest.maxWeightedAccuracyDriftPercent /= count;
-    avgTest.charsPerToken /= count;
-    avgTest.tokensPerValue /= count;
-    avgTest.tokensPerObject /= count;
-    avgTest.avgOutputTokensPerAnswer /= count;
-    avgTest.informationValuePerToken /= count;
-    avgTest.costOfInaccuracy /= count;
-    avgTest.totalTokensUsed /= count;
-    avgTest.efficientlyUsedTokens /= count;
-    avgTest.weightedEfficientlyUsedTokens /= count;
-    avgTest.efficiencyScore /= count;
-    avgTest.weightedEfficiencyScore /= count;
+    avgTest.noAnswers = Math.round(avgTest.noAnswers / count);
+    avgTest.incorrectAnswers = Math.round(avgTest.incorrectAnswers / count);
+    avgTest.correctAnswers = Math.round(avgTest.correctAnswers / count);
+    avgTest.accuracyPercent /= count;
+    avgTest.accuracyDriftPercentMin /= count;
+    avgTest.accuracyDriftPercentMax /= count;
+    avgTest.weightedAccuracyPercent /= count;
+    avgTest.weightedAccuracyDriftPercentMin /= count;
+    avgTest.weightedAccuracyDriftPercentMax /= count;
+    avgTest.charsPerReadToken /= count;
+    avgTest.readTokensPerValue /= count;
+    avgTest.readTokensPerObject /= count;
+    avgTest.outputTokensPerAnswer /= count;
+    avgTest.informationValuePerReadTokens /= count;
+    avgTest.informationValuePerOutputTokens /= count;
+    avgTest.informationValuePerTotalTokens /= count;
+    avgTest.totalTokens /= count;
+    avgTest.totalTokensDriftPercMin /= count;
+    avgTest.totalTokensDriftPercMax /= count;
+    avgTest.wastedReadTokens /= count;
+    avgTest.wastedOutputTokens /= count;
+    avgTest.wastedTotalTokens /= count;
+    avgTest.usefulReadTokens /= count;
+    avgTest.usefulOutputTokens /= count;
+    avgTest.usefulTotalTokens /= count;
+    avgTest.weightedWastedReadTokens /= count;
+    avgTest.weightedWastedOutputTokens /= count;
+    avgTest.weightedWastedTotalTokens /= count;
+    avgTest.weightedUsefulReadTokens /= count;
+    avgTest.weightedUsefulOutputTokens /= count;
+    avgTest.weightedUsefulTotalTokens /= count;
+    avgTest.efficiencyScoreRead /= count;
+    avgTest.efficiencyScoreOutput /= count;
+    avgTest.efficiencyScoreTotal /= count;
+    avgTest.weightedEfficiencyScoreRead /= count;
+    avgTest.weightedEfficiencyScoreOutput /= count;
+    avgTest.weightedEfficiencyScoreTotal /= count;
     avgTest.absOutputDurationDriftPerc = Math.abs(avgTest.minReasoningDurationDriftPerc) + avgTest.maxReasoningDurationDriftPerc;
     avgTest.absOutputTokensDriftPerc = Math.abs(avgTest.minOutputTokensDriftPerc) + avgTest.maxOutputTokensDriftPerc;
-    avgTest.absAccuracyDriftPerc = Math.abs(avgTest.minAccuracyDriftPercent) + avgTest.maxAccuracyDriftPercent;
-    avgTest.absweightedAccuracyDriftPerc = Math.abs(avgTest.minWeightedAccuracyDriftPercent) + avgTest.maxWeightedAccuracyDriftPercent;
+    avgTest.absAccuracyDriftPerc = Math.abs(avgTest.accuracyDriftPercentMin) + avgTest.accuracyDriftPercentMax;
+    avgTest.absweightedAccuracyDriftPerc = Math.abs(avgTest.weightedAccuracyDriftPercentMin) + avgTest.weightedAccuracyDriftPercentMax;
     
     aggregated.push(avgTest);
   });
@@ -240,20 +332,20 @@ export function aggregateMetrics(metrics: TestMetrics[]): AggregatedMetric[] {
       item.totalTokensDelta = optional.totalTokensUsed - mandatory.totalTokensUsed;
       item.efficientlyUsedTokensyDelta = optional.efficientlyUsedTokens - mandatory.efficientlyUsedTokens;
       item.costOfInaccuracyDelta = optional.costOfInaccuracy - mandatory.costOfInaccuracy;
-      item.accuracyDelta = optional.avgAccuracyPercent - mandatory.avgAccuracyPercent;
-      item.weightedAccuracyDelta = optional.avgWeightedAccuracyPercent - mandatory.avgWeightedAccuracyPercent;
-      item.correctAnswersDelta = Math.round(optional.avgCorrectAnswers - mandatory.avgCorrectAnswers);
-      item.incorrectAnswersDelta = Math.round(optional.avgIncorrectAnswers - mandatory.avgIncorrectAnswers);
-      item.noAnswersDelta = Math.round(optional.avgNoAnswers - mandatory.avgNoAnswers);
+      item.accuracyDelta = optional.accuracyPercent - mandatory.accuracyPercent;
+      item.weightedAccuracyDelta = optional.weightedAccuracyPercent - mandatory.weightedAccuracyPercent;
+      item.correctAnswersDelta = Math.round(optional.correctAnswers - mandatory.correctAnswers);
+      item.incorrectAnswersDelta = Math.round(optional.incorrectAnswers - mandatory.incorrectAnswers);
+      item.noAnswersDelta = Math.round(optional.noAnswers - mandatory.noAnswers);
       item.efficiencyDelta = optional.efficiencyScore - mandatory.efficiencyScore;
       item.weightedEfficiencyDelta = optional.weightedEfficiencyScore - mandatory.weightedEfficiencyScore;
-      item.charsPerTokenDelta = optional.charsPerToken - mandatory.charsPerToken;
-      item.tokensPerValueDelta = optional.tokensPerValue - mandatory.tokensPerValue;
-      item.tokensPerObjectDelta = optional.tokensPerObject - mandatory.tokensPerObject;
+      item.charsPerReadTokenDelta = optional.charsPerReadToken - mandatory.charsPerReadToken;
+      item.readTokensPerValueDelta = optional.readTokensPerValue - mandatory.readTokensPerValue;
+      item.readTokensPerObjectDelta = optional.readTokensPerObject - mandatory.readTokensPerObject;
       item.informationValuePerTokenDelta = optional.informationValuePerToken - mandatory.informationValuePerToken;
-      item.readDurationInMillisecondsDelta = optional.readDurationInMilliseconds - mandatory.readDurationInMilliseconds;
-      item.outputDurationInMillisecondsDelta = optional.avgReasoningDurationInMilliseconds - mandatory.avgReasoningDurationInMilliseconds;
-      item.totalDurationInMillisecondsDelta = optional.totalDurationInMilliseconds - mandatory.totalDurationInMilliseconds;
+      item.readDurationInMsDelta = optional.readDurationInMs - mandatory.readDurationInMs;
+      item.outputDurationInMsDelta = optional.avgReasoningDurationInMs - mandatory.avgReasoningDurationInMs;
+      item.totalDurationInMsDelta = optional.totalDurationInMs - mandatory.totalDurationInMs;
     }
   });
 
