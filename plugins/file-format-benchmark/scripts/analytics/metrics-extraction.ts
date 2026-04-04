@@ -422,16 +422,22 @@ class MetricsExtraction {
   }
 
   private extractFullTestMetrics(jsonlPath: string): {
-    duration_ms: number | null;
-    output_tokens: number;
+    duration_before_write_ms: number;
+    duration_write_ms: number;
+    duration_total_ms: number;
+    output_tokens_before_write: number;
+    output_tokens_write: number;
+    output_tokens_total: number;
   } | null {
     try {
       const lines = fs.readFileSync(jsonlPath, "utf-8").split("\n");
 
       // Accumulate output tokens only until first Write tool call
       let first_timestamp: string | null = null;
+      let last_before_write_timestamp: string | null = null;
       let last_timestamp: string | null = null;
-      let total_output_tokens = 0;
+      let output_tokens_before_write = 0;
+      let output_tokens_for_write = 0;
       let message_count = 0;
 
       for (const line of lines) {
@@ -442,30 +448,38 @@ class MetricsExtraction {
 
           if (data.timestamp) {
             if (!first_timestamp) {
+              // Get the start timestamp of the benchmark run
               first_timestamp = data.timestamp;
             }
           }
           
-          // Extract output tokens from all assistant messages until Write
+          // Extract output tokens from all assistant messages until write tool use
           if (data.type === "assistant") {
             const msg = data.message || {};
             if (msg && msg.usage) {
               const output = msg.usage.output_tokens || 0;
 
               if (output > 0) {
-                total_output_tokens += output;
+                // Add all output tokens in assistent messages that the transcript contains; these are a mix of output generation and reasoning to hide the exact reasoning tokens count
+                output_tokens_before_write += output;
                 message_count++;
               }
 
               const content = msg.content;
               if (Array.isArray(content)) {
                 for (const item of content) {
-                  if (item && item.type === "tool_use" && item.name === "Write") {                  
+                  if (item && item.type === "tool_use" && item.name === "Write") {      
+                    // If the file is written for the first time the benchmark is finished; substract the output tokens from the before write sum and store the write output separate for later calculations
                     last_timestamp = data.timestamp;
+                    output_tokens_before_write -= output;
+                    output_tokens_for_write = output;
                     break;
                   }
                 }
               }
+
+              // Get get the timestamp of the last assistant message before write tool use
+              last_before_write_timestamp = data.timestamp;
             }
           }
         } catch (e) {
@@ -473,26 +487,37 @@ class MetricsExtraction {
         }
       }
 
-      // Calculate total duration
-      let duration_ms: number | null = null;
-      if (first_timestamp && last_timestamp) {
-        try {
-          const start_dt = new Date(first_timestamp);
-          const end_dt = new Date(last_timestamp);
-          duration_ms = end_dt.getTime() - start_dt.getTime();
-        } catch (e) {
-          // Skip time calculation if parsing fails
-        }
-      }
+      // Calculate durations
+      const duration_before_write_ms = this.getDuration(first_timestamp, last_before_write_timestamp);
+      const duration_write_ms = this.getDuration(last_before_write_timestamp, last_timestamp);
+      const duration_ms = this.getDuration(first_timestamp, last_timestamp);
 
       if (first_timestamp && message_count > 0) {
         return {
-          duration_ms,
-          output_tokens: total_output_tokens,
+          duration_before_write_ms: duration_before_write_ms || 0,
+          duration_write_ms: duration_write_ms || 0,
+          duration_total_ms: duration_ms || 0,
+          output_tokens_before_write: output_tokens_before_write,
+          output_tokens_write: output_tokens_for_write,
+          output_tokens_total: output_tokens_before_write + output_tokens_for_write,
         };
       }
     } catch (err) {
       console.warn(`Error reading transcript ${jsonlPath}: ${err}`);
+    }
+
+    return null;
+  }
+
+  private getDuration(first_timestamp: string | null, second_timestamp: string | null): number | null{
+    if (first_timestamp && second_timestamp) {
+      try {
+        const start_dt = new Date(first_timestamp);
+        const end_dt = new Date(second_timestamp);
+        return end_dt.getTime() - start_dt.getTime();
+      } catch (e) {
+        // Skip time calculation if parsing fails
+      }
     }
 
     return null;
