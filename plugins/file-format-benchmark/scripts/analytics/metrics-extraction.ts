@@ -262,9 +262,9 @@ class MetricsExtraction {
         continue;
       }
 
-      const metricsFromTranscript = this.extractFileTokensFromTranscript(transcript, entry.agentId);
+      const metric = this.extractFileTokensFromTranscript(transcript, entry.agentId);
 
-      for (const metric of metricsFromTranscript) {
+      if(metric) {
         results.push({
           file: metric.file,
           path: metric.path,
@@ -282,28 +282,20 @@ class MetricsExtraction {
     return results;
   }
 
-  private extractFileTokensFromTranscript(jsonlPath: string, agentId: string): Array<{
+  private extractFileTokensFromTranscript(jsonlPath: string, agentId: string): {
     file: string;
     path: string;
     structure: string;
     tokens: number;
     time_ms: number | null;
     agentId: string;
-  }> {
-    const results: Array<{
-      file: string;
-      path: string;
-      structure: string;
-      tokens: number;
-      time_ms: number | null;
-      agentId: string;
-    }> = [];
-
+  } | null {
     try {
       const lines = fs.readFileSync(jsonlPath, "utf-8").split("\n");
 
       // Track Read tool uses with their file paths and timestamps
-      const readToolUses: Map<string, { file_path: string; timestamp: string }> = new Map();
+      const readToolUses: Map<string, { file_path: string; tool_use_timestamp: string }> = new Map();
+      const readToolResults: Map<string, { file_path: string; tool_use_timestamp: string }> = new Map();
 
       // First pass: find all tool_use Read operations with file_path and timestamps
       for (let i = 0; i < lines.length; i++) {
@@ -315,10 +307,43 @@ class MetricsExtraction {
 
           // Look for assistant messages with Read tool_use
           if (data.type === "assistant") {
-            const msg = data.message || {};
-            const content = msg.content || [];
+              const msg = data.message || {};
+              const content = msg.content || [];
 
-            if (Array.isArray(content)) {
+            if(data.parentUuid && readToolUses.has(data.parentUuid)) {
+              const result_timestamp = data.timestamp || "";
+              const entry = readToolUses.get(data.parentUuid)!;
+
+              if (msg.usage) {
+                // Use cache_creation_input_tokens for read metrics
+                const cache_creation = msg.usage.cache_creation_input_tokens || 0;
+                // Total tokens for this read operation (newly created input)
+                const total_tokens = cache_creation;
+
+                // Calculate time difference
+                const time_ms = this.getDuration(entry.tool_use_timestamp, result_timestamp);
+                const file_name = path.basename(entry.file_path);
+
+                // Extract structure (flat or nested) from filename
+                // Pattern: *_flat_records.json or *_nested_records.json
+                let structure = "unknown";
+                if (file_name.includes("_flat_")) {
+                  structure = "flat";
+                } else if (file_name.includes("_nested_")) {
+                  structure = "nested";
+                }
+
+                return {
+                  file: file_name,
+                  path: entry.file_path,
+                  structure,
+                  tokens: total_tokens,
+                  time_ms,
+                  agentId,
+                };
+              }
+            }
+            else if (Array.isArray(content)) {
               for (const item of content) {
                 if (item && item.type === "tool_use" && item.name === "Read") {
                   const file_path = item.input?.file_path || "";
@@ -326,102 +351,26 @@ class MetricsExtraction {
                     const tool_use_id = item.id || "";
                     readToolUses.set(tool_use_id, {
                       file_path,
-                      timestamp: data.timestamp || "",
+                      tool_use_timestamp: data.timestamp || "",
                     });
                   }
                 }
-              }
+              }                
             }
           }
-        } catch (e) {
-          // Skip invalid JSON lines
-        }
-      }
-
-      // Second pass: find tool_result entries and extract token metrics from following assistant message
-      for (let i = 0; i < lines.length; i++) {
-        const line = lines[i];
-        if (!line.trim()) continue;
-
-        try {
-          const data = JSON.parse(line);
-
-          // Look for user messages with tool_result
-          if (data.type === "user") {
+          else if(data.type === "user" && data.uuid) {
             const msg = data.message || {};
             const content = msg.content || [];
 
             if (Array.isArray(content)) {
               for (const item of content) {
-                if (item && item.type === "tool_result") {
-                  const tool_use_id = item.tool_use_id || "";
-
-                  // Check if this tool_use_id is in our Read tool uses
-                  if (readToolUses.has(tool_use_id)) {
-                    const { file_path, timestamp: tool_use_timestamp } = readToolUses.get(tool_use_id)!;
-                    const result_timestamp = data.timestamp || "";
-
-                    // Look ahead to find the next assistant message with usage metrics
-                    for (let j = i + 1; j < lines.length && j < i + 5; j++) {
-                      try {
-                        const next_line = lines[j];
-                        if (!next_line.trim()) continue;
-
-                        const next_data = JSON.parse(next_line);
-
-                        // Find assistant message with usage
-                        if (next_data.type === "assistant") {
-                          const next_msg = next_data.message || {};
-
-                          if (next_msg && next_msg.usage) {
-                            const usage = next_msg.usage;
-                            // Use cache_creation_input_tokens for read metrics
-                            const cache_creation = usage.cache_creation_input_tokens || 0;
-                            // Total tokens for this read operation (newly created input)
-                            const total_tokens = cache_creation;
-
-                            // Calculate time difference
-                            let time_ms: number | null = null;
-                            if (tool_use_timestamp && result_timestamp) {
-                              try {
-                                const tool_use_dt = new Date(tool_use_timestamp);
-                                const result_dt = new Date(result_timestamp);
-                                time_ms = result_dt.getTime() - tool_use_dt.getTime();
-                              } catch (e) {
-                                // Skip time calculation if parsing fails
-                              }
-                            }
-
-                            const file_name = path.basename(file_path);
-
-                            // Extract structure (flat or nested) from filename
-                            // Pattern: *_flat_records.json or *_nested_records.json
-                            let structure = "unknown";
-                            if (file_name.includes("_flat_")) {
-                              structure = "flat";
-                            } else if (file_name.includes("_nested_")) {
-                              structure = "nested";
-                            }
-
-                            results.push({
-                              file: file_name,
-                              path: file_path,
-                              structure,
-                              tokens: total_tokens,
-                              time_ms,
-                              agentId,
-                            });
-                          }
-                          break; // Stop looking after finding assistant message
-                        }
-                      } catch (e) {
-                        // Skip invalid lines
-                      }
-                    }
-                  }
+                // Check if this tool_use_id is in our read tool uses and store t
+                if (item && item.type === "tool_result" && item.tool_use_id && readToolUses.has(item.tool_use_id)) {
+                  const entry = readToolUses.get(item.tool_use_id)!;
+                  readToolResults.set(data.uuid, entry);
                 }
               }
-            }
+            }          
           }
         } catch (e) {
           // Skip invalid JSON lines
@@ -431,7 +380,7 @@ class MetricsExtraction {
       console.warn(`Error reading transcript ${jsonlPath}: ${err}`);
     }
 
-    return results;
+    return null;
   }
 
   private extractReasoningMetrics(transcripts: Map<string, string>, agentIdEntries: FullTestAgentIdEntry[]): Map<string, ReasoningMetricsFile[]> {
