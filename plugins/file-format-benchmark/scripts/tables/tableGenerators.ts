@@ -17,7 +17,7 @@ export function generateComprehensiveTable(
     const rec = item.recordCount;
     const var_ = item.variant.substring(0, 3);
     console.log(
-      `| ${fmt} | ${rec} | ${var_} | ${Math.round(item.readTokens)} | ${Math.round(item.avgOutputTokens)} | ${Math.round(item.totalTokensUsed)} | ${item.charsPerToken.toFixed(2)} | ${item.avgAccuracyPercent.toFixed(1)}% | ${item.avgWeightedAccuracyPercent.toFixed(1)}% | ${item.informationValuePerToken.toFixed(3)} | ${Math.round(item.costOfInaccuracy)} | ${item.efficiencyScore.toFixed(1)} | ${item.weightedEfficiencyScore.toFixed(1)} |`
+      `| ${fmt} | ${rec} | ${var_} | ${Math.round(item.readTokens)} | ${Math.round(item.avgOutputTokens)} | ${Math.round(item.totalTokensUsed)} | ${item.charsPerReadToken.toFixed(2)} | ${item.accuracyPercent.toFixed(1)}% | ${item.weightedAccuracyPercent.toFixed(1)}% | ${item.informationValuePerToken.toFixed(3)} | ${Math.round(item.costOfInaccuracy)} | ${item.efficiencyScore.toFixed(1)} | ${item.weightedEfficiencyScore.toFixed(1)} |`
     );
   });
 }
@@ -78,9 +78,9 @@ export function generateAccuracyTable(
       const mand = aggregated.find(a => a.format === fmt && a.variant === 'mandatory' && a.recordCount === recCount);
       const opt = aggregated.find(a => a.format === fmt && a.variant === 'optional' && a.recordCount === recCount);
       if (mand && opt) {
-        const rawDelta = (opt.avgAccuracyPercent - mand.avgAccuracyPercent).toFixed(1);
-        const wtdDelta = (opt.avgWeightedAccuracyPercent - mand.avgWeightedAccuracyPercent).toFixed(1);
-        console.log(`| ${fmt.toUpperCase()} | ${mand.avgAccuracyPercent.toFixed(1)}% | ${opt.avgAccuracyPercent.toFixed(1)}% | ${mand.avgWeightedAccuracyPercent.toFixed(1)}% | ${opt.avgWeightedAccuracyPercent.toFixed(1)}% | ${rawDelta} | ${wtdDelta} |`);
+        const rawDelta = (opt.accuracyPercent - mand.accuracyPercent).toFixed(1);
+        const wtdDelta = (opt.weightedAccuracyPercent - mand.weightedAccuracyPercent).toFixed(1);
+        console.log(`| ${fmt.toUpperCase()} | ${mand.accuracyPercent.toFixed(1)}% | ${opt.accuracyPercent.toFixed(1)}% | ${mand.weightedAccuracyPercent.toFixed(1)}% | ${opt.weightedAccuracyPercent.toFixed(1)}% | ${rawDelta} | ${wtdDelta} |`);
       }
     });
     console.log();
@@ -144,7 +144,7 @@ export function generateTokensPerCharTable(
       const mand = aggregated.find(a => a.format === fmt && a.variant === 'mandatory' && a.recordCount === recCount);
       const opt = aggregated.find(a => a.format === fmt && a.variant === 'optional' && a.recordCount === recCount);
       if (mand && opt) {
-        console.log(`| ${fmt.toUpperCase()} | ${mand.charsPerToken.toFixed(3)} | ${opt.charsPerToken.toFixed(3)} |`);
+        console.log(`| ${fmt.toUpperCase()} | ${mand.charsPerReadToken.toFixed(3)} | ${opt.charsPerReadToken.toFixed(3)} |`);
       }
     });
     console.log();
@@ -165,17 +165,17 @@ export function generateRankingsTable(
     console.log('Most Token Efficient (lowest total tokens):\n| Rank | Format | Tokens | Weighted Accuracy | Tokens/Accuracy |');
     console.log('|------|--------|--------|-------------------|-----------------|');
     mandatoryTests.slice(0, 7).forEach((item, idx) => {
-      const tokensPerAcc = (item.totalTokensUsed / item.avgWeightedAccuracyPercent).toFixed(1);
-      console.log(`| ${idx + 1} | ${item.format.toUpperCase()} | ${Math.round(item.totalTokensUsed)} | ${item.avgWeightedAccuracyPercent.toFixed(1)}% | ${tokensPerAcc} |`);
+      const tokensPerAcc = (item.totalTokensUsed / item.weightedAccuracyPercent).toFixed(1);
+      console.log(`| ${idx + 1} | ${item.format.toUpperCase()} | ${Math.round(item.totalTokensUsed)} | ${item.weightedAccuracyPercent.toFixed(1)}% | ${tokensPerAcc} |`);
     });
 
     // Most accurate
-    const byAccuracy = aggregated.filter(a => a.variant === 'mandatory' && a.recordCount === recCount).sort((a, b) => b.avgWeightedAccuracyPercent - a.avgWeightedAccuracyPercent);
+    const byAccuracy = aggregated.filter(a => a.variant === 'mandatory' && a.recordCount === recCount).sort((a, b) => b.weightedAccuracyPercent - a.weightedAccuracyPercent);
     console.log('\nHighest Weighted Accuracy:\n| Rank | Format | Weighted Accuracy | Total Tokens | Tokens/Accuracy |');
     console.log('|------|--------|-------------------|--------------|-----------------|');
     byAccuracy.slice(0, 7).forEach((item, idx) => {
-      const tokensPerAcc = (item.totalTokensUsed / item.avgWeightedAccuracyPercent).toFixed(1);
-      console.log(`| ${idx + 1} | ${item.format.toUpperCase()} | ${item.avgWeightedAccuracyPercent.toFixed(1)}% | ${Math.round(item.totalTokensUsed)} | ${tokensPerAcc} |`);
+      const tokensPerAcc = (item.totalTokensUsed / item.weightedAccuracyPercent).toFixed(1);
+      console.log(`| ${idx + 1} | ${item.format.toUpperCase()} | ${item.weightedAccuracyPercent.toFixed(1)}% | ${Math.round(item.totalTokensUsed)} | ${tokensPerAcc} |`);
     });
 
     // Best efficiency score
@@ -183,7 +183,7 @@ export function generateRankingsTable(
     console.log('\nBest Weighted Efficiency Score:\n| Rank | Format | Efficiency Score | Weighted Accuracy | Total Tokens |');
     console.log('|------|--------|------------------|-------------------|--------------|');
     byWtdEff.slice(0, 7).forEach((item, idx) => {
-      console.log(`| ${idx + 1} | ${item.format.toUpperCase()} | ${item.weightedEfficiencyScore.toFixed(1)} | ${item.avgWeightedAccuracyPercent.toFixed(1)}% | ${Math.round(item.totalTokensUsed)} |`);
+      console.log(`| ${idx + 1} | ${item.format.toUpperCase()} | ${item.weightedEfficiencyScore.toFixed(1)} | ${item.weightedAccuracyPercent.toFixed(1)}% | ${Math.round(item.totalTokensUsed)} |`);
     });
     console.log();
   });
@@ -205,12 +205,12 @@ export function generateMandatoryOptionalComparisonTable(
       if (mand && opt) {
         const tokenDiff = opt.totalTokensUsed - mand.totalTokensUsed;
         const tokenPctChange = ((opt.totalTokensUsed / mand.totalTokensUsed - 1) * 100).toFixed(1);
-        const accDiff = (opt.avgWeightedAccuracyPercent - mand.avgWeightedAccuracyPercent).toFixed(1);
+        const accDiff = (opt.weightedAccuracyPercent - mand.weightedAccuracyPercent).toFixed(1);
         const effDiff = (opt.weightedEfficiencyScore - mand.weightedEfficiencyScore).toFixed(1);
         const effPctChange = ((opt.weightedEfficiencyScore / mand.weightedEfficiencyScore - 1) * 100).toFixed(1);
         const tokenSign = parseFloat(tokenPctChange) > 0 ? '+' : '';
         const effSign = parseFloat(effPctChange) > 0 ? '+' : '';
-        console.log(`| ${fmt.toUpperCase()} | ${Math.round(mand.totalTokensUsed)} | ${Math.round(opt.totalTokensUsed)} | ${Math.round(tokenDiff)} | ${tokenSign}${tokenPctChange}% | ${mand.avgWeightedAccuracyPercent.toFixed(1)}% | ${opt.avgWeightedAccuracyPercent.toFixed(1)}% | ${accDiff} | ${mand.weightedEfficiencyScore.toFixed(1)} | ${opt.weightedEfficiencyScore.toFixed(1)} | ${effDiff} | ${effSign}${effPctChange}% |`);
+        console.log(`| ${fmt.toUpperCase()} | ${Math.round(mand.totalTokensUsed)} | ${Math.round(opt.totalTokensUsed)} | ${Math.round(tokenDiff)} | ${tokenSign}${tokenPctChange}% | ${mand.weightedAccuracyPercent.toFixed(1)}% | ${opt.weightedAccuracyPercent.toFixed(1)}% | ${accDiff} | ${mand.weightedEfficiencyScore.toFixed(1)} | ${opt.weightedEfficiencyScore.toFixed(1)} | ${effDiff} | ${effSign}${effPctChange}% |`);
       }
     });
     console.log();
@@ -231,8 +231,8 @@ export function generateCostAnalysisTable(
       const mand = aggregated.find(a => a.format === fmt && a.variant === 'mandatory' && a.recordCount === recCount);
       const opt = aggregated.find(a => a.format === fmt && a.variant === 'optional' && a.recordCount === recCount);
       if (mand && opt) {
-        const mandCost = (mand.totalTokensUsed / mand.avgWeightedAccuracyPercent).toFixed(1);
-        const optCost = (opt.totalTokensUsed / opt.avgWeightedAccuracyPercent).toFixed(1);
+        const mandCost = (mand.totalTokensUsed / mand.weightedAccuracyPercent).toFixed(1);
+        const optCost = (opt.totalTokensUsed / opt.weightedAccuracyPercent).toFixed(1);
         const diff = (parseFloat(optCost) - parseFloat(mandCost)).toFixed(1);
         const pctChange = ((parseFloat(optCost) / parseFloat(mandCost) - 1) * 100).toFixed(1);
         const diffSign = parseFloat(diff) > 0 ? '+' : '';
@@ -258,10 +258,10 @@ export function generateRawVsWeightedDeltaTable(
       const mand = aggregated.find(a => a.format === fmt && a.variant === 'mandatory' && a.recordCount === recCount);
       const opt = aggregated.find(a => a.format === fmt && a.variant === 'optional' && a.recordCount === recCount);
       if (mand && opt) {
-        const deltaMand = (mand.avgWeightedAccuracyPercent - mand.avgAccuracyPercent).toFixed(1);
-        const deltaOpt = (opt.avgWeightedAccuracyPercent - opt.avgAccuracyPercent).toFixed(1);
+        const deltaMand = (mand.weightedAccuracyPercent - mand.accuracyPercent).toFixed(1);
+        const deltaOpt = (opt.weightedAccuracyPercent - opt.accuracyPercent).toFixed(1);
         const avgDelta = ((parseFloat(deltaMand) + parseFloat(deltaOpt)) / 2).toFixed(1);
-        console.log(`| ${fmt.toUpperCase()} | ${mand.avgAccuracyPercent.toFixed(1)}% | ${mand.avgWeightedAccuracyPercent.toFixed(1)}% | +${deltaMand} | ${opt.avgAccuracyPercent.toFixed(1)}% | ${opt.avgWeightedAccuracyPercent.toFixed(1)}% | +${deltaOpt} | +${avgDelta} |`);
+        console.log(`| ${fmt.toUpperCase()} | ${mand.accuracyPercent.toFixed(1)}% | ${mand.weightedAccuracyPercent.toFixed(1)}% | +${deltaMand} | ${opt.accuracyPercent.toFixed(1)}% | ${opt.weightedAccuracyPercent.toFixed(1)}% | +${deltaOpt} | +${avgDelta} |`);
       }
     });
     console.log();
@@ -304,16 +304,16 @@ export function generateSummaryStatisticsTable(
     console.log(`**${recCount}-Record Dataset (Mandatory Data):**\n`);
     const mandTests = aggregated.filter(a => a.variant === 'mandatory' && a.recordCount === recCount);
     const avgTokens = (mandTests.reduce((sum, a) => sum + a.totalTokensUsed, 0) / mandTests.length).toFixed(0);
-    const avgAccuracy = (mandTests.reduce((sum, a) => sum + a.avgWeightedAccuracyPercent, 0) / mandTests.length).toFixed(1);
+    const avgAccuracy = (mandTests.reduce((sum, a) => sum + a.weightedAccuracyPercent, 0) / mandTests.length).toFixed(1);
     const minTokens = Math.min(...mandTests.map(a => a.totalTokensUsed));
     const maxTokens = Math.max(...mandTests.map(a => a.totalTokensUsed));
-    const minAccuracy = Math.min(...mandTests.map(a => a.avgWeightedAccuracyPercent));
-    const maxAccuracy = Math.max(...mandTests.map(a => a.avgWeightedAccuracyPercent));
+    const minAccuracy = Math.min(...mandTests.map(a => a.weightedAccuracyPercent));
+    const maxAccuracy = Math.max(...mandTests.map(a => a.weightedAccuracyPercent));
 
     const minTokensItem = mandTests.find(a => a.totalTokensUsed === minTokens);
     const maxTokensItem = mandTests.find(a => a.totalTokensUsed === maxTokens);
-    const minAccItem = mandTests.find(a => a.avgWeightedAccuracyPercent === minAccuracy);
-    const maxAccItem = mandTests.find(a => a.avgWeightedAccuracyPercent === maxAccuracy);
+    const minAccItem = mandTests.find(a => a.weightedAccuracyPercent === minAccuracy);
+    const maxAccItem = mandTests.find(a => a.weightedAccuracyPercent === maxAccuracy);
 
     console.log(`| Metric | Value |`);
     console.log(`|--------|-------|`);

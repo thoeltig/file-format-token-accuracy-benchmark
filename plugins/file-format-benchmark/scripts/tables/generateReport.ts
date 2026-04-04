@@ -292,8 +292,8 @@ class ReportGenerator {
     const optionalLowestOutputTokensDriftPerc = optionals.reduce((min, a) => a.absOutputTokensDriftPerc < min.absOutputTokensDriftPerc ? a : min);
     const mandatoryLowestOutputTokensDriftPerc = mandatories.reduce((min, a) => a.absOutputTokensDriftPerc < min.absOutputTokensDriftPerc ? a : min);
         
-    const optionalHighestAccuracy = optionals.reduce((max, a) => a.avgAccuracyPercent > max.avgAccuracyPercent ? a : max);
-    const mandatoryHighestAccuracy = mandatories.reduce((max, a) => a.avgAccuracyPercent > max.avgAccuracyPercent ? a : max);
+    const optionalHighestAccuracy = optionals.reduce((max, a) => a.accuracyPercent > max.accuracyPercent ? a : max);
+    const mandatoryHighestAccuracy = mandatories.reduce((max, a) => a.accuracyPercent > max.accuracyPercent ? a : max);
     
     const optionalLowestAccuracyDriftPerc = optionals.reduce((min, a) => a.absAccuracyDriftPerc < min.absAccuracyDriftPerc ? a : min);
     const mandatoryLowestAccuracyDriftPerc = mandatories.reduce((min, a) => a.absAccuracyDriftPerc < min.absAccuracyDriftPerc ? a : min);
@@ -327,11 +327,11 @@ class ReportGenerator {
     this.line(`   - Optional: ${optionalLowestOutputTokensDriftPerc.format.toUpperCase()} ↓ ${optionalLowestOutputTokensDriftPerc.minOutputTokensDriftPerc.toFixed(2)}% ↑ ${optionalLowestOutputTokensDriftPerc.maxOutputTokensDriftPerc.toFixed(2)}%`);
     this.line(`   - Mandatory: ${mandatoryLowestOutputTokensDriftPerc.format.toUpperCase()} ↓ ${mandatoryLowestOutputTokensDriftPerc.minOutputTokensDriftPerc.toFixed(2)}% ↑ ${mandatoryLowestOutputTokensDriftPerc.maxOutputTokensDriftPerc.toFixed(2)}%`);
     this.line('- Highest accuracy:');
-    this.line(`   - Optional: ${optionalHighestAccuracy.format.toUpperCase()} ${optionalHighestAccuracy.avgAccuracyPercent.toFixed(2)}%`);
-    this.line(`   - Mandatory: ${mandatoryHighestAccuracy.format.toUpperCase()} ${mandatoryHighestAccuracy.avgAccuracyPercent.toFixed(2)}%`);
+    this.line(`   - Optional: ${optionalHighestAccuracy.format.toUpperCase()} ${optionalHighestAccuracy.accuracyPercent.toFixed(2)}%`);
+    this.line(`   - Mandatory: ${mandatoryHighestAccuracy.format.toUpperCase()} ${mandatoryHighestAccuracy.accuracyPercent.toFixed(2)}%`);
     this.line('- Lowest accuracy drift:');
-    this.line(`   - Optional: ${optionalLowestAccuracyDriftPerc.format.toUpperCase()} ↓ ${optionalLowestAccuracyDriftPerc.minAccuracyDriftPercent.toFixed(2)}% ↑ ${optionalLowestAccuracyDriftPerc.maxAccuracyDriftPercent.toFixed(2)}%`);
-    this.line(`   - Mandatory: ${mandatoryLowestAccuracyDriftPerc.format.toUpperCase()} ↓ ${mandatoryLowestAccuracyDriftPerc.minAccuracyDriftPercent.toFixed(2)}% ↑ ${mandatoryLowestAccuracyDriftPerc.maxAccuracyDriftPercent.toFixed(2)}%`);
+    this.line(`   - Optional: ${optionalLowestAccuracyDriftPerc.format.toUpperCase()} ↓ ${optionalLowestAccuracyDriftPerc.accuracyDriftPercentMin.toFixed(2)}% ↑ ${optionalLowestAccuracyDriftPerc.accuracyDriftPercentMax.toFixed(2)}%`);
+    this.line(`   - Mandatory: ${mandatoryLowestAccuracyDriftPerc.format.toUpperCase()} ↓ ${mandatoryLowestAccuracyDriftPerc.accuracyDriftPercentMin.toFixed(2)}% ↑ ${mandatoryLowestAccuracyDriftPerc.accuracyDriftPercentMax.toFixed(2)}%`);
     this.line('- Most useful tokens:');    
     this.line(`   - Optional: ${optionalMostUsedTokens.format.toUpperCase()} ${Math.round(optionalMostUsedTokens.efficientlyUsedTokens)} / ${Math.round(optionalMostUsedTokens.totalTokensUsed)} tokens`);
     this.line(`   - Mandatory: ${mandatoryMostUsedTokens.format.toUpperCase()} ${Math.round(mandatoryMostUsedTokens.efficientlyUsedTokens)} / ${Math.round(mandatoryMostUsedTokens.totalTokensUsed)} tokens`);
@@ -357,8 +357,8 @@ class ReportGenerator {
     const optionalHighestOutputTokensDriftPerc = optionals.reduce((max, a) => a.absOutputTokensDriftPerc > max.absOutputTokensDriftPerc ? a : max);
     const mandatoryHighestOutputTokensDriftPerc = mandatories.reduce((max, a) => a.absOutputTokensDriftPerc > max.absOutputTokensDriftPerc ? a : max);
     
-    const optionalLowestAccuracy = optionals.reduce((min, a) => a.avgAccuracyPercent < min.avgAccuracyPercent ? a : min);
-    const mandatoryLowestAccuracy = mandatories.reduce((min, a) => a.avgAccuracyPercent < min.avgAccuracyPercent ? a : min);
+    const optionalLowestAccuracy = optionals.reduce((min, a) => a.accuracyPercent < min.accuracyPercent ? a : min);
+    const mandatoryLowestAccuracy = mandatories.reduce((min, a) => a.accuracyPercent < min.accuracyPercent ? a : min);
     
     const optionalHighestAccuracyDriftPerc = optionals.reduce((max, a) => a.absAccuracyDriftPerc > max.absAccuracyDriftPerc ? a : max);
     const mandatoryHighestAccuracyDriftPerc = mandatories.reduce((max, a) => a.absAccuracyDriftPerc > max.absAccuracyDriftPerc ? a : max);
@@ -388,11 +388,11 @@ class ReportGenerator {
     this.line(`   - Optional: ${optionalHighestOutputTokensDriftPerc.format.toUpperCase()} ↓ ${optionalHighestOutputTokensDriftPerc.minOutputTokensDriftPerc.toFixed(2)}% ↑ ${optionalHighestOutputTokensDriftPerc.maxOutputTokensDriftPerc.toFixed(2)}%`);
     this.line(`   - Mandatory: ${mandatoryHighestOutputTokensDriftPerc.format.toUpperCase()} ↓ ${mandatoryHighestOutputTokensDriftPerc.minOutputTokensDriftPerc.toFixed(2)}% ↑ ${mandatoryHighestOutputTokensDriftPerc.maxOutputTokensDriftPerc.toFixed(2)}%`);
     this.line('- Lowest accuracy:');
-    this.line(`   - Optional: ${optionalLowestAccuracy.format.toUpperCase()} ${optionalLowestAccuracy.avgAccuracyPercent.toFixed(2)}%`);
-    this.line(`   - Mandatory: ${mandatoryLowestAccuracy.format.toUpperCase()} ${mandatoryLowestAccuracy.avgAccuracyPercent.toFixed(2)}%`);
+    this.line(`   - Optional: ${optionalLowestAccuracy.format.toUpperCase()} ${optionalLowestAccuracy.accuracyPercent.toFixed(2)}%`);
+    this.line(`   - Mandatory: ${mandatoryLowestAccuracy.format.toUpperCase()} ${mandatoryLowestAccuracy.accuracyPercent.toFixed(2)}%`);
     this.line('- Highest accuracy drift:');
-    this.line(`   - Optional: ${optionalHighestAccuracyDriftPerc.format.toUpperCase()} ↓ ${optionalHighestAccuracyDriftPerc.minAccuracyDriftPercent.toFixed(2)}% ↑ ${optionalHighestAccuracyDriftPerc.maxAccuracyDriftPercent.toFixed(2)}%`);
-    this.line(`   - Mandatory: ${mandatoryHighestAccuracyDriftPerc.format.toUpperCase()} ↓ ${mandatoryHighestAccuracyDriftPerc.minAccuracyDriftPercent.toFixed(2)}% ↑ ${mandatoryHighestAccuracyDriftPerc.maxAccuracyDriftPercent.toFixed(2)}%`);
+    this.line(`   - Optional: ${optionalHighestAccuracyDriftPerc.format.toUpperCase()} ↓ ${optionalHighestAccuracyDriftPerc.accuracyDriftPercentMin.toFixed(2)}% ↑ ${optionalHighestAccuracyDriftPerc.accuracyDriftPercentMax.toFixed(2)}%`);
+    this.line(`   - Mandatory: ${mandatoryHighestAccuracyDriftPerc.format.toUpperCase()} ↓ ${mandatoryHighestAccuracyDriftPerc.accuracyDriftPercentMin.toFixed(2)}% ↑ ${mandatoryHighestAccuracyDriftPerc.accuracyDriftPercentMax.toFixed(2)}%`);
     this.line('- Most wasted tokens:');    
     this.line(`   - Optional: ${optionaMostWastedTokens.format.toUpperCase()} ${Math.round(optionaMostWastedTokens.costOfInaccuracy)} / ${Math.round(optionaMostWastedTokens.totalTokensUsed)} tokens`);
     this.line(`   - Mandatory: ${mandatoryMostWastedTokens.format.toUpperCase()} ${Math.round(mandatoryMostWastedTokens.costOfInaccuracy)} / ${Math.round(mandatoryMostWastedTokens.totalTokensUsed)} tokens`);
@@ -406,13 +406,13 @@ class ReportGenerator {
     this.line();
 
     // 2.1.3 Format Ranking
-    const sortedByTotalDurationMandatories = [...mandatories].sort((ob1, ob2) => ob1.totalDurationInMilliseconds > ob2.totalDurationInMilliseconds ? 1 : ob1.totalDurationInMilliseconds < ob2.totalDurationInMilliseconds ? -1 : 0).map((x, i, arr) => this.getRankingOfAmountDisplay(x.format, i, arr[i].totalDurationInMilliseconds / 1000, arr[0].totalDurationInMilliseconds / 1000, 's'));
+    const sortedByTotalDurationMandatories = [...mandatories].sort((ob1, ob2) => ob1.totalDurationInMs > ob2.totalDurationInMs ? 1 : ob1.totalDurationInMs < ob2.totalDurationInMs ? -1 : 0).map((x, i, arr) => this.getRankingOfAmountDisplay(x.format, i, arr[i].totalDurationInMs / 1000, arr[0].totalDurationInMs / 1000, 's'));
     const sortedByReadTokensMandatories = [...mandatories].sort((ob1, ob2) => ob1.readTokens > ob2.readTokens ? 1 : ob1.readTokens < ob2.readTokens ? -1 : 0).map((x, i, arr) => this.getRankingOfAmountDisplay(x.format, i, arr[i].readTokens, arr[0].readTokens));
     const sortedByOutputTokensMandatories = [...mandatories].sort((ob1, ob2) => ob1.avgOutputTokens > ob2.avgOutputTokens ? 1 : ob1.avgOutputTokens < ob2.avgOutputTokens ? -1 : 0).map((x, i, arr) => this.getRankingOfAmountDisplay(x.format, i, arr[i].avgOutputTokens, arr[0].avgOutputTokens));
     const sortedByTotalTokensMandatories = [...mandatories].sort((ob1, ob2) => ob1.totalTokensUsed > ob2.totalTokensUsed ? 1 : ob1.totalTokensUsed < ob2.totalTokensUsed ? -1 : 0).map((x, i, arr) => this.getRankingOfAmountDisplay(x.format, i, arr[i].totalTokensUsed, arr[0].totalTokensUsed));
     const sortedByCostOfInaccuracyMandatories = [...mandatories].sort((ob1, ob2) => ob1.costOfInaccuracy > ob2.costOfInaccuracy ? 1 : ob1.costOfInaccuracy < ob2.costOfInaccuracy ? -1 : 0).map((x, i, arr) => this.getRankingOfAmountDisplay(x.format, i, arr[i].costOfInaccuracy, arr[0].costOfInaccuracy));
-    const sortedByAccuracyMandatories = [...mandatories].sort((ob1, ob2) => ob1.avgAccuracyPercent < ob2.avgAccuracyPercent ? 1 : ob1.avgAccuracyPercent > ob2.avgAccuracyPercent ? -1 : 0).map((x, i, arr) => this.getRankingOfPercentageDisplay(x.format, i, arr[i].avgAccuracyPercent, arr[0].avgAccuracyPercent));
-    const sortedByWeightedAccuracyMandatories = [...mandatories].sort((ob1, ob2) => ob1.avgWeightedAccuracyPercent < ob2.avgWeightedAccuracyPercent ? 1 : ob1.avgWeightedAccuracyPercent > ob2.avgWeightedAccuracyPercent ? -1 : 0).map((x, i, arr) => this.getRankingOfPercentageDisplay(x.format, i, arr[i].avgWeightedAccuracyPercent, arr[0].avgWeightedAccuracyPercent));
+    const sortedByAccuracyMandatories = [...mandatories].sort((ob1, ob2) => ob1.accuracyPercent < ob2.accuracyPercent ? 1 : ob1.accuracyPercent > ob2.accuracyPercent ? -1 : 0).map((x, i, arr) => this.getRankingOfPercentageDisplay(x.format, i, arr[i].accuracyPercent, arr[0].accuracyPercent));
+    const sortedByWeightedAccuracyMandatories = [...mandatories].sort((ob1, ob2) => ob1.weightedAccuracyPercent < ob2.weightedAccuracyPercent ? 1 : ob1.weightedAccuracyPercent > ob2.weightedAccuracyPercent ? -1 : 0).map((x, i, arr) => this.getRankingOfPercentageDisplay(x.format, i, arr[i].weightedAccuracyPercent, arr[0].weightedAccuracyPercent));
     const sortedByEfficiencyScoreMandatories = [...mandatories].sort((ob1, ob2) => ob1.efficiencyScore < ob2.efficiencyScore ? 1 : ob1.efficiencyScore > ob2.efficiencyScore ? -1 : 0).map((x, i, arr) => this.getRankingOfAmountDisplay(x.format, i, arr[i].efficiencyScore, arr[0].efficiencyScore));
     const sortedByWeightedEfficiencyScoreMandatories = [...mandatories].sort((ob1, ob2) => ob1.weightedEfficiencyScore < ob2.weightedEfficiencyScore ? 1 : ob1.weightedEfficiencyScore > ob2.weightedEfficiencyScore ? -1 : 0).map((x, i, arr) => this.getRankingOfAmountDisplay(x.format, i, arr[i].weightedEfficiencyScore, arr[0].weightedEfficiencyScore));
 
@@ -438,13 +438,13 @@ class ReportGenerator {
     );
     this.line();
     
-    const sortedByTotalDurationOptionals = [...optionals].sort((ob1, ob2) => ob1.totalDurationInMilliseconds > ob2.totalDurationInMilliseconds ? 1 : ob1.totalDurationInMilliseconds < ob2.totalDurationInMilliseconds ? -1 : 0).map((x, i, arr) => this.getRankingOfAmountDisplay(x.format, i, arr[i].totalDurationInMilliseconds / 1000, arr[0].totalDurationInMilliseconds / 1000, 's'));
+    const sortedByTotalDurationOptionals = [...optionals].sort((ob1, ob2) => ob1.totalDurationInMs > ob2.totalDurationInMs ? 1 : ob1.totalDurationInMs < ob2.totalDurationInMs ? -1 : 0).map((x, i, arr) => this.getRankingOfAmountDisplay(x.format, i, arr[i].totalDurationInMs / 1000, arr[0].totalDurationInMs / 1000, 's'));
     const sortedByReadTokensOptionals = [...optionals].sort((ob1, ob2) => ob1.readTokens > ob2.readTokens ? 1 : ob1.readTokens < ob2.readTokens ? -1 : 0).map((x, i, arr) => this.getRankingOfAmountDisplay(x.format, i, arr[i].readTokens, arr[0].readTokens));
     const sortedByOutputTokensOptionals = [...optionals].sort((ob1, ob2) => ob1.avgOutputTokens > ob2.avgOutputTokens ? 1 : ob1.avgOutputTokens < ob2.avgOutputTokens ? -1 : 0).map((x, i, arr) => this.getRankingOfAmountDisplay(x.format, i, arr[i].avgOutputTokens, arr[0].avgOutputTokens));
     const sortedByTotalTokensOptionals = [...optionals].sort((ob1, ob2) => ob1.totalTokensUsed > ob2.totalTokensUsed ? 1 : ob1.totalTokensUsed < ob2.totalTokensUsed ? -1 : 0).map((x, i, arr) => this.getRankingOfAmountDisplay(x.format, i, arr[i].totalTokensUsed, arr[0].totalTokensUsed));
     const sortedByCostOfInaccuracyOptionals = [...optionals].sort((ob1, ob2) => ob1.costOfInaccuracy > ob2.costOfInaccuracy ? 1 : ob1.costOfInaccuracy < ob2.costOfInaccuracy ? -1 : 0).map((x, i, arr) => this.getRankingOfAmountDisplay(x.format, i, arr[i].costOfInaccuracy, arr[0].costOfInaccuracy));
-    const sortedByAccuracyOptionals = [...optionals].sort((ob1, ob2) => ob1.avgAccuracyPercent < ob2.avgAccuracyPercent ? 1 : ob1.avgAccuracyPercent > ob2.avgAccuracyPercent ? -1 : 0).map((x, i, arr) => this.getRankingOfPercentageDisplay(x.format, i, arr[i].avgAccuracyPercent, arr[0].avgAccuracyPercent));
-    const sortedByWeightedAccuracyOptionals = [...optionals].sort((ob1, ob2) => ob1.avgWeightedAccuracyPercent < ob2.avgWeightedAccuracyPercent ? 1 : ob1.avgWeightedAccuracyPercent > ob2.avgWeightedAccuracyPercent ? -1 : 0).map((x, i, arr) => this.getRankingOfPercentageDisplay(x.format, i, arr[i].avgWeightedAccuracyPercent, arr[0].avgWeightedAccuracyPercent));
+    const sortedByAccuracyOptionals = [...optionals].sort((ob1, ob2) => ob1.accuracyPercent < ob2.accuracyPercent ? 1 : ob1.accuracyPercent > ob2.accuracyPercent ? -1 : 0).map((x, i, arr) => this.getRankingOfPercentageDisplay(x.format, i, arr[i].accuracyPercent, arr[0].accuracyPercent));
+    const sortedByWeightedAccuracyOptionals = [...optionals].sort((ob1, ob2) => ob1.weightedAccuracyPercent < ob2.weightedAccuracyPercent ? 1 : ob1.weightedAccuracyPercent > ob2.weightedAccuracyPercent ? -1 : 0).map((x, i, arr) => this.getRankingOfPercentageDisplay(x.format, i, arr[i].weightedAccuracyPercent, arr[0].weightedAccuracyPercent));
     const sortedByEfficiencyScoreOptionals = [...optionals].sort((ob1, ob2) => ob1.efficiencyScore < ob2.efficiencyScore ? 1 : ob1.efficiencyScore > ob2.efficiencyScore ? -1 : 0).map((x, i, arr) => this.getRankingOfAmountDisplay(x.format, i, arr[i].efficiencyScore, arr[0].efficiencyScore));
     const sortedByWeightedEfficiencyScoreOptionals = [...optionals].sort((ob1, ob2) => ob1.weightedEfficiencyScore < ob2.weightedEfficiencyScore ? 1 : ob1.weightedEfficiencyScore > ob2.weightedEfficiencyScore ? -1 : 0).map((x, i, arr) => this.getRankingOfAmountDisplay(x.format, i, arr[i].weightedEfficiencyScore, arr[0].weightedEfficiencyScore));
     
@@ -569,10 +569,10 @@ class ReportGenerator {
       Math.round(item.readTokens).toString(),
       Math.round(item.avgOutputTokens).toString(),
       Math.round(item.totalTokensUsed).toString(),
-      item.charsPerToken.toFixed(3),
+      item.charsPerReadToken.toFixed(3),
       item.informationValuePerToken.toFixed(3),
-      item.avgOutputTokensPerAnswer.toFixed(3),
-      item.avgAccuracyPercent.toFixed(2),
+      item.outputTokensPerAnswer.toFixed(3),
+      item.accuracyPercent.toFixed(2),
       item.weightedEfficiencyScore.toFixed(2),
       item.efficientlyUsedTokens.toFixed(3),
       item.costOfInaccuracy.toFixed(3),
@@ -613,8 +613,8 @@ class ReportGenerator {
         optTotalTokensUsed.toString(),
         this.displayDelta(totalTokenDiff, 0),
         this.calcDeltaPercentage(mandTotalTokensUsed, totalTokenDiff),
-        x.avgWeightedAccuracyPercent.toFixed(2),
-        (x.avgWeightedAccuracyPercent + x.weightedAccuracyDelta).toFixed(2),
+        x.weightedAccuracyPercent.toFixed(2),
+        (x.weightedAccuracyPercent + x.weightedAccuracyDelta).toFixed(2),
         this.displayDelta(x.weightedAccuracyDelta),
         x.weightedEfficiencyScore.toFixed(2),
         (x.weightedEfficiencyScore + x.weightedEfficiencyDelta).toFixed(2),
@@ -631,20 +631,20 @@ class ReportGenerator {
     // 2.4 Performance
     // 2.4.1 Duration & Speed
     const readPerfRows = sortedAggregated.map(item => {
-      const totalDurationInMilliseconds = item.readDurationInMilliseconds+item.avgReasoningDurationInMilliseconds;
-      const totalTokensPerMillisecond = item.readTokensPerMillisecond+item.avgReasoningTokensPerMillisecond;
+      const totalDurationInMs = item.readDurationInMs+item.avgReasoningDurationInMs;
+      const totalTokensPerMs = item.readTokensPerMs+item.avgReasoningTokensPerMs;
       return [
         item.format.toUpperCase(),
         item.variant.substring(0, 3),
-        Math.round(item.readDurationInMilliseconds).toString(),
-        item.readTokensPerMillisecond.toFixed(3),
-        (item.readDurationInMilliseconds / item.recordCount).toFixed(2),
-        Math.round(item.avgReasoningDurationInMilliseconds).toString(),
-        item.avgReasoningTokensPerMillisecond.toFixed(3),
-        (item.avgReasoningDurationInMilliseconds / item.totalQuestions).toFixed(2),
-        Math.round(totalDurationInMilliseconds).toString(),
-        totalTokensPerMillisecond.toFixed(3),
-        (totalDurationInMilliseconds / (item.recordCount + item.totalQuestions)).toFixed(2),
+        Math.round(item.readDurationInMs).toString(),
+        item.readTokensPerMs.toFixed(3),
+        (item.readDurationInMs / item.recordCount).toFixed(2),
+        Math.round(item.avgReasoningDurationInMs).toString(),
+        item.avgReasoningTokensPerMs.toFixed(3),
+        (item.avgReasoningDurationInMs / item.totalQuestions).toFixed(2),
+        Math.round(totalDurationInMs).toString(),
+        totalTokensPerMs.toFixed(3),
+        (totalDurationInMs / (item.recordCount + item.totalQuestions)).toFixed(2),
       ];
     });
     
@@ -657,12 +657,12 @@ class ReportGenerator {
     
     // 2.4.2 Performance: Mandatory vs Optional Data
     const mandOptSpeedDeltaRows = mandatories.map(x =>{    
-      const manReadDuration = x.readDurationInMilliseconds;
-      const readDurationDelta = x.readDurationInMillisecondsDelta;
-      const manOutputDuration = x.avgReasoningDurationInMilliseconds / 1000;
-      const outputDurationDelta = x.outputDurationInMillisecondsDelta / 1000;
+      const manReadDuration = x.readDurationInMs;
+      const readDurationDelta = x.readDurationInMsDelta;
+      const manOutputDuration = x.avgReasoningDurationInMs / 1000;
+      const outputDurationDelta = x.outputDurationInMsDelta / 1000;
       const manTotalDuration = manReadDuration / 1000 + manOutputDuration;
-      const totalDurationDelta = x.totalDurationInMillisecondsDelta / 1000;
+      const totalDurationDelta = x.totalDurationInMsDelta / 1000;
       return [
         x.format.toUpperCase(),
         manReadDuration.toString(),
@@ -690,9 +690,9 @@ class ReportGenerator {
     const structRows = sortedAggregated.map(item => [
       item.format.toUpperCase(),
       item.variant.substring(0, 3),
-      item.charsPerToken.toFixed(3),
-      item.tokensPerValue.toFixed(3),
-      item.tokensPerObject.toFixed(3),
+      item.charsPerReadToken.toFixed(3),
+      item.readTokensPerValue.toFixed(3),
+      item.readTokensPerObject.toFixed(3),
       item.informationValuePerToken.toFixed(3)
     ]);
     
@@ -707,18 +707,18 @@ class ReportGenerator {
     const mandOptStructuralDeltaRows = mandatories.map(x =>{    
       return [
         x.format.toUpperCase(),
-        x.charsPerToken.toFixed(3),
-        (x.charsPerToken + x.charsPerTokenDelta).toFixed(3),
-        this.displayDelta(x.charsPerTokenDelta, 3),
-        this.calcDeltaPercentage(x.charsPerToken, x.charsPerTokenDelta),
-        x.tokensPerValue.toFixed(3),
-        (x.tokensPerValue + x.tokensPerValueDelta).toFixed(3),
-        this.displayDelta(x.tokensPerValueDelta, 3),
-        this.calcDeltaPercentage(x.tokensPerValue, x.tokensPerValueDelta),
-        x.tokensPerObject.toFixed(3),
-        (x.tokensPerObject + x.tokensPerObjectDelta).toFixed(3),
-        this.displayDelta(x.tokensPerObjectDelta, 3),
-        this.calcDeltaPercentage(x.tokensPerObject, x.tokensPerObjectDelta),
+        x.charsPerReadToken.toFixed(3),
+        (x.charsPerReadToken + x.charsPerReadTokenDelta).toFixed(3),
+        this.displayDelta(x.charsPerReadTokenDelta, 3),
+        this.calcDeltaPercentage(x.charsPerReadToken, x.charsPerReadTokenDelta),
+        x.readTokensPerValue.toFixed(3),
+        (x.readTokensPerValue + x.readTokensPerValueDelta).toFixed(3),
+        this.displayDelta(x.readTokensPerValueDelta, 3),
+        this.calcDeltaPercentage(x.readTokensPerValue, x.readTokensPerValueDelta),
+        x.readTokensPerObject.toFixed(3),
+        (x.readTokensPerObject + x.readTokensPerObjectDelta).toFixed(3),
+        this.displayDelta(x.readTokensPerObjectDelta, 3),
+        this.calcDeltaPercentage(x.readTokensPerObject, x.readTokensPerObjectDelta),
         x.informationValuePerToken.toFixed(3),
         (x.informationValuePerToken + x.informationValuePerTokenDelta).toFixed(3),
         this.displayDelta(x.informationValuePerTokenDelta, 3),
@@ -739,8 +739,8 @@ class ReportGenerator {
       Math.round(item.totalTokensUsed).toString(),
       Math.round(item.efficientlyUsedTokens).toString(),
       Math.round(item.costOfInaccuracy).toString(),
-      item.avgAccuracyPercent.toFixed(2),
-      item.avgWeightedAccuracyPercent.toFixed(2),
+      item.accuracyPercent.toFixed(2),
+      item.weightedAccuracyPercent.toFixed(2),
       item.efficiencyScore.toFixed(2),
       item.weightedEfficiencyScore.toFixed(2),
     ]);
@@ -771,8 +771,8 @@ class ReportGenerator {
         Math.round(wastedTokens + x.costOfInaccuracyDelta).toString(),
         this.displayDelta(x.costOfInaccuracyDelta, 0),
         this.calcDeltaPercentage(wastedTokens, x.costOfInaccuracyDelta),
-        x.avgAccuracyPercent.toFixed(2),
-        (x.avgAccuracyPercent + x.accuracyDelta).toFixed(2),
+        x.accuracyPercent.toFixed(2),
+        (x.accuracyPercent + x.accuracyDelta).toFixed(2),
         this.displayDelta(x.accuracyDelta),
         x.efficiencyScore.toFixed(2),
         (x.efficiencyScore + x.efficiencyDelta).toString(),
@@ -791,10 +791,10 @@ class ReportGenerator {
     const answerQualityRows = sortedAggregated.map(item => [
       item.format.toUpperCase(),
       item.variant.substring(0, 3),
-      item.avgCorrectAnswers.toString(),
-      item.avgIncorrectAnswers.toString(),
-      item.avgNoAnswers.toString(),
-      item.avgAccuracyPercent.toFixed(2),
+      item.correctAnswers.toString(),
+      item.incorrectAnswers.toString(),
+      item.noAnswers.toString(),
+      item.accuracyPercent.toFixed(2),
     ]);
     
     this.heading(3, '2.7 Answer Per Format Breakdown');
@@ -808,20 +808,20 @@ class ReportGenerator {
     const mandOptAnswerDeltaRows = mandatories.map(x =>{    
       return [
         x.format.toUpperCase(),
-        x.avgCorrectAnswers.toString(),
-        (x.avgCorrectAnswers + x.correctAnswersDelta).toString(),
+        x.correctAnswers.toString(),
+        (x.correctAnswers + x.correctAnswersDelta).toString(),
         this.displayDelta(x.correctAnswersDelta, 0),
-        this.calcDeltaPercentage(x.avgCorrectAnswers, x.correctAnswersDelta),
-        x.avgIncorrectAnswers.toString(),
-        (x.avgIncorrectAnswers + x.incorrectAnswersDelta).toString(),
+        this.calcDeltaPercentage(x.correctAnswers, x.correctAnswersDelta),
+        x.incorrectAnswers.toString(),
+        (x.incorrectAnswers + x.incorrectAnswersDelta).toString(),
         this.displayDelta(x.incorrectAnswersDelta, 0),
-        this.calcDeltaPercentage(x.avgIncorrectAnswers, x.incorrectAnswersDelta),
-        x.avgNoAnswers.toString(),
-        (x.avgNoAnswers + x.noAnswersDelta).toString(),
+        this.calcDeltaPercentage(x.incorrectAnswers, x.incorrectAnswersDelta),
+        x.noAnswers.toString(),
+        (x.noAnswers + x.noAnswersDelta).toString(),
         this.displayDelta(x.noAnswersDelta, 0),
-        this.calcDeltaPercentage(x.avgNoAnswers, x.noAnswersDelta),
-        x.avgAccuracyPercent.toFixed(2),
-        (x.avgAccuracyPercent + x.accuracyDelta).toFixed(2),
+        this.calcDeltaPercentage(x.noAnswers, x.noAnswersDelta),
+        x.accuracyPercent.toFixed(2),
+        (x.accuracyPercent + x.accuracyDelta).toFixed(2),
         this.displayDelta(x.accuracyDelta)
       ];
     });
@@ -842,7 +842,7 @@ class ReportGenerator {
       return [
       item.format.toUpperCase(),
       item.variant.substring(0, 3),
-      item.avgAccuracyPercent.toFixed(2),
+      item.accuracyPercent.toFixed(2),
       retrieval.toFixed(2),
       structure.toFixed(2),
       filtering.toFixed(2),
