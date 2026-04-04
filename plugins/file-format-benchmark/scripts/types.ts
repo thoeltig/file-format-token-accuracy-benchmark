@@ -396,14 +396,30 @@ export interface UserMetrics {
   variant: string;
   recordCount: number;
   hasOptionalData: boolean;
-  readDurationInMilliseconds: number;
+  readDurationInMs: number;
   readTokens: number;
-  reasoningDurationInMilliseconds: number;
-  reasoningDurationDriftPercMin: number;
-  reasoningDurationDriftPercMax: number;
-  outputTokens: number;
-  outputTokensDriftPercMin: number;
-  outputTokensDriftPercMax: number;
+  outputDurationBeforeWriteInMs: number;
+  outputDurationBeforeWriteDriftPercMin: number;
+  outputDurationBeforeWriteDriftPercMax: number;
+  outputDurationWriteInMs: number;
+  outputDurationWriteDriftPercMin: number;
+  outputDurationWriteDriftPercMax: number;
+  outputDurationTotalInMs: number;
+  outputDurationTotalDriftPercMin: number;
+  outputDurationTotalDriftPercMax: number;
+  outputTokensBeforeWrite: number;
+  outputTokensBeforeWriteDriftPercMin: number;
+  outputTokensBeforeWriteDriftPercMax: number;
+  outputTokensWrite: number;
+  outputTokensWriteDriftPercMin: number;
+  outputTokensWriteDriftPercMax: number;
+  outputTokensTotal: number;
+  outputTokensTotalDriftPercMin: number;
+  outputTokensTotalDriftPercMax: number;  
+  // The total sum of read and output tokens
+  totalTokens: number;
+  totalTokensDriftPercMin: number;
+  totalTokensDriftPercMax: number;
 }
 
 // ============================================================================

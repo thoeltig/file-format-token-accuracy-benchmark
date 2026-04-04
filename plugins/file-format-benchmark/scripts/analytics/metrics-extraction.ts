@@ -26,13 +26,25 @@ interface ReasoningMetricsFile {
   variant: string;
   recordCount: number;
   testRuns: number;
-  durationMs: number;
-  durationMsMin: number;
-  durationMsMax: number;
+  durationBeforeWriteMs: number;
+  durationBeforeWriteMsMin: number;
+  durationBeforeWriteMsMax: number;
+  durationWriteMs: number;
+  durationWriteMsMin: number;
+  durationWriteMsMax: number;
+  durationTotalMs: number;
+  durationTotalMsMin: number;
+  durationTotalMsMax: number;
   // Output tokens contain the tokens generated for the output of the LLM and include the reasoning tokens
-  outputTokens: number;
-  outputTokensMin: number;
-  outputTokensMax: number;
+  outputTokensBeforeWrite: number;
+  outputTokensBeforeWriteMin: number;
+  outputTokensBeforeWriteMax: number;
+  outputTokensWrite: number;
+  outputTokensWriteMin: number;
+  outputTokensWriteMax: number;
+  outputTokensTotal: number;
+  outputTokensTotalMin: number;
+  outputTokensTotalMax: number;
 }
 
 interface CombinedMetrics {
@@ -50,10 +62,18 @@ interface CombinedMetrics {
     files: ReasoningMetricsFile[];
     summary: {
       totalTestCases: number;
+      totalBeforeWriteDuration: number;
+      totalWriteDurationMs: number;
       totalDurationMs: number;
-      totalOutputTokens: number;
+      averageBeforeWriteDurationMs: number;
+      averageWriteDurationMs: number;
       averageDurationMs: number;
-      averageOutputTokens: number;
+      totalBeforeWriteOutputTokens: number;
+      totalWriteOutputTokens: number;
+      totalOutputTokens: number;
+      averageBeforeWriteOutputTokens: number;
+      averageWriteOutputTokens: number;
+      averageOutputTokens: number;      
     };
   };
 }
@@ -408,12 +428,24 @@ class MetricsExtraction {
           variant: entry.variant,
           recordCount: entry.recordCount,
           testRuns: 0, // Will be set during aggregation
-          durationMs: metrics.duration_ms || 0,
-          durationMsMin: metrics.duration_ms || 0,
-          durationMsMax: metrics.duration_ms || 0,
-          outputTokens: metrics.output_tokens,
-          outputTokensMin: metrics.output_tokens,
-          outputTokensMax: metrics.output_tokens,
+          durationBeforeWriteMs: metrics.duration_before_write_ms,
+          durationBeforeWriteMsMin: metrics.duration_before_write_ms,
+          durationBeforeWriteMsMax: metrics.duration_before_write_ms,
+          durationWriteMs: metrics.duration_write_ms,
+          durationWriteMsMin: metrics.duration_write_ms,
+          durationWriteMsMax: metrics.duration_write_ms,
+          durationTotalMs: metrics.duration_total_ms,
+          durationTotalMsMin: metrics.duration_total_ms,
+          durationTotalMsMax: metrics.duration_total_ms,
+          outputTokensBeforeWrite: metrics.output_tokens_before_write,
+          outputTokensBeforeWriteMin: metrics.output_tokens_before_write,
+          outputTokensBeforeWriteMax: metrics.output_tokens_before_write,
+          outputTokensWrite: metrics.output_tokens_write,
+          outputTokensWriteMin: metrics.output_tokens_write,
+          outputTokensWriteMax: metrics.output_tokens_write,
+          outputTokensTotal: metrics.output_tokens_total,
+          outputTokensTotalMin: metrics.output_tokens_total,
+          outputTokensTotalMax: metrics.output_tokens_total,
         });
       }
     }
@@ -531,8 +563,6 @@ class MetricsExtraction {
       const metricsFilesCount = metrics.length;
 
       if (metricsFilesCount > 0) {
-        const avg_duration = metrics.reduce((sum, m) => sum + m.durationMs, 0) / metricsFilesCount;
-        const avg_output = metrics.reduce((sum, m) => sum + m.outputTokens, 0) / metricsFilesCount;
         const firstMetric = metrics[0];
 
         reasoningFiles.push({
@@ -541,12 +571,24 @@ class MetricsExtraction {
           variant: firstMetric.variant,
           recordCount: firstMetric.recordCount,
           testRuns: metricsFilesCount,
-          durationMs: parseFloat(avg_duration.toFixed(3)),
-          durationMsMin: Math.min(...metrics.map(x=>x.durationMs)),
-          durationMsMax: Math.max(...metrics.map(x=>x.durationMs)),
-          outputTokens: parseFloat(avg_output.toFixed(3)),
-          outputTokensMin: Math.min(...metrics.map(x=>x.outputTokens)),
-          outputTokensMax: Math.max(...metrics.map(x=>x.outputTokens)),
+          durationBeforeWriteMs: roundTo3Digits(metrics.reduce((sum, m) => sum + m.durationBeforeWriteMs, 0) / metricsFilesCount),
+          durationBeforeWriteMsMin: Math.min(...metrics.map(x=>x.durationBeforeWriteMs)),
+          durationBeforeWriteMsMax: Math.max(...metrics.map(x=>x.durationBeforeWriteMs)),
+          durationWriteMs: roundTo3Digits(metrics.reduce((sum, m) => sum + m.durationWriteMs, 0) / metricsFilesCount),
+          durationWriteMsMin: Math.min(...metrics.map(x=>x.durationWriteMs)),
+          durationWriteMsMax: Math.max(...metrics.map(x=>x.durationWriteMs)),
+          durationTotalMs: roundTo3Digits(metrics.reduce((sum, m) => sum + m.durationTotalMs, 0) / metricsFilesCount),
+          durationTotalMsMin: Math.min(...metrics.map(x=>x.durationTotalMs)),
+          durationTotalMsMax: Math.max(...metrics.map(x=>x.durationTotalMs)),
+          outputTokensBeforeWrite: roundTo3Digits(metrics.reduce((sum, m) => sum + m.outputTokensBeforeWrite, 0) / metricsFilesCount),
+          outputTokensBeforeWriteMin: Math.min(...metrics.map(x=>x.outputTokensBeforeWrite)),
+          outputTokensBeforeWriteMax: Math.max(...metrics.map(x=>x.outputTokensBeforeWrite)),
+          outputTokensWrite: roundTo3Digits(metrics.reduce((sum, m) => sum + m.outputTokensWrite, 0) / metricsFilesCount),
+          outputTokensWriteMin: Math.min(...metrics.map(x=>x.outputTokensWrite)),
+          outputTokensWriteMax: Math.max(...metrics.map(x=>x.outputTokensWrite)),
+          outputTokensTotal: roundTo3Digits(metrics.reduce((sum, m) => sum + m.outputTokensTotal, 0) / metricsFilesCount),
+          outputTokensTotalMin: Math.min(...metrics.map(x=>x.outputTokensTotal)),
+          outputTokensTotalMax: Math.max(...metrics.map(x=>x.outputTokensTotal)),
         });
       }
     }
@@ -555,8 +597,12 @@ class MetricsExtraction {
     const total_read_tokens = readMetrics.reduce((sum, m) => sum + m.readTokens, 0);
     const total_read_duration = readMetrics.reduce((sum, m) => sum + m.readDurationMs, 0);
 
-    const total_duration = reasoningFiles.reduce((sum, m) => sum + m.durationMs, 0);
-    const total_output = reasoningFiles.reduce((sum, m) => sum + m.outputTokens, 0);
+    const total_duration = reasoningFiles.reduce((sum, m) => sum + m.durationTotalMs, 0);
+    const before_write_duration = reasoningFiles.reduce((sum, m) => sum + m.durationBeforeWriteMs, 0);
+    const write_duration = reasoningFiles.reduce((sum, m) => sum + m.durationWriteMs, 0);
+    const total_output = reasoningFiles.reduce((sum, m) => sum + m.outputTokensTotal, 0);
+    const before_write_output = reasoningFiles.reduce((sum, m) => sum + m.outputTokensBeforeWrite, 0);
+    const write_output = reasoningFiles.reduce((sum, m) => sum + m.outputTokensWrite, 0);
     
     const reasoningFilesCount = reasoningFiles.length;
     const readMetricsFilesCount = readMetrics.length;
@@ -567,19 +613,27 @@ class MetricsExtraction {
         summary: {
           totalFiles: readMetricsFilesCount,
           totalReadTokens: total_read_tokens,
-          totalReadDurationMs: parseFloat(total_read_duration.toFixed(3)),
-          averageReadTokens: readMetricsFilesCount > 0 ? parseFloat((total_read_tokens / readMetricsFilesCount).toFixed(3)) : 0,
-          averageDurationMs: readMetricsFilesCount > 0 ? parseFloat((total_read_duration / readMetricsFilesCount).toFixed(3)) : 0,
+          totalReadDurationMs: roundTo3Digits(total_read_duration),
+          averageReadTokens: readMetricsFilesCount > 0 ? roundTo3Digits(total_read_tokens / readMetricsFilesCount) : 0,
+          averageDurationMs: readMetricsFilesCount > 0 ? roundTo3Digits(total_read_duration / readMetricsFilesCount) : 0,
         },
       },
       reasoning: {
         files: reasoningFiles,
         summary: {
           totalTestCases: reasoningFilesCount,
-          totalDurationMs: parseFloat(total_duration.toFixed(3)),
-          totalOutputTokens: parseFloat(total_output.toFixed(3)),
-          averageDurationMs: reasoningFilesCount > 0 ? parseFloat((total_duration / reasoningFilesCount).toFixed(3)) : 0,
-          averageOutputTokens: reasoningFilesCount > 0 ? parseFloat((total_output / reasoningFilesCount).toFixed(3)) : 0,
+          totalBeforeWriteDuration: roundTo3Digits(before_write_duration),
+          totalWriteDurationMs: roundTo3Digits(write_duration),
+          totalDurationMs: roundTo3Digits(total_duration),
+          averageBeforeWriteDurationMs: reasoningFilesCount > 0 ? roundTo3Digits(before_write_duration / reasoningFilesCount) : 0,
+          averageWriteDurationMs: reasoningFilesCount > 0 ? roundTo3Digits(write_duration / reasoningFilesCount) : 0,
+          averageDurationMs: reasoningFilesCount > 0 ? roundTo3Digits(total_duration / reasoningFilesCount) : 0,
+          totalBeforeWriteOutputTokens: roundTo3Digits(before_write_output),
+          totalWriteOutputTokens: roundTo3Digits(write_output),
+          totalOutputTokens: roundTo3Digits(total_output),
+          averageBeforeWriteOutputTokens: reasoningFilesCount > 0 ? roundTo3Digits(before_write_output / reasoningFilesCount) : 0,
+          averageWriteOutputTokens: reasoningFilesCount > 0 ? roundTo3Digits(write_output / reasoningFilesCount) : 0,
+          averageOutputTokens: reasoningFilesCount > 0 ? roundTo3Digits(total_output / reasoningFilesCount) : 0,
         },
       },
     };
@@ -591,7 +645,7 @@ class MetricsExtraction {
       fs.mkdirSync(dir, { recursive: true });
     }
 
-    fs.writeFileSync(this.outputFile, JSON.stringify(metrics, null, 4));
+    fs.writeFileSync(this.outputFile, JSON.stringify(metrics, null, 2));
   }
 
   private mergeCombinedMetrics(combinedMetrics: CombinedMetrics): UserMetrics[] {
@@ -624,10 +678,12 @@ class MetricsExtraction {
         }
         console.error(`\nAvailable reasoning output test cases (${combinedMetrics.reasoning.files.length}):`);
         combinedMetrics.reasoning.files.forEach(r => {
-          console.error(`  - ${r.format}_${r.structure}_${r.variant}_${r.recordCount}: ${r.outputTokens} tokens`);
+          console.error(`  - ${r.format}_${r.structure}_${r.variant}_${r.recordCount}: ${r.outputTokensTotal} tokens`);
         });
         throw new Error(`No read data found for ${key}`);
       }
+
+      const totalTokens = readData.readTokens + reasoning.outputTokensTotal;
 
       merged.push({
         testCase: `${reasoning.format}_${reasoning.structure}_${reasoning.recordCount}_${reasoning.variant}`,
@@ -636,22 +692,33 @@ class MetricsExtraction {
         variant: reasoning.variant,
         recordCount: reasoning.recordCount,
         hasOptionalData: reasoning.variant !== "mandatory",
-        readDurationInMilliseconds: readData.readDurationMs,
+        readDurationInMs: readData.readDurationMs,
         readTokens: readData.readTokens,
-        reasoningDurationInMilliseconds: reasoning.durationMs,
-        reasoningDurationDriftPercMax: this.calcDriftPerc(reasoning.durationMs, reasoning.durationMsMax),
-        reasoningDurationDriftPercMin: this.calcDriftPerc(reasoning.durationMs, reasoning.durationMsMin),
-        outputTokens: reasoning.outputTokens,
-        outputTokensDriftPercMin: this.calcDriftPerc(reasoning.outputTokens, reasoning.outputTokensMin),
-        outputTokensDriftPercMax: this.calcDriftPerc(reasoning.outputTokens, reasoning.outputTokensMax),
+        outputDurationBeforeWriteInMs: reasoning.durationBeforeWriteMs,
+        outputDurationBeforeWriteDriftPercMax: calcDriftPerc(reasoning.durationBeforeWriteMs, reasoning.durationBeforeWriteMsMax),
+        outputDurationBeforeWriteDriftPercMin: calcDriftPerc(reasoning.durationBeforeWriteMs, reasoning.durationBeforeWriteMsMin),
+        outputDurationWriteInMs: reasoning.durationWriteMs,
+        outputDurationWriteDriftPercMax: calcDriftPerc(reasoning.durationWriteMs, reasoning.durationWriteMsMax),
+        outputDurationWriteDriftPercMin: calcDriftPerc(reasoning.durationWriteMs, reasoning.durationWriteMsMin),
+        outputDurationTotalInMs: reasoning.durationTotalMs,
+        outputDurationTotalDriftPercMax: calcDriftPerc(reasoning.durationTotalMs, reasoning.durationTotalMsMax),
+        outputDurationTotalDriftPercMin: calcDriftPerc(reasoning.durationTotalMs, reasoning.durationTotalMsMin),
+        outputTokensBeforeWrite: reasoning.outputTokensBeforeWrite,
+        outputTokensBeforeWriteDriftPercMin: calcDriftPerc(reasoning.outputTokensBeforeWrite, reasoning.outputTokensBeforeWriteMin),
+        outputTokensBeforeWriteDriftPercMax: calcDriftPerc(reasoning.outputTokensBeforeWrite, reasoning.outputTokensBeforeWriteMax),
+        outputTokensWrite: reasoning.outputTokensWrite,
+        outputTokensWriteDriftPercMin: calcDriftPerc(reasoning.outputTokensWrite, reasoning.outputTokensWriteMin),
+        outputTokensWriteDriftPercMax: calcDriftPerc(reasoning.outputTokensWrite, reasoning.outputTokensWriteMax),
+        outputTokensTotal: reasoning.outputTokensTotal,
+        outputTokensTotalDriftPercMin: calcDriftPerc(reasoning.outputTokensTotal, reasoning.outputTokensTotalMin),
+        outputTokensTotalDriftPercMax: calcDriftPerc(reasoning.outputTokensTotal, reasoning.outputTokensTotalMax),
+        totalTokens: totalTokens,
+        totalTokensDriftPercMin: calcDriftPerc(totalTokens, readData.readTokens + reasoning.outputTokensTotalMin),
+        totalTokensDriftPercMax: calcDriftPerc(totalTokens, readData.readTokens + reasoning.outputTokensTotalMax),
       });
     }
 
     return merged;
-  }  
-
-  private calcDriftPerc(avg: number, val: number): number{
-    return Math.round(((val - avg) / avg) * 100 * 100) / 100;
   }
 }
 
