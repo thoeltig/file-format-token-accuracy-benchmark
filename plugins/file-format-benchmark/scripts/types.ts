@@ -544,34 +544,4 @@ export interface AnalyticsOutput {
     questionWeightDistribution: [QuestionCategory, number][];
   };
   metrics: TestMetrics[];
-  rankings: Record<number, Ranking>;
-}
-
-export interface Ranking { 
-  avgCharsPerToken: number; 
-  avgTokensPerValue: number; 
-  avgTokensPerObject: number; 
-  avgAccuracy: number;
-  mostTokenEfficient: RankingEntry[];
-  leastTokenUsage: RankingEntry[];
-  mostAccurate: RankingEntry[];
-  mostAccurateWeighted: RankingEntry[];
-  mostEfficiencyScore: RankingEntry[];
-  mostWeightedEfficiencyScore: RankingEntry[];
-}
-
-export interface RankingEntry { 
-  format: string; 
-  hasOptionalData: boolean; 
-  recordCount: number; 
-  charsPerToken: number; 
-  tokensUsed: number; 
-  tokensPerValue: number; 
-  tokensPerObject: number; 
-  accuracyPercent: number; 
-  efficientlyUsedTokens: number; 
-  efficiencyScore: number;
-  weightedAccuracyPercent: number; 
-  weightedEfficientlyUsedTokens: number; 
-  weightedEfficiencyScore: number;
 }

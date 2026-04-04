@@ -7,7 +7,7 @@ import * as fs from "fs";
 import * as path from "path";
 import { discoverAgents } from "./analytics/agent-discovery";
 import MetricsExtraction from "./analytics/metrics-extraction";
-import { AnalyticsOutput, GeneratorResult, MergedValidationReport, Ranking, RankingEntry, TestMetrics, UserMetrics } from "./types";
+import { AnalyticsOutput, GeneratorResult, MergedValidationReport, TestMetrics, UserMetrics } from "./types";
 import ReportValidator from "./validators/reportValidator";
 import { DIRECTORY_ANSWERS_VALIDATION, FILE_AGENT_ID, FILE_ANALYTICS_RESULT, FILE_METADATA, FILE_METRICS, QUESTIONS_DISTRIBUTION, QUESTIONS_WEIGHT_DISTRIBUTION } from "./consts";
 
