@@ -144,7 +144,7 @@ class ReportValidator {
 
             // Save aggregated results
             const outputFile = path.join(this.resultsDir, `${testCase.format}_${testCase.structure}_${testCase.variant}_${testCase.recordCount}_validation.json`);
-            fs.writeFileSync(outputFile, JSON.stringify(report, null, 4));
+            fs.writeFileSync(outputFile, JSON.stringify(report, null, 2));
 
             results.push(report);
         }

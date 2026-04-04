@@ -76,7 +76,7 @@ export class AnswerValidator {
     const correctCount = results.filter((r) => r.correct).length;
     const totalValidatable = results.length;
     const mapAsArray = [...map.entries()];
-    const weightedAccuracyPercent = mapAsArray.reduce((sum, x) => sum + Math.round((x[1].correct / (x[1].correct+x[1].incorrect+x[1].notSet))*10000*QUESTIONS_WEIGHT_DISTRIBUTION[x[0]])/100, 0);
+    const weightedAccuracyPercent = mapAsArray.reduce((sum, x) => sum + ToPercentage((x[1].correct / (x[1].correct+x[1].incorrect+x[1].notSet))*QUESTIONS_WEIGHT_DISTRIBUTION[x[0]]), 0);
 
     return {
       format: format,
@@ -85,7 +85,7 @@ export class AnswerValidator {
       accuracy: {
         correct: correctCount,
         incorrect: totalValidatable - correctCount,
-        accuracyPercent: totalValidatable > 0 ? Math.round(((correctCount / totalValidatable) * 10000))/100 : 0,
+        accuracyPercent: ToPercentage(correctCount / totalValidatable),
         weightedAccuracyPercent: weightedAccuracyPercent
       },
       charactersOfAnswers: {
@@ -101,8 +101,8 @@ export class AnswerValidator {
           correct: counter.correct,
           incorrect: counter.incorrect,
           unanswered: counter.notSet,
-          accuracyPercent: Math.round((counter.correct / (counter.correct+counter.incorrect+counter.notSet))*10000)/100,
-          weightedAccuracyPercent: Math.round((counter.correct / (counter.correct+counter.incorrect+counter.notSet))*10000*QUESTIONS_WEIGHT_DISTRIBUTION[category])/100,
+          accuracyPercent: ToPercentage(counter.correct / (counter.correct+counter.incorrect+counter.notSet)),
+          weightedAccuracyPercent: ToPercentage((counter.correct / (counter.correct+counter.incorrect+counter.notSet)) * QUESTIONS_WEIGHT_DISTRIBUTION[category]),
         };
       })
     };
