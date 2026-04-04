@@ -466,59 +466,95 @@ export interface Metrics {
 
   // Read-Only extraction script result
   readTokens: number;
-  readDurationInMilliseconds: number;
-  readTokensPerMillisecond: number;
+  readDurationInMs: number;
+  readTokensPerMs: number;
   
   // Full test extraction script result
-  avgOutputTokens: number;
-  minOutputTokensDriftPerc: number;
-  maxOutputTokensDriftPerc: number;
-  avgReasoningDurationInMilliseconds: number;
-  minReasoningDurationDriftPerc: number;
-  maxReasoningDurationDriftPerc: number;
-  avgReasoningTokensPerMillisecond: number;
+  outputTokensBeforeWrite: number;
+  outputTokensBeforeWriteDriftPercMin: number;
+  outputTokensBeforeWriteDriftPercMax: number;
+  outputTokensWrite: number;
+  outputTokensWriteDriftPercMin: number;
+  outputTokensWriteDriftPercMax: number;
+  outputTokensTotal: number;
+  outputTokensTotalDriftPercMin: number;
+  outputTokensTotalDriftPercMax: number;
+
+  outputDurationBeforeWriteInMs: number;
+  outputDurationBeforeWriteDriftPercMin: number;
+  outputDurationBeforeWriteDriftPercMax: number;
+  outputDurationWriteInMs: number;
+  outputDurationWriteDriftPercMin: number;
+  outputDurationWriteDriftPercMax: number;
+  outputDurationTotalInMs: number;
+  outputDurationTotalDriftPercMin: number;
+  outputDurationTotalDriftPercMax: number;
+  
+  outputTokensBeforeWritePerMs: number;
+  outputTokensWritePerMs: number;
+  outputTokensTotalPerMs: number;
 
   // Validation script result
   totalQuestions: number;
-  avgNoAnswers: number;
-  avgIncorrectAnswers: number;
-  avgCorrectAnswers: number;
-  avgAccuracyPercent: number;
-  minAccuracyDriftPercent: number;
-  maxAccuracyDriftPercent: number;
-  avgWeightedAccuracyPercent: number;
-  minWeightedAccuracyDriftPercent: number;
-  maxWeightedAccuracyDriftPercent: number;
+  noAnswers: number;
+  incorrectAnswers: number;
+  correctAnswers: number;
+  accuracyPercent: number;
+  accuracyDriftPercentMin: number;
+  accuracyDriftPercentMax: number;
+  weightedAccuracyPercent: number;
+  weightedAccuracyDriftPercentMin: number;
+  weightedAccuracyDriftPercentMax: number;
 
   // Calculated metrics section
 
   // This is only interesting to see how the conversion rate from characters to tokens is.
-  charsPerToken: number;
+  charsPerReadToken: number;
   // Information efficiency: tokens needed per data value. Lower is better - represents how densely packed the format is.
-  tokensPerValue: number;  
+  readTokensPerValue: number;  
   // Information efficiency: tokens needed per object. Lower is better - accounts for structural overhead.
-  tokensPerObject: number; 
+  readTokensPerObject: number; 
   // Reasoning cost per question answered. Indicates how complex the reasoning task is for this format
-  avgOutputTokensPerAnswer: number;
+  outputTokensPerAnswer: number;
   // Represents information density: how much accuracy per token consumed. Higher values indicate more information delivered per token.
-  informationValuePerToken: number;
-  // Tokens wasted on inaccurate output that increases context pollution. Higher values indicate format reliability risk.
-  costOfInaccuracy: number;
-  // Reading + reasoning tokens
-  totalTokensUsed: number;
+  informationValuePerReadTokens: number;
+  informationValuePerOutputTokens: number;
+  informationValuePerTotalTokens: number;
+
+  // Reading + output tokens
+  totalTokens: number;
+  totalTokensDriftPercMin: number;
+  totalTokensDriftPercMax: number;
 
   // Results
 
+  // Tokens wasted on inaccurate output that increases context pollution. Higher values indicate format reliability risk.
+  wastedReadTokens: number;
+  wastedOutputTokens: number;
+  wastedTotalTokens: number;
   // Effective tokens: assumes lower accuracy wastes tokens. Accounts for format quality via accuracy percentage.
-  efficientlyUsedTokens: number;
+  usefulReadTokens: number;
+  usefulOutputTokens: number;
+  usefulTotalTokens: number;
+  
   // Same as above but weighted by question importance: field retrieval and structure awareness questions weighted higher than aggregation and filtering.
-  weightedEfficientlyUsedTokens: number;
+  weightedWastedReadTokens: number;
+  weightedWastedOutputTokens: number;
+  weightedWastedTotalTokens: number;
+  weightedUsefulReadTokens: number;
+  weightedUsefulOutputTokens: number;
+  weightedUsefulTotalTokens: number;
+
   // Combined score (0-100): accuracy weighted 70% + token efficiency weighted 30%.
   // Prioritizes correctness over token usage - a format that is accurate is preferred because inaccuracy will lead to multiple reads and more reasoning.
   // normalizedAmountScore: lower token usage = higher score (max tokens used = 0, min tokens used = 100).
-  efficiencyScore: number;
+  efficiencyScoreRead: number;
+  efficiencyScoreOutput: number;
+  efficiencyScoreTotal: number;
   // Same scoring as efficiencyScore but uses weighted accuracy: field retrieval and structure awareness answers count more than aggregation and filtering
-  weightedEfficiencyScore: number;
+  weightedEfficiencyScoreRead: number;
+  weightedEfficiencyScoreOutput: number;
+  weightedEfficiencyScoreTotal: number;
 }
 
 export interface TestMetrics extends Metrics {
