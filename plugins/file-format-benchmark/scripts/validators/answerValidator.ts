@@ -88,6 +88,11 @@ export class AnswerValidator {
         accuracyPercent: totalValidatable > 0 ? Math.round(((correctCount / totalValidatable) * 10000))/100 : 0,
         weightedAccuracyPercent: weightedAccuracyPercent
       },
+      charactersOfAnswers: {
+        expected: results.map(x => this.getAnswerLength(x.expectedAnswer)).reduce((sum, x) => sum + x, 0),
+        correct: results.filter(x => x.correct === true).map(x => this.getAnswerLength(x.givenAnswer)).reduce((sum, x) => sum + x, 0),
+        incorrect: results.filter(x => x.correct === false).map(x => this.getAnswerLength(x.givenAnswer)).reduce((sum, x) => sum + x, 0)
+      },
       accuracyPerCategory: mapAsArray.map<CategoryAnswerAccuracy>(x => {
         const category = x[0];
         const counter = x[1];
@@ -101,6 +106,16 @@ export class AnswerValidator {
         };
       })
     };
+  }
+
+  private getAnswerLength(answer: string | number | string[] | boolean): number{    
+    if(!answer)
+      return 0;
+
+    if(Array.isArray(answer))
+      return answer.map(x => x.length).reduce((sum, x) => sum + x);
+
+    return String(answer).length;
   }
 
   private validateSingleAnswer(question: AnswerAndQuestion, providedAnswer: ProvidedAnswer): ValidationResult {

@@ -63,22 +63,22 @@ class ReportValidator {
             const groundTruthQuestions: AnswerAndQuestion[] = validationData.answersAndQuestions;
             
             const report: MergedValidationReport = {
-                    format: testCase.format as Format,
-                    structure: testCase.structure,
-                    variant: testCase.variant,
-                    recordCount: testCase.recordCount,
-                    testRuns: testCase.answerFiles.length,
-                    totalQuestions: validationData.metadata.totalQuestions,
-                    accuracy: {
-                        correct: 0,
-                        incorrect: 0,
-                        accuracyPercent: 0,
-                        accuracyDriftPercMin: 0,
-                        accuracyDriftPercMax: 0,
-                        weightedAccuracyPercent: 0,
-                        weightedAccuracyDriftPercMin: 0,
-                        weightedAccuracyDriftPercMax: 0
-                    },
+                format: testCase.format as Format,
+                structure: testCase.structure,
+                variant: testCase.variant,
+                recordCount: testCase.recordCount,
+                testRuns: testCase.answerFiles.length,
+                totalQuestions: validationData.metadata.totalQuestions,
+                accuracy: {
+                    correct: 0,
+                    incorrect: 0,
+                    accuracyPercent: 0,
+                    accuracyDriftPercMin: 0,
+                    accuracyDriftPercMax: 0,
+                    weightedAccuracyPercent: 0,
+                    weightedAccuracyDriftPercMin: 0,
+                    weightedAccuracyDriftPercMax: 0
+                },
                 perRunAccuracy:[],
                 questionsAndProvidedAnswers: groundTruthQuestions.map<QuestionsAndProvidedAnswers>(x => {
                     return {
@@ -113,7 +113,10 @@ class ReportValidator {
                     incorrect: validationResult.accuracy.incorrect,
                     accuracyPercent: validationResult.accuracy.accuracyPercent,
                     weightedAccuracyPercent: validationResult.accuracy.weightedAccuracyPercent,
-                    accuracyPerCategory: validationResult.accuracyPerCategory
+                    accuracyPerCategory: validationResult.accuracyPerCategory,
+                    expectedAnswerCharacters: validationResult.charactersOfAnswers.expected,
+                    correctAnswerCharacters: validationResult.charactersOfAnswers.correct,
+                    incorrectAnswerCharacters: validationResult.charactersOfAnswers.incorrect
                 });
 
                 validationResult.results.forEach(x => {

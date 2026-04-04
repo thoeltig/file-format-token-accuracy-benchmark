@@ -229,6 +229,11 @@ export interface ValidationReport {
     accuracyPercent: number;
     weightedAccuracyPercent: number;  
   };
+  charactersOfAnswers: {
+    expected: number;
+    correct: number;
+    incorrect: number;
+  };
   accuracyPerCategory: CategoryAnswerAccuracy[];
 }
 
@@ -266,6 +271,9 @@ export interface CategoryAnswerAccuracy extends AnswerAccuracy {
 export interface PerTestRunAnswerAccuracy extends AnswerAccuracy {
   run: number;
   accuracyPerCategory: CategoryAnswerAccuracy[];
+  expectedAnswerCharacters: number;
+  correctAnswerCharacters: number;
+  incorrectAnswerCharacters: number;
 }
 
 export interface QuestionsAndProvidedAnswers {
