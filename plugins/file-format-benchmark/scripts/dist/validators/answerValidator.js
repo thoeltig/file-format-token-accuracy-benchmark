@@ -6,6 +6,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.validateAnswers = exports.AnswerValidator = void 0;
 const consts_1 = require("../consts");
+const shared_1 = require("../shared");
 class AnswerValidator {
     /**
      * Validate all answers against questionnaire
@@ -51,7 +52,7 @@ class AnswerValidator {
         const correctCount = results.filter((r) => r.correct).length;
         const totalValidatable = results.length;
         const mapAsArray = [...map.entries()];
-        const weightedAccuracyPercent = mapAsArray.reduce((sum, x) => sum + ToPercentage((x[1].correct / (x[1].correct + x[1].incorrect + x[1].notSet)) * consts_1.QUESTIONS_WEIGHT_DISTRIBUTION[x[0]]), 0);
+        const weightedAccuracyPercent = mapAsArray.reduce((sum, x) => sum + (0, shared_1.ToPercentage)((x[1].correct / (x[1].correct + x[1].incorrect + x[1].notSet)) * consts_1.QUESTIONS_WEIGHT_DISTRIBUTION[x[0]]), 0);
         return {
             format: format,
             totalQuestions: totalValidatable,
@@ -59,7 +60,7 @@ class AnswerValidator {
             accuracy: {
                 correct: correctCount,
                 incorrect: totalValidatable - correctCount,
-                accuracyPercent: ToPercentage(correctCount / totalValidatable),
+                accuracyPercent: (0, shared_1.ToPercentage)(correctCount / totalValidatable),
                 weightedAccuracyPercent: weightedAccuracyPercent
             },
             charactersOfAnswers: {
@@ -75,8 +76,8 @@ class AnswerValidator {
                     correct: counter.correct,
                     incorrect: counter.incorrect,
                     unanswered: counter.notSet,
-                    accuracyPercent: ToPercentage(counter.correct / (counter.correct + counter.incorrect + counter.notSet)),
-                    weightedAccuracyPercent: ToPercentage((counter.correct / (counter.correct + counter.incorrect + counter.notSet)) * consts_1.QUESTIONS_WEIGHT_DISTRIBUTION[category]),
+                    accuracyPercent: (0, shared_1.ToPercentage)(counter.correct / (counter.correct + counter.incorrect + counter.notSet)),
+                    weightedAccuracyPercent: (0, shared_1.ToPercentage)((counter.correct / (counter.correct + counter.incorrect + counter.notSet)) * consts_1.QUESTIONS_WEIGHT_DISTRIBUTION[category]),
                 };
             })
         };
@@ -85,7 +86,7 @@ class AnswerValidator {
         if (!answer)
             return 0;
         if (Array.isArray(answer))
-            return answer.map(x => x.length).reduce((sum, x) => sum + x);
+            return answer.map(x => x.length).reduce((sum, x) => sum + x, 0);
         return String(answer).length;
     }
     validateSingleAnswer(question, providedAnswer) {

@@ -30,6 +30,7 @@ var __importStar = (this && this.__importStar) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const fs = __importStar(require("fs"));
 const path = __importStar(require("path"));
+const shared_1 = require("../shared");
 class MetricsExtraction {
     agentIdsFile;
     projectsDir;
@@ -235,16 +236,17 @@ class MetricsExtraction {
                     if (data.type === "assistant") {
                         const msg = data.message || {};
                         const content = msg.content || [];
-                        if (data.parentUuid && readToolUses.has(data.parentUuid)) {
-                            const result_timestamp = data.timestamp || "";
-                            const entry = readToolUses.get(data.parentUuid);
+                        if (data.parentUuid && readToolResults.has(data.parentUuid)) {
+                            const entry = readToolResults.get(data.parentUuid);
                             if (msg.usage) {
                                 // Use cache_creation_input_tokens for read metrics
-                                const cache_creation = msg.usage.cache_creation_input_tokens || 0;
                                 // Total tokens for this read operation (newly created input)
-                                const total_tokens = cache_creation;
+                                const cache_creation = msg.usage.cache_creation_input_tokens || 0;
+                                if (cache_creation === 0) {
+                                    console.warn(`Warning reading transcript ${jsonlPath}: Skipped extraction because zero tokens were found which points to a faulty or aborted run`);
+                                    return null;
+                                }
                                 // Calculate time difference
-                                const time_ms = this.getDuration(entry.tool_use_timestamp, result_timestamp);
                                 const file_name = path.basename(entry.file_path);
                                 // Extract structure (flat or nested) from filename
                                 // Pattern: *_flat_records.json or *_nested_records.json
@@ -259,8 +261,8 @@ class MetricsExtraction {
                                     file: file_name,
                                     path: entry.file_path,
                                     structure,
-                                    tokens: total_tokens,
-                                    time_ms,
+                                    tokens: cache_creation,
+                                    time_ms: entry.read_duration,
                                     agentId,
                                 };
                             }
@@ -288,20 +290,25 @@ class MetricsExtraction {
                                 // Check if this tool_use_id is in our read tool uses and store t
                                 if (item && item.type === "tool_result" && item.tool_use_id && readToolUses.has(item.tool_use_id)) {
                                     const entry = readToolUses.get(item.tool_use_id);
-                                    readToolResults.set(data.uuid, entry);
+                                    const read_duration = this.getDuration(entry.tool_use_timestamp, data.timestamp);
+                                    readToolResults.set(data.uuid, {
+                                        file_path: entry.file_path,
+                                        read_duration: read_duration
+                                    });
                                 }
                             }
                         }
                     }
                 }
                 catch (e) {
-                    // Skip invalid JSON lines
+                    console.error(`Error reading transcript ${jsonlPath}: ${e}`);
                 }
             }
         }
         catch (err) {
             console.warn(`Error reading transcript ${jsonlPath}: ${err}`);
         }
+        console.warn(`Error reading transcript ${jsonlPath}: No return`);
         return null;
     }
     extractReasoningMetrics(transcripts, agentIdEntries) {
@@ -355,7 +362,7 @@ class MetricsExtraction {
             let last_before_write_timestamp = null;
             let last_timestamp = null;
             let output_tokens_before_write = 0;
-            let output_tokens_for_write = 0;
+            let output_tokens_write = 0;
             let message_count = 0;
             for (const line of lines) {
                 if (!line.trim())
@@ -372,10 +379,10 @@ class MetricsExtraction {
                     if (data.type === "assistant") {
                         const msg = data.message || {};
                         if (msg && msg.usage) {
-                            const output = msg.usage.output_tokens || 0;
-                            if (output > 0) {
+                            const outputTokens = msg.usage.output_tokens || 0;
+                            if (outputTokens > 0) {
                                 // Add all output tokens in assistent messages that the transcript contains; these are a mix of output generation and reasoning to hide the exact reasoning tokens count
-                                output_tokens_before_write += output;
+                                output_tokens_before_write += outputTokens;
                                 message_count++;
                             }
                             const content = msg.content;
@@ -384,11 +391,15 @@ class MetricsExtraction {
                                     if (item && item.type === "tool_use" && item.name === "Write") {
                                         // If the file is written for the first time the benchmark is finished; substract the output tokens from the before write sum and store the write output separate for later calculations
                                         last_timestamp = data.timestamp;
-                                        output_tokens_before_write -= output;
-                                        output_tokens_for_write = output;
+                                        output_tokens_write = outputTokens;
+                                        output_tokens_before_write -= outputTokens;
                                         break;
                                     }
                                 }
+                            }
+                            if (last_timestamp) {
+                                // If write was extracted break the line loop
+                                break;
                             }
                             // Get get the timestamp of the last assistant message before write tool use
                             last_before_write_timestamp = data.timestamp;
@@ -409,14 +420,15 @@ class MetricsExtraction {
                     duration_write_ms: duration_write_ms || 0,
                     duration_total_ms: duration_ms || 0,
                     output_tokens_before_write: output_tokens_before_write,
-                    output_tokens_write: output_tokens_for_write,
-                    output_tokens_total: output_tokens_before_write + output_tokens_for_write,
+                    output_tokens_write: output_tokens_write,
+                    output_tokens_total: output_tokens_before_write + output_tokens_write,
                 };
             }
         }
         catch (err) {
             console.warn(`Error reading transcript ${jsonlPath}: ${err}`);
         }
+        console.warn(`Error reading transcript ${jsonlPath}: No return`);
         return null;
     }
     getDuration(first_timestamp, second_timestamp) {
@@ -445,22 +457,22 @@ class MetricsExtraction {
                     variant: firstMetric.variant,
                     recordCount: firstMetric.recordCount,
                     testRuns: metricsFilesCount,
-                    durationBeforeWriteMs: roundTo3Digits(metrics.reduce((sum, m) => sum + m.durationBeforeWriteMs, 0) / metricsFilesCount),
+                    durationBeforeWriteMs: (0, shared_1.roundTo3Digits)(metrics.reduce((sum, m) => sum + m.durationBeforeWriteMs, 0) / metricsFilesCount),
                     durationBeforeWriteMsMin: Math.min(...metrics.map(x => x.durationBeforeWriteMs)),
                     durationBeforeWriteMsMax: Math.max(...metrics.map(x => x.durationBeforeWriteMs)),
-                    durationWriteMs: roundTo3Digits(metrics.reduce((sum, m) => sum + m.durationWriteMs, 0) / metricsFilesCount),
+                    durationWriteMs: (0, shared_1.roundTo3Digits)(metrics.reduce((sum, m) => sum + m.durationWriteMs, 0) / metricsFilesCount),
                     durationWriteMsMin: Math.min(...metrics.map(x => x.durationWriteMs)),
                     durationWriteMsMax: Math.max(...metrics.map(x => x.durationWriteMs)),
-                    durationTotalMs: roundTo3Digits(metrics.reduce((sum, m) => sum + m.durationTotalMs, 0) / metricsFilesCount),
+                    durationTotalMs: (0, shared_1.roundTo3Digits)(metrics.reduce((sum, m) => sum + m.durationTotalMs, 0) / metricsFilesCount),
                     durationTotalMsMin: Math.min(...metrics.map(x => x.durationTotalMs)),
                     durationTotalMsMax: Math.max(...metrics.map(x => x.durationTotalMs)),
-                    outputTokensBeforeWrite: roundTo3Digits(metrics.reduce((sum, m) => sum + m.outputTokensBeforeWrite, 0) / metricsFilesCount),
+                    outputTokensBeforeWrite: (0, shared_1.roundTo3Digits)(metrics.reduce((sum, m) => sum + m.outputTokensBeforeWrite, 0) / metricsFilesCount),
                     outputTokensBeforeWriteMin: Math.min(...metrics.map(x => x.outputTokensBeforeWrite)),
                     outputTokensBeforeWriteMax: Math.max(...metrics.map(x => x.outputTokensBeforeWrite)),
-                    outputTokensWrite: roundTo3Digits(metrics.reduce((sum, m) => sum + m.outputTokensWrite, 0) / metricsFilesCount),
+                    outputTokensWrite: (0, shared_1.roundTo3Digits)(metrics.reduce((sum, m) => sum + m.outputTokensWrite, 0) / metricsFilesCount),
                     outputTokensWriteMin: Math.min(...metrics.map(x => x.outputTokensWrite)),
                     outputTokensWriteMax: Math.max(...metrics.map(x => x.outputTokensWrite)),
-                    outputTokensTotal: roundTo3Digits(metrics.reduce((sum, m) => sum + m.outputTokensTotal, 0) / metricsFilesCount),
+                    outputTokensTotal: (0, shared_1.roundTo3Digits)(metrics.reduce((sum, m) => sum + m.outputTokensTotal, 0) / metricsFilesCount),
                     outputTokensTotalMin: Math.min(...metrics.map(x => x.outputTokensTotal)),
                     outputTokensTotalMax: Math.max(...metrics.map(x => x.outputTokensTotal)),
                 });
@@ -483,27 +495,27 @@ class MetricsExtraction {
                 summary: {
                     totalFiles: readMetricsFilesCount,
                     totalReadTokens: total_read_tokens,
-                    totalReadDurationMs: roundTo3Digits(total_read_duration),
-                    averageReadTokens: readMetricsFilesCount > 0 ? roundTo3Digits(total_read_tokens / readMetricsFilesCount) : 0,
-                    averageDurationMs: readMetricsFilesCount > 0 ? roundTo3Digits(total_read_duration / readMetricsFilesCount) : 0,
+                    totalReadDurationMs: (0, shared_1.roundTo3Digits)(total_read_duration),
+                    averageReadTokens: readMetricsFilesCount > 0 ? (0, shared_1.roundTo3Digits)(total_read_tokens / readMetricsFilesCount) : 0,
+                    averageDurationMs: readMetricsFilesCount > 0 ? (0, shared_1.roundTo3Digits)(total_read_duration / readMetricsFilesCount) : 0,
                 },
             },
             reasoning: {
                 files: reasoningFiles,
                 summary: {
                     totalTestCases: reasoningFilesCount,
-                    totalBeforeWriteDuration: roundTo3Digits(before_write_duration),
-                    totalWriteDurationMs: roundTo3Digits(write_duration),
-                    totalDurationMs: roundTo3Digits(total_duration),
-                    averageBeforeWriteDurationMs: reasoningFilesCount > 0 ? roundTo3Digits(before_write_duration / reasoningFilesCount) : 0,
-                    averageWriteDurationMs: reasoningFilesCount > 0 ? roundTo3Digits(write_duration / reasoningFilesCount) : 0,
-                    averageDurationMs: reasoningFilesCount > 0 ? roundTo3Digits(total_duration / reasoningFilesCount) : 0,
-                    totalBeforeWriteOutputTokens: roundTo3Digits(before_write_output),
-                    totalWriteOutputTokens: roundTo3Digits(write_output),
-                    totalOutputTokens: roundTo3Digits(total_output),
-                    averageBeforeWriteOutputTokens: reasoningFilesCount > 0 ? roundTo3Digits(before_write_output / reasoningFilesCount) : 0,
-                    averageWriteOutputTokens: reasoningFilesCount > 0 ? roundTo3Digits(write_output / reasoningFilesCount) : 0,
-                    averageOutputTokens: reasoningFilesCount > 0 ? roundTo3Digits(total_output / reasoningFilesCount) : 0,
+                    totalBeforeWriteDuration: (0, shared_1.roundTo3Digits)(before_write_duration),
+                    totalWriteDurationMs: (0, shared_1.roundTo3Digits)(write_duration),
+                    totalDurationMs: (0, shared_1.roundTo3Digits)(total_duration),
+                    averageBeforeWriteDurationMs: reasoningFilesCount > 0 ? (0, shared_1.roundTo3Digits)(before_write_duration / reasoningFilesCount) : 0,
+                    averageWriteDurationMs: reasoningFilesCount > 0 ? (0, shared_1.roundTo3Digits)(write_duration / reasoningFilesCount) : 0,
+                    averageDurationMs: reasoningFilesCount > 0 ? (0, shared_1.roundTo3Digits)(total_duration / reasoningFilesCount) : 0,
+                    totalBeforeWriteOutputTokens: (0, shared_1.roundTo3Digits)(before_write_output),
+                    totalWriteOutputTokens: (0, shared_1.roundTo3Digits)(write_output),
+                    totalOutputTokens: (0, shared_1.roundTo3Digits)(total_output),
+                    averageBeforeWriteOutputTokens: reasoningFilesCount > 0 ? (0, shared_1.roundTo3Digits)(before_write_output / reasoningFilesCount) : 0,
+                    averageWriteOutputTokens: reasoningFilesCount > 0 ? (0, shared_1.roundTo3Digits)(write_output / reasoningFilesCount) : 0,
+                    averageOutputTokens: reasoningFilesCount > 0 ? (0, shared_1.roundTo3Digits)(total_output / reasoningFilesCount) : 0,
                 },
             },
         };
@@ -558,26 +570,26 @@ class MetricsExtraction {
                 readDurationInMs: readData.readDurationMs,
                 readTokens: readData.readTokens,
                 outputDurationBeforeWriteInMs: reasoning.durationBeforeWriteMs,
-                outputDurationBeforeWriteDriftPercMax: calcDriftPerc(reasoning.durationBeforeWriteMs, reasoning.durationBeforeWriteMsMax),
-                outputDurationBeforeWriteDriftPercMin: calcDriftPerc(reasoning.durationBeforeWriteMs, reasoning.durationBeforeWriteMsMin),
+                outputDurationBeforeWriteDriftPercMax: (0, shared_1.calcDriftPerc)(reasoning.durationBeforeWriteMs, reasoning.durationBeforeWriteMsMax),
+                outputDurationBeforeWriteDriftPercMin: (0, shared_1.calcDriftPerc)(reasoning.durationBeforeWriteMs, reasoning.durationBeforeWriteMsMin),
                 outputDurationWriteInMs: reasoning.durationWriteMs,
-                outputDurationWriteDriftPercMax: calcDriftPerc(reasoning.durationWriteMs, reasoning.durationWriteMsMax),
-                outputDurationWriteDriftPercMin: calcDriftPerc(reasoning.durationWriteMs, reasoning.durationWriteMsMin),
+                outputDurationWriteDriftPercMax: (0, shared_1.calcDriftPerc)(reasoning.durationWriteMs, reasoning.durationWriteMsMax),
+                outputDurationWriteDriftPercMin: (0, shared_1.calcDriftPerc)(reasoning.durationWriteMs, reasoning.durationWriteMsMin),
                 outputDurationTotalInMs: reasoning.durationTotalMs,
-                outputDurationTotalDriftPercMax: calcDriftPerc(reasoning.durationTotalMs, reasoning.durationTotalMsMax),
-                outputDurationTotalDriftPercMin: calcDriftPerc(reasoning.durationTotalMs, reasoning.durationTotalMsMin),
+                outputDurationTotalDriftPercMax: (0, shared_1.calcDriftPerc)(reasoning.durationTotalMs, reasoning.durationTotalMsMax),
+                outputDurationTotalDriftPercMin: (0, shared_1.calcDriftPerc)(reasoning.durationTotalMs, reasoning.durationTotalMsMin),
                 outputTokensBeforeWrite: reasoning.outputTokensBeforeWrite,
-                outputTokensBeforeWriteDriftPercMin: calcDriftPerc(reasoning.outputTokensBeforeWrite, reasoning.outputTokensBeforeWriteMin),
-                outputTokensBeforeWriteDriftPercMax: calcDriftPerc(reasoning.outputTokensBeforeWrite, reasoning.outputTokensBeforeWriteMax),
+                outputTokensBeforeWriteDriftPercMin: (0, shared_1.calcDriftPerc)(reasoning.outputTokensBeforeWrite, reasoning.outputTokensBeforeWriteMin),
+                outputTokensBeforeWriteDriftPercMax: (0, shared_1.calcDriftPerc)(reasoning.outputTokensBeforeWrite, reasoning.outputTokensBeforeWriteMax),
                 outputTokensWrite: reasoning.outputTokensWrite,
-                outputTokensWriteDriftPercMin: calcDriftPerc(reasoning.outputTokensWrite, reasoning.outputTokensWriteMin),
-                outputTokensWriteDriftPercMax: calcDriftPerc(reasoning.outputTokensWrite, reasoning.outputTokensWriteMax),
+                outputTokensWriteDriftPercMin: (0, shared_1.calcDriftPerc)(reasoning.outputTokensWrite, reasoning.outputTokensWriteMin),
+                outputTokensWriteDriftPercMax: (0, shared_1.calcDriftPerc)(reasoning.outputTokensWrite, reasoning.outputTokensWriteMax),
                 outputTokensTotal: reasoning.outputTokensTotal,
-                outputTokensTotalDriftPercMin: calcDriftPerc(reasoning.outputTokensTotal, reasoning.outputTokensTotalMin),
-                outputTokensTotalDriftPercMax: calcDriftPerc(reasoning.outputTokensTotal, reasoning.outputTokensTotalMax),
+                outputTokensTotalDriftPercMin: (0, shared_1.calcDriftPerc)(reasoning.outputTokensTotal, reasoning.outputTokensTotalMin),
+                outputTokensTotalDriftPercMax: (0, shared_1.calcDriftPerc)(reasoning.outputTokensTotal, reasoning.outputTokensTotalMax),
                 totalTokens: totalTokens,
-                totalTokensDriftPercMin: calcDriftPerc(totalTokens, readData.readTokens + reasoning.outputTokensTotalMin),
-                totalTokensDriftPercMax: calcDriftPerc(totalTokens, readData.readTokens + reasoning.outputTokensTotalMax),
+                totalTokensDriftPercMin: (0, shared_1.calcDriftPerc)(totalTokens, readData.readTokens + reasoning.outputTokensTotalMin),
+                totalTokensDriftPercMax: (0, shared_1.calcDriftPerc)(totalTokens, readData.readTokens + reasoning.outputTokensTotalMax),
             });
         }
         return merged;

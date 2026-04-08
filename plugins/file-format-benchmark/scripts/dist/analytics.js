@@ -36,6 +36,7 @@ const agent_discovery_1 = require("./analytics/agent-discovery");
 const metrics_extraction_1 = __importDefault(require("./analytics/metrics-extraction"));
 const reportValidator_1 = __importDefault(require("./validators/reportValidator"));
 const consts_1 = require("./consts");
+const shared_1 = require("./shared");
 class BenchmarkAnalytics {
     outputDir;
     validationDir;
@@ -69,7 +70,7 @@ class BenchmarkAnalytics {
         if (testMetrics.length === 0) {
             return;
         }
-        console.log("Generating insights...");
+        console.log("Orchestrate analytic file...");
         const analytics = this.generateAnalytics(testMetrics);
         console.log(`Writing results to ${this.outputFile}...`);
         this.writeOutput(analytics);
@@ -183,7 +184,7 @@ class BenchmarkAnalytics {
                 characterCount: datasetInfo.characterCount,
                 readTokens: userMetric.readTokens,
                 readDurationInMs: userMetric.readDurationInMs,
-                readTokensPerMs: roundTo3Digits(userMetric.readTokens / userMetric.readDurationInMs),
+                readTokensPerMs: (0, shared_1.roundTo3Digits)(userMetric.readTokens / userMetric.readDurationInMs),
                 outputTokensBeforeWrite: userMetric.outputTokensBeforeWrite,
                 outputTokensBeforeWriteDriftPercMin: userMetric.outputTokensBeforeWriteDriftPercMin,
                 outputTokensBeforeWriteDriftPercMax: userMetric.outputTokensBeforeWriteDriftPercMax,
@@ -202,9 +203,9 @@ class BenchmarkAnalytics {
                 outputDurationTotalInMs: userMetric.outputDurationTotalInMs,
                 outputDurationTotalDriftPercMin: userMetric.outputDurationTotalDriftPercMin,
                 outputDurationTotalDriftPercMax: userMetric.outputDurationTotalDriftPercMax,
-                outputTokensBeforeWritePerMs: roundTo3Digits(userMetric.outputTokensBeforeWrite / userMetric.outputDurationBeforeWriteInMs),
-                outputTokensWritePerMs: roundTo3Digits(userMetric.outputTokensWrite / userMetric.outputDurationWriteInMs),
-                outputTokensTotalPerMs: roundTo3Digits(userMetric.outputTokensTotal / userMetric.outputDurationTotalInMs),
+                outputTokensBeforeWritePerMs: (0, shared_1.roundTo3Digits)(userMetric.outputTokensBeforeWrite / userMetric.outputDurationBeforeWriteInMs),
+                outputTokensWritePerMs: (0, shared_1.roundTo3Digits)(userMetric.outputTokensWrite / userMetric.outputDurationWriteInMs),
+                outputTokensTotalPerMs: (0, shared_1.roundTo3Digits)(userMetric.outputTokensTotal / userMetric.outputDurationTotalInMs),
                 totalQuestions: validation.totalQuestions,
                 noAnswers: validation.totalQuestions - validation.accuracy.correct - validation.accuracy.incorrect,
                 incorrectAnswers: validation.accuracy.incorrect,
@@ -215,34 +216,34 @@ class BenchmarkAnalytics {
                 weightedAccuracyPercent: validation.accuracy.weightedAccuracyPercent,
                 weightedAccuracyDriftPercentMax: validation.accuracy.weightedAccuracyDriftPercMin,
                 weightedAccuracyDriftPercentMin: validation.accuracy.weightedAccuracyDriftPercMax,
-                charsPerReadToken: roundTo3Digits(datasetInfo.characterCount / userMetric.readTokens),
-                readTokensPerValue: roundTo3Digits(userMetric.readTokens / datasetInfo.totalValues),
-                readTokensPerObject: roundTo3Digits(userMetric.readTokens / datasetInfo.recordCount),
-                outputTokensWritePerAnswer: roundTo3Digits(userMetric.outputTokensWrite / validation.totalQuestions),
-                informationValuePerReadTokens: roundTo3Digits((validation.accuracy.accuracyPercent / userMetric.readTokens) * 100),
-                informationValuePerOutputTokens: roundTo3Digits((validation.accuracy.accuracyPercent / userMetric.outputTokensTotal) * 100),
-                informationValuePerTotalTokens: roundTo3Digits((validation.accuracy.accuracyPercent / userMetric.totalTokens) * 100),
+                charsPerReadToken: (0, shared_1.roundTo3Digits)(datasetInfo.characterCount / userMetric.readTokens),
+                readTokensPerValue: (0, shared_1.roundTo3Digits)(userMetric.readTokens / datasetInfo.totalValues),
+                readTokensPerObject: (0, shared_1.roundTo3Digits)(userMetric.readTokens / datasetInfo.recordCount),
+                outputTokensWritePerAnswer: (0, shared_1.roundTo3Digits)(userMetric.outputTokensWrite / validation.totalQuestions),
+                informationValuePerReadTokens: (0, shared_1.roundTo3Digits)((validation.accuracy.accuracyPercent / userMetric.readTokens) * 100),
+                informationValuePerOutputTokens: (0, shared_1.roundTo3Digits)((validation.accuracy.accuracyPercent / userMetric.outputTokensTotal) * 100),
+                informationValuePerTotalTokens: (0, shared_1.roundTo3Digits)((validation.accuracy.accuracyPercent / userMetric.totalTokens) * 100),
                 totalTokens: userMetric.totalTokens,
                 totalTokensDriftPercMin: userMetric.totalTokensDriftPercMin,
                 totalTokensDriftPercMax: userMetric.totalTokensDriftPercMax,
-                wastedReadTokens: roundTo3Digits(userMetric.readTokens * (1 - accuracy)),
-                wastedOutputTokens: roundTo3Digits(userMetric.outputTokensTotal * (1 - accuracy)),
-                wastedTotalTokens: roundTo3Digits(userMetric.totalTokens * (1 - accuracy)),
-                usefulReadTokens: roundTo3Digits(userMetric.readTokens * accuracy),
-                usefulOutputTokens: roundTo3Digits(userMetric.outputTokensTotal * accuracy),
-                usefulTotalTokens: roundTo3Digits(userMetric.totalTokens * accuracy),
-                weightedWastedReadTokens: roundTo3Digits(userMetric.readTokens * (1 - weightedAccuracy)),
-                weightedWastedOutputTokens: roundTo3Digits(userMetric.outputTokensTotal * (1 - weightedAccuracy)),
-                weightedWastedTotalTokens: roundTo3Digits(userMetric.totalTokens * (1 - weightedAccuracy)),
-                weightedUsefulReadTokens: roundTo3Digits(userMetric.readTokens * weightedAccuracy),
-                weightedUsefulOutputTokens: roundTo3Digits(userMetric.outputTokensTotal * weightedAccuracy),
-                weightedUsefulTotalTokens: roundTo3Digits(userMetric.totalTokens * weightedAccuracy),
-                efficiencyScoreRead: roundTo3Digits(accuracyPercPartOfScore + normalizedReadTokensScore),
-                efficiencyScoreOutput: roundTo3Digits(accuracyPercPartOfScore + normalizedOutputTokensScore),
-                efficiencyScoreTotal: roundTo3Digits(accuracyPercPartOfScore + normalizedTotalTokensScore),
-                weightedEfficiencyScoreRead: roundTo3Digits(weightedAccuracyPercPartOfScore + normalizedReadTokensScore),
-                weightedEfficiencyScoreOutput: roundTo3Digits(weightedAccuracyPercPartOfScore + normalizedOutputTokensScore),
-                weightedEfficiencyScoreTotal: roundTo3Digits(weightedAccuracyPercPartOfScore + normalizedTotalTokensScore),
+                wastedReadTokens: (0, shared_1.roundTo3Digits)(userMetric.readTokens * (1 - accuracy)),
+                wastedOutputTokens: (0, shared_1.roundTo3Digits)(userMetric.outputTokensTotal * (1 - accuracy)),
+                wastedTotalTokens: (0, shared_1.roundTo3Digits)(userMetric.totalTokens * (1 - accuracy)),
+                usefulReadTokens: (0, shared_1.roundTo3Digits)(userMetric.readTokens * accuracy),
+                usefulOutputTokens: (0, shared_1.roundTo3Digits)(userMetric.outputTokensTotal * accuracy),
+                usefulTotalTokens: (0, shared_1.roundTo3Digits)(userMetric.totalTokens * accuracy),
+                weightedWastedReadTokens: (0, shared_1.roundTo3Digits)(userMetric.readTokens * (1 - weightedAccuracy)),
+                weightedWastedOutputTokens: (0, shared_1.roundTo3Digits)(userMetric.outputTokensTotal * (1 - weightedAccuracy)),
+                weightedWastedTotalTokens: (0, shared_1.roundTo3Digits)(userMetric.totalTokens * (1 - weightedAccuracy)),
+                weightedUsefulReadTokens: (0, shared_1.roundTo3Digits)(userMetric.readTokens * weightedAccuracy),
+                weightedUsefulOutputTokens: (0, shared_1.roundTo3Digits)(userMetric.outputTokensTotal * weightedAccuracy),
+                weightedUsefulTotalTokens: (0, shared_1.roundTo3Digits)(userMetric.totalTokens * weightedAccuracy),
+                efficiencyScoreRead: (0, shared_1.roundTo3Digits)(accuracyPercPartOfScore + normalizedReadTokensScore),
+                efficiencyScoreOutput: (0, shared_1.roundTo3Digits)(accuracyPercPartOfScore + normalizedOutputTokensScore),
+                efficiencyScoreTotal: (0, shared_1.roundTo3Digits)(accuracyPercPartOfScore + normalizedTotalTokensScore),
+                weightedEfficiencyScoreRead: (0, shared_1.roundTo3Digits)(weightedAccuracyPercPartOfScore + normalizedReadTokensScore),
+                weightedEfficiencyScoreOutput: (0, shared_1.roundTo3Digits)(weightedAccuracyPercPartOfScore + normalizedOutputTokensScore),
+                weightedEfficiencyScoreTotal: (0, shared_1.roundTo3Digits)(weightedAccuracyPercPartOfScore + normalizedTotalTokensScore),
             });
         }
         return metrics;
