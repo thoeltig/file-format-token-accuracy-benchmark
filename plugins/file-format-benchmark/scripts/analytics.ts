@@ -223,7 +223,7 @@ class BenchmarkAnalytics {
         charsPerReadToken: roundTo3Digits(datasetInfo.characterCount / userMetric.readTokens),
         readTokensPerValue: roundTo3Digits(userMetric.readTokens / datasetInfo.totalValues),
         readTokensPerObject: roundTo3Digits(userMetric.readTokens / datasetInfo.recordCount),
-        outputTokensPerAnswer: roundTo3Digits(userMetric.outputTokensWrite / validation.totalQuestions),
+        outputTokensWritePerAnswer: roundTo3Digits(userMetric.outputTokensWrite / validation.totalQuestions),
         informationValuePerReadTokens: roundTo3Digits((validation.accuracy.accuracyPercent / userMetric.readTokens) * 100),
         informationValuePerOutputTokens: roundTo3Digits((validation.accuracy.accuracyPercent / userMetric.outputTokensTotal) * 100),
         informationValuePerTotalTokens: roundTo3Digits((validation.accuracy.accuracyPercent / userMetric.totalTokens) * 100),

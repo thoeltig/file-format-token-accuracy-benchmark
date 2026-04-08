@@ -515,7 +515,7 @@ export interface Metrics {
   // Information efficiency: tokens needed per object. Lower is better - accounts for structural overhead.
   readTokensPerObject: number; 
   // Reasoning cost per question answered. Indicates how complex the reasoning task is for this format
-  outputTokensPerAnswer: number;
+  outputTokensWritePerAnswer: number;
   // Represents information density: how much accuracy per token consumed. Higher values indicate more information delivered per token.
   informationValuePerReadTokens: number;
   informationValuePerOutputTokens: number;
