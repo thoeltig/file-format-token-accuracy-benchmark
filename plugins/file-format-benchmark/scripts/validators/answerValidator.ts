@@ -4,6 +4,7 @@
  */
 
 import { QUESTIONS_WEIGHT_DISTRIBUTION } from "../consts";
+import { ToPercentage } from "../shared";
 import {
   AnswerTemplate,
   ValidationResult,
@@ -113,7 +114,7 @@ export class AnswerValidator {
       return 0;
 
     if(Array.isArray(answer))
-      return answer.map(x => x.length).reduce((sum, x) => sum + x);
+      return answer.map(x => x.length).reduce((sum, x) => sum + x, 0);
 
     return String(answer).length;
   }

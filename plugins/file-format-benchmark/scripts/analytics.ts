@@ -10,6 +10,7 @@ import MetricsExtraction from "./analytics/metrics-extraction";
 import { AnalyticsOutput, GeneratorResult, MergedValidationReport, TestMetrics, UserMetrics } from "./types";
 import ReportValidator from "./validators/reportValidator";
 import { DIRECTORY_ANSWERS_VALIDATION, FILE_AGENT_ID, FILE_ANALYTICS_RESULT, FILE_METADATA, FILE_METRICS, QUESTIONS_DISTRIBUTION, QUESTIONS_WEIGHT_DISTRIBUTION } from "./consts";
+import { roundTo3Digits } from "./shared";
 
 class BenchmarkAnalytics {
   private outputDir: string;
@@ -50,7 +51,7 @@ class BenchmarkAnalytics {
       return;
     }
 
-    console.log("Generating insights...");
+    console.log("Orchestrate analytic file...");
     const analytics = this.generateAnalytics(testMetrics);
 
     console.log(`Writing results to ${this.outputFile}...`);

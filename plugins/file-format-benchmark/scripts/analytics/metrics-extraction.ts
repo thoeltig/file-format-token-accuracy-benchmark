@@ -7,6 +7,7 @@
 import * as fs from "fs";
 import * as path from "path";
 import { AgentIdsFile, FullTestAgentIdEntry, ReadOnlyAgentIdEntry, UserMetrics } from "../types";
+import { calcDriftPerc, roundTo3Digits } from "../shared";
 
 interface ReadMetricsFile {
   file: string;
@@ -315,7 +316,7 @@ class MetricsExtraction {
 
       // Track Read tool uses with their file paths and timestamps
       const readToolUses: Map<string, { file_path: string; tool_use_timestamp: string }> = new Map();
-      const readToolResults: Map<string, { file_path: string; tool_use_timestamp: string }> = new Map();
+      const readToolResults: Map<string, { file_path: string; read_duration: number | null }> = new Map();
 
       // First pass: find all tool_use Read operations with file_path and timestamps
       for (let i = 0; i < lines.length; i++) {
@@ -330,18 +331,19 @@ class MetricsExtraction {
               const msg = data.message || {};
               const content = msg.content || [];
 
-            if(data.parentUuid && readToolUses.has(data.parentUuid)) {
-              const result_timestamp = data.timestamp || "";
-              const entry = readToolUses.get(data.parentUuid)!;
+            if(data.parentUuid && readToolResults.has(data.parentUuid)) {
+              const entry = readToolResults.get(data.parentUuid)!;
 
               if (msg.usage) {
                 // Use cache_creation_input_tokens for read metrics
-                const cache_creation = msg.usage.cache_creation_input_tokens || 0;
                 // Total tokens for this read operation (newly created input)
-                const total_tokens = cache_creation;
+                const cache_creation = msg.usage.cache_creation_input_tokens || 0;
+                if(cache_creation === 0){                  
+                  console.warn(`Warning reading transcript ${jsonlPath}: Skipped extraction because zero tokens were found which points to a faulty or aborted run`);
+                  return null;
+                }
 
                 // Calculate time difference
-                const time_ms = this.getDuration(entry.tool_use_timestamp, result_timestamp);
                 const file_name = path.basename(entry.file_path);
 
                 // Extract structure (flat or nested) from filename
@@ -352,13 +354,13 @@ class MetricsExtraction {
                 } else if (file_name.includes("_nested_")) {
                   structure = "nested";
                 }
-
+                
                 return {
                   file: file_name,
                   path: entry.file_path,
                   structure,
-                  tokens: total_tokens,
-                  time_ms,
+                  tokens: cache_creation,
+                  time_ms: entry.read_duration,
                   agentId,
                 };
               }
@@ -387,19 +389,24 @@ class MetricsExtraction {
                 // Check if this tool_use_id is in our read tool uses and store t
                 if (item && item.type === "tool_result" && item.tool_use_id && readToolUses.has(item.tool_use_id)) {
                   const entry = readToolUses.get(item.tool_use_id)!;
-                  readToolResults.set(data.uuid, entry);
+                  const read_duration = this.getDuration(entry.tool_use_timestamp, data.timestamp);
+                  readToolResults.set(data.uuid, {
+                    file_path: entry.file_path,
+                    read_duration: read_duration
+                  });
                 }
               }
             }          
           }
-        } catch (e) {
-          // Skip invalid JSON lines
+        } catch (e) {          
+          console.error(`Error reading transcript ${jsonlPath}: ${e}`);
         }
       }
     } catch (err) {
       console.warn(`Error reading transcript ${jsonlPath}: ${err}`);
     }
 
+    console.warn(`Error reading transcript ${jsonlPath}: No return`);
     return null;
   }
 
@@ -469,7 +476,7 @@ class MetricsExtraction {
       let last_before_write_timestamp: string | null = null;
       let last_timestamp: string | null = null;
       let output_tokens_before_write = 0;
-      let output_tokens_for_write = 0;
+      let output_tokens_write = 0;
       let message_count = 0;
 
       for (const line of lines) {
@@ -489,11 +496,11 @@ class MetricsExtraction {
           if (data.type === "assistant") {
             const msg = data.message || {};
             if (msg && msg.usage) {
-              const output = msg.usage.output_tokens || 0;
+              const outputTokens = msg.usage.output_tokens || 0;
 
-              if (output > 0) {
+              if (outputTokens > 0) {
                 // Add all output tokens in assistent messages that the transcript contains; these are a mix of output generation and reasoning to hide the exact reasoning tokens count
-                output_tokens_before_write += output;
+                output_tokens_before_write += outputTokens;
                 message_count++;
               }
 
@@ -503,11 +510,16 @@ class MetricsExtraction {
                   if (item && item.type === "tool_use" && item.name === "Write") {      
                     // If the file is written for the first time the benchmark is finished; substract the output tokens from the before write sum and store the write output separate for later calculations
                     last_timestamp = data.timestamp;
-                    output_tokens_before_write -= output;
-                    output_tokens_for_write = output;
+                    output_tokens_write = outputTokens;
+                    output_tokens_before_write -= outputTokens;
                     break;
                   }
                 }
+              }
+
+              if(last_timestamp) {
+                // If write was extracted break the line loop
+                break;
               }
 
               // Get get the timestamp of the last assistant message before write tool use
@@ -530,14 +542,15 @@ class MetricsExtraction {
           duration_write_ms: duration_write_ms || 0,
           duration_total_ms: duration_ms || 0,
           output_tokens_before_write: output_tokens_before_write,
-          output_tokens_write: output_tokens_for_write,
-          output_tokens_total: output_tokens_before_write + output_tokens_for_write,
+          output_tokens_write: output_tokens_write,
+          output_tokens_total: output_tokens_before_write + output_tokens_write,
         };
       }
     } catch (err) {
       console.warn(`Error reading transcript ${jsonlPath}: ${err}`);
     }
 
+    console.warn(`Error reading transcript ${jsonlPath}: No return`);
     return null;
   }
 
