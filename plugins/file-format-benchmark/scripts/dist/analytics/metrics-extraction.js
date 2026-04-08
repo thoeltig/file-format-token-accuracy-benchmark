@@ -201,8 +201,8 @@ class MetricsExtraction {
                 console.warn(`No transcript found for read-only agent: ${entry.agentId}`);
                 continue;
             }
-            const metricsFromTranscript = this.extractFileTokensFromTranscript(transcript, entry.agentId);
-            for (const metric of metricsFromTranscript) {
+            const metric = this.extractFileTokensFromTranscript(transcript, entry.agentId);
+            if (metric) {
                 results.push({
                     file: metric.file,
                     path: metric.path,
@@ -219,11 +219,11 @@ class MetricsExtraction {
         return results;
     }
     extractFileTokensFromTranscript(jsonlPath, agentId) {
-        const results = [];
         try {
             const lines = fs.readFileSync(jsonlPath, "utf-8").split("\n");
             // Track Read tool uses with their file paths and timestamps
             const readToolUses = new Map();
+            const readToolResults = new Map();
             // First pass: find all tool_use Read operations with file_path and timestamps
             for (let i = 0; i < lines.length; i++) {
                 const line = lines[i];
@@ -235,7 +235,37 @@ class MetricsExtraction {
                     if (data.type === "assistant") {
                         const msg = data.message || {};
                         const content = msg.content || [];
-                        if (Array.isArray(content)) {
+                        if (data.parentUuid && readToolUses.has(data.parentUuid)) {
+                            const result_timestamp = data.timestamp || "";
+                            const entry = readToolUses.get(data.parentUuid);
+                            if (msg.usage) {
+                                // Use cache_creation_input_tokens for read metrics
+                                const cache_creation = msg.usage.cache_creation_input_tokens || 0;
+                                // Total tokens for this read operation (newly created input)
+                                const total_tokens = cache_creation;
+                                // Calculate time difference
+                                const time_ms = this.getDuration(entry.tool_use_timestamp, result_timestamp);
+                                const file_name = path.basename(entry.file_path);
+                                // Extract structure (flat or nested) from filename
+                                // Pattern: *_flat_records.json or *_nested_records.json
+                                let structure = "unknown";
+                                if (file_name.includes("_flat_")) {
+                                    structure = "flat";
+                                }
+                                else if (file_name.includes("_nested_")) {
+                                    structure = "nested";
+                                }
+                                return {
+                                    file: file_name,
+                                    path: entry.file_path,
+                                    structure,
+                                    tokens: total_tokens,
+                                    time_ms,
+                                    agentId,
+                                };
+                            }
+                        }
+                        else if (Array.isArray(content)) {
                             for (const item of content) {
                                 if (item && item.type === "tool_use" && item.name === "Read") {
                                     const file_path = item.input?.file_path || "";
@@ -243,92 +273,22 @@ class MetricsExtraction {
                                         const tool_use_id = item.id || "";
                                         readToolUses.set(tool_use_id, {
                                             file_path,
-                                            timestamp: data.timestamp || "",
+                                            tool_use_timestamp: data.timestamp || "",
                                         });
                                     }
                                 }
                             }
                         }
                     }
-                }
-                catch (e) {
-                    // Skip invalid JSON lines
-                }
-            }
-            // Second pass: find tool_result entries and extract token metrics from following assistant message
-            for (let i = 0; i < lines.length; i++) {
-                const line = lines[i];
-                if (!line.trim())
-                    continue;
-                try {
-                    const data = JSON.parse(line);
-                    // Look for user messages with tool_result
-                    if (data.type === "user") {
+                    else if (data.type === "user" && data.uuid) {
                         const msg = data.message || {};
                         const content = msg.content || [];
                         if (Array.isArray(content)) {
                             for (const item of content) {
-                                if (item && item.type === "tool_result") {
-                                    const tool_use_id = item.tool_use_id || "";
-                                    // Check if this tool_use_id is in our Read tool uses
-                                    if (readToolUses.has(tool_use_id)) {
-                                        const { file_path, timestamp: tool_use_timestamp } = readToolUses.get(tool_use_id);
-                                        const result_timestamp = data.timestamp || "";
-                                        // Look ahead to find the next assistant message with usage metrics
-                                        for (let j = i + 1; j < lines.length && j < i + 5; j++) {
-                                            try {
-                                                const next_line = lines[j];
-                                                if (!next_line.trim())
-                                                    continue;
-                                                const next_data = JSON.parse(next_line);
-                                                // Find assistant message with usage
-                                                if (next_data.type === "assistant") {
-                                                    const next_msg = next_data.message || {};
-                                                    if (next_msg && next_msg.usage) {
-                                                        const usage = next_msg.usage;
-                                                        // Use cache_creation_input_tokens for read metrics
-                                                        const cache_creation = usage.cache_creation_input_tokens || 0;
-                                                        // Total tokens for this read operation (newly created input)
-                                                        const total_tokens = cache_creation;
-                                                        // Calculate time difference
-                                                        let time_ms = null;
-                                                        if (tool_use_timestamp && result_timestamp) {
-                                                            try {
-                                                                const tool_use_dt = new Date(tool_use_timestamp);
-                                                                const result_dt = new Date(result_timestamp);
-                                                                time_ms = result_dt.getTime() - tool_use_dt.getTime();
-                                                            }
-                                                            catch (e) {
-                                                                // Skip time calculation if parsing fails
-                                                            }
-                                                        }
-                                                        const file_name = path.basename(file_path);
-                                                        // Extract structure (flat or nested) from filename
-                                                        // Pattern: *_flat_records.json or *_nested_records.json
-                                                        let structure = "unknown";
-                                                        if (file_name.includes("_flat_")) {
-                                                            structure = "flat";
-                                                        }
-                                                        else if (file_name.includes("_nested_")) {
-                                                            structure = "nested";
-                                                        }
-                                                        results.push({
-                                                            file: file_name,
-                                                            path: file_path,
-                                                            structure,
-                                                            tokens: total_tokens,
-                                                            time_ms,
-                                                            agentId,
-                                                        });
-                                                    }
-                                                    break; // Stop looking after finding assistant message
-                                                }
-                                            }
-                                            catch (e) {
-                                                // Skip invalid lines
-                                            }
-                                        }
-                                    }
+                                // Check if this tool_use_id is in our read tool uses and store t
+                                if (item && item.type === "tool_result" && item.tool_use_id && readToolUses.has(item.tool_use_id)) {
+                                    const entry = readToolUses.get(item.tool_use_id);
+                                    readToolResults.set(data.uuid, entry);
                                 }
                             }
                         }
@@ -342,7 +302,7 @@ class MetricsExtraction {
         catch (err) {
             console.warn(`Error reading transcript ${jsonlPath}: ${err}`);
         }
-        return results;
+        return null;
     }
     extractReasoningMetrics(transcripts, agentIdEntries) {
         const resultsMap = new Map();
@@ -364,12 +324,24 @@ class MetricsExtraction {
                     variant: entry.variant,
                     recordCount: entry.recordCount,
                     testRuns: 0, // Will be set during aggregation
-                    durationMs: metrics.duration_ms || 0,
-                    durationMsMin: metrics.duration_ms || 0,
-                    durationMsMax: metrics.duration_ms || 0,
-                    outputTokens: metrics.output_tokens,
-                    outputTokensMin: metrics.output_tokens,
-                    outputTokensMax: metrics.output_tokens,
+                    durationBeforeWriteMs: metrics.duration_before_write_ms,
+                    durationBeforeWriteMsMin: metrics.duration_before_write_ms,
+                    durationBeforeWriteMsMax: metrics.duration_before_write_ms,
+                    durationWriteMs: metrics.duration_write_ms,
+                    durationWriteMsMin: metrics.duration_write_ms,
+                    durationWriteMsMax: metrics.duration_write_ms,
+                    durationTotalMs: metrics.duration_total_ms,
+                    durationTotalMsMin: metrics.duration_total_ms,
+                    durationTotalMsMax: metrics.duration_total_ms,
+                    outputTokensBeforeWrite: metrics.output_tokens_before_write,
+                    outputTokensBeforeWriteMin: metrics.output_tokens_before_write,
+                    outputTokensBeforeWriteMax: metrics.output_tokens_before_write,
+                    outputTokensWrite: metrics.output_tokens_write,
+                    outputTokensWriteMin: metrics.output_tokens_write,
+                    outputTokensWriteMax: metrics.output_tokens_write,
+                    outputTokensTotal: metrics.output_tokens_total,
+                    outputTokensTotalMin: metrics.output_tokens_total,
+                    outputTokensTotalMax: metrics.output_tokens_total,
                 });
             }
         }
@@ -380,8 +352,10 @@ class MetricsExtraction {
             const lines = fs.readFileSync(jsonlPath, "utf-8").split("\n");
             // Accumulate output tokens only until first Write tool call
             let first_timestamp = null;
+            let last_before_write_timestamp = null;
             let last_timestamp = null;
-            let total_output_tokens = 0;
+            let output_tokens_before_write = 0;
+            let output_tokens_for_write = 0;
             let message_count = 0;
             for (const line of lines) {
                 if (!line.trim())
@@ -390,27 +364,34 @@ class MetricsExtraction {
                     const data = JSON.parse(line);
                     if (data.timestamp) {
                         if (!first_timestamp) {
+                            // Get the start timestamp of the benchmark run
                             first_timestamp = data.timestamp;
                         }
                     }
-                    // Extract output tokens from all assistant messages until Write
+                    // Extract output tokens from all assistant messages until write tool use
                     if (data.type === "assistant") {
                         const msg = data.message || {};
                         if (msg && msg.usage) {
                             const output = msg.usage.output_tokens || 0;
                             if (output > 0) {
-                                total_output_tokens += output;
+                                // Add all output tokens in assistent messages that the transcript contains; these are a mix of output generation and reasoning to hide the exact reasoning tokens count
+                                output_tokens_before_write += output;
                                 message_count++;
                             }
                             const content = msg.content;
                             if (Array.isArray(content)) {
                                 for (const item of content) {
                                     if (item && item.type === "tool_use" && item.name === "Write") {
+                                        // If the file is written for the first time the benchmark is finished; substract the output tokens from the before write sum and store the write output separate for later calculations
                                         last_timestamp = data.timestamp;
+                                        output_tokens_before_write -= output;
+                                        output_tokens_for_write = output;
                                         break;
                                     }
                                 }
                             }
+                            // Get get the timestamp of the last assistant message before write tool use
+                            last_before_write_timestamp = data.timestamp;
                         }
                     }
                 }
@@ -418,27 +399,36 @@ class MetricsExtraction {
                     // Skip invalid JSON lines
                 }
             }
-            // Calculate total duration
-            let duration_ms = null;
-            if (first_timestamp && last_timestamp) {
-                try {
-                    const start_dt = new Date(first_timestamp);
-                    const end_dt = new Date(last_timestamp);
-                    duration_ms = end_dt.getTime() - start_dt.getTime();
-                }
-                catch (e) {
-                    // Skip time calculation if parsing fails
-                }
-            }
+            // Calculate durations
+            const duration_before_write_ms = this.getDuration(first_timestamp, last_before_write_timestamp);
+            const duration_write_ms = this.getDuration(last_before_write_timestamp, last_timestamp);
+            const duration_ms = this.getDuration(first_timestamp, last_timestamp);
             if (first_timestamp && message_count > 0) {
                 return {
-                    duration_ms,
-                    output_tokens: total_output_tokens,
+                    duration_before_write_ms: duration_before_write_ms || 0,
+                    duration_write_ms: duration_write_ms || 0,
+                    duration_total_ms: duration_ms || 0,
+                    output_tokens_before_write: output_tokens_before_write,
+                    output_tokens_write: output_tokens_for_write,
+                    output_tokens_total: output_tokens_before_write + output_tokens_for_write,
                 };
             }
         }
         catch (err) {
             console.warn(`Error reading transcript ${jsonlPath}: ${err}`);
+        }
+        return null;
+    }
+    getDuration(first_timestamp, second_timestamp) {
+        if (first_timestamp && second_timestamp) {
+            try {
+                const start_dt = new Date(first_timestamp);
+                const end_dt = new Date(second_timestamp);
+                return end_dt.getTime() - start_dt.getTime();
+            }
+            catch (e) {
+                // Skip time calculation if parsing fails
+            }
         }
         return null;
     }
@@ -448,8 +438,6 @@ class MetricsExtraction {
         for (const [_, metrics] of reasoningMetricsMap) {
             const metricsFilesCount = metrics.length;
             if (metricsFilesCount > 0) {
-                const avg_duration = metrics.reduce((sum, m) => sum + m.durationMs, 0) / metricsFilesCount;
-                const avg_output = metrics.reduce((sum, m) => sum + m.outputTokens, 0) / metricsFilesCount;
                 const firstMetric = metrics[0];
                 reasoningFiles.push({
                     format: firstMetric.format,
@@ -457,20 +445,36 @@ class MetricsExtraction {
                     variant: firstMetric.variant,
                     recordCount: firstMetric.recordCount,
                     testRuns: metricsFilesCount,
-                    durationMs: parseFloat(avg_duration.toFixed(3)),
-                    durationMsMin: Math.min(...metrics.map(x => x.durationMs)),
-                    durationMsMax: Math.max(...metrics.map(x => x.durationMs)),
-                    outputTokens: parseFloat(avg_output.toFixed(3)),
-                    outputTokensMin: Math.min(...metrics.map(x => x.outputTokens)),
-                    outputTokensMax: Math.max(...metrics.map(x => x.outputTokens)),
+                    durationBeforeWriteMs: roundTo3Digits(metrics.reduce((sum, m) => sum + m.durationBeforeWriteMs, 0) / metricsFilesCount),
+                    durationBeforeWriteMsMin: Math.min(...metrics.map(x => x.durationBeforeWriteMs)),
+                    durationBeforeWriteMsMax: Math.max(...metrics.map(x => x.durationBeforeWriteMs)),
+                    durationWriteMs: roundTo3Digits(metrics.reduce((sum, m) => sum + m.durationWriteMs, 0) / metricsFilesCount),
+                    durationWriteMsMin: Math.min(...metrics.map(x => x.durationWriteMs)),
+                    durationWriteMsMax: Math.max(...metrics.map(x => x.durationWriteMs)),
+                    durationTotalMs: roundTo3Digits(metrics.reduce((sum, m) => sum + m.durationTotalMs, 0) / metricsFilesCount),
+                    durationTotalMsMin: Math.min(...metrics.map(x => x.durationTotalMs)),
+                    durationTotalMsMax: Math.max(...metrics.map(x => x.durationTotalMs)),
+                    outputTokensBeforeWrite: roundTo3Digits(metrics.reduce((sum, m) => sum + m.outputTokensBeforeWrite, 0) / metricsFilesCount),
+                    outputTokensBeforeWriteMin: Math.min(...metrics.map(x => x.outputTokensBeforeWrite)),
+                    outputTokensBeforeWriteMax: Math.max(...metrics.map(x => x.outputTokensBeforeWrite)),
+                    outputTokensWrite: roundTo3Digits(metrics.reduce((sum, m) => sum + m.outputTokensWrite, 0) / metricsFilesCount),
+                    outputTokensWriteMin: Math.min(...metrics.map(x => x.outputTokensWrite)),
+                    outputTokensWriteMax: Math.max(...metrics.map(x => x.outputTokensWrite)),
+                    outputTokensTotal: roundTo3Digits(metrics.reduce((sum, m) => sum + m.outputTokensTotal, 0) / metricsFilesCount),
+                    outputTokensTotalMin: Math.min(...metrics.map(x => x.outputTokensTotal)),
+                    outputTokensTotalMax: Math.max(...metrics.map(x => x.outputTokensTotal)),
                 });
             }
         }
         // Calculate summaries
         const total_read_tokens = readMetrics.reduce((sum, m) => sum + m.readTokens, 0);
         const total_read_duration = readMetrics.reduce((sum, m) => sum + m.readDurationMs, 0);
-        const total_duration = reasoningFiles.reduce((sum, m) => sum + m.durationMs, 0);
-        const total_output = reasoningFiles.reduce((sum, m) => sum + m.outputTokens, 0);
+        const total_duration = reasoningFiles.reduce((sum, m) => sum + m.durationTotalMs, 0);
+        const before_write_duration = reasoningFiles.reduce((sum, m) => sum + m.durationBeforeWriteMs, 0);
+        const write_duration = reasoningFiles.reduce((sum, m) => sum + m.durationWriteMs, 0);
+        const total_output = reasoningFiles.reduce((sum, m) => sum + m.outputTokensTotal, 0);
+        const before_write_output = reasoningFiles.reduce((sum, m) => sum + m.outputTokensBeforeWrite, 0);
+        const write_output = reasoningFiles.reduce((sum, m) => sum + m.outputTokensWrite, 0);
         const reasoningFilesCount = reasoningFiles.length;
         const readMetricsFilesCount = readMetrics.length;
         return {
@@ -479,19 +483,27 @@ class MetricsExtraction {
                 summary: {
                     totalFiles: readMetricsFilesCount,
                     totalReadTokens: total_read_tokens,
-                    totalReadDurationMs: parseFloat(total_read_duration.toFixed(3)),
-                    averageReadTokens: readMetricsFilesCount > 0 ? parseFloat((total_read_tokens / readMetricsFilesCount).toFixed(3)) : 0,
-                    averageDurationMs: readMetricsFilesCount > 0 ? parseFloat((total_read_duration / readMetricsFilesCount).toFixed(3)) : 0,
+                    totalReadDurationMs: roundTo3Digits(total_read_duration),
+                    averageReadTokens: readMetricsFilesCount > 0 ? roundTo3Digits(total_read_tokens / readMetricsFilesCount) : 0,
+                    averageDurationMs: readMetricsFilesCount > 0 ? roundTo3Digits(total_read_duration / readMetricsFilesCount) : 0,
                 },
             },
             reasoning: {
                 files: reasoningFiles,
                 summary: {
                     totalTestCases: reasoningFilesCount,
-                    totalDurationMs: parseFloat(total_duration.toFixed(3)),
-                    totalOutputTokens: parseFloat(total_output.toFixed(3)),
-                    averageDurationMs: reasoningFilesCount > 0 ? parseFloat((total_duration / reasoningFilesCount).toFixed(3)) : 0,
-                    averageOutputTokens: reasoningFilesCount > 0 ? parseFloat((total_output / reasoningFilesCount).toFixed(3)) : 0,
+                    totalBeforeWriteDuration: roundTo3Digits(before_write_duration),
+                    totalWriteDurationMs: roundTo3Digits(write_duration),
+                    totalDurationMs: roundTo3Digits(total_duration),
+                    averageBeforeWriteDurationMs: reasoningFilesCount > 0 ? roundTo3Digits(before_write_duration / reasoningFilesCount) : 0,
+                    averageWriteDurationMs: reasoningFilesCount > 0 ? roundTo3Digits(write_duration / reasoningFilesCount) : 0,
+                    averageDurationMs: reasoningFilesCount > 0 ? roundTo3Digits(total_duration / reasoningFilesCount) : 0,
+                    totalBeforeWriteOutputTokens: roundTo3Digits(before_write_output),
+                    totalWriteOutputTokens: roundTo3Digits(write_output),
+                    totalOutputTokens: roundTo3Digits(total_output),
+                    averageBeforeWriteOutputTokens: reasoningFilesCount > 0 ? roundTo3Digits(before_write_output / reasoningFilesCount) : 0,
+                    averageWriteOutputTokens: reasoningFilesCount > 0 ? roundTo3Digits(write_output / reasoningFilesCount) : 0,
+                    averageOutputTokens: reasoningFilesCount > 0 ? roundTo3Digits(total_output / reasoningFilesCount) : 0,
                 },
             },
         };
@@ -501,7 +513,7 @@ class MetricsExtraction {
         if (!fs.existsSync(dir)) {
             fs.mkdirSync(dir, { recursive: true });
         }
-        fs.writeFileSync(this.outputFile, JSON.stringify(metrics, null, 4));
+        fs.writeFileSync(this.outputFile, JSON.stringify(metrics, null, 2));
     }
     mergeCombinedMetrics(combinedMetrics) {
         const merged = [];
@@ -531,10 +543,11 @@ class MetricsExtraction {
                 }
                 console.error(`\nAvailable reasoning output test cases (${combinedMetrics.reasoning.files.length}):`);
                 combinedMetrics.reasoning.files.forEach(r => {
-                    console.error(`  - ${r.format}_${r.structure}_${r.variant}_${r.recordCount}: ${r.outputTokens} tokens`);
+                    console.error(`  - ${r.format}_${r.structure}_${r.variant}_${r.recordCount}: ${r.outputTokensTotal} tokens`);
                 });
                 throw new Error(`No read data found for ${key}`);
             }
+            const totalTokens = readData.readTokens + reasoning.outputTokensTotal;
             merged.push({
                 testCase: `${reasoning.format}_${reasoning.structure}_${reasoning.recordCount}_${reasoning.variant}`,
                 format: reasoning.format,
@@ -542,20 +555,32 @@ class MetricsExtraction {
                 variant: reasoning.variant,
                 recordCount: reasoning.recordCount,
                 hasOptionalData: reasoning.variant !== "mandatory",
-                readDurationInMilliseconds: readData.readDurationMs,
+                readDurationInMs: readData.readDurationMs,
                 readTokens: readData.readTokens,
-                reasoningDurationInMilliseconds: reasoning.durationMs,
-                reasoningDurationDriftPercMax: this.calcDriftPerc(reasoning.durationMs, reasoning.durationMsMax),
-                reasoningDurationDriftPercMin: this.calcDriftPerc(reasoning.durationMs, reasoning.durationMsMin),
-                outputTokens: reasoning.outputTokens,
-                outputTokensDriftPercMin: this.calcDriftPerc(reasoning.outputTokens, reasoning.outputTokensMin),
-                outputTokensDriftPercMax: this.calcDriftPerc(reasoning.outputTokens, reasoning.outputTokensMax),
+                outputDurationBeforeWriteInMs: reasoning.durationBeforeWriteMs,
+                outputDurationBeforeWriteDriftPercMax: calcDriftPerc(reasoning.durationBeforeWriteMs, reasoning.durationBeforeWriteMsMax),
+                outputDurationBeforeWriteDriftPercMin: calcDriftPerc(reasoning.durationBeforeWriteMs, reasoning.durationBeforeWriteMsMin),
+                outputDurationWriteInMs: reasoning.durationWriteMs,
+                outputDurationWriteDriftPercMax: calcDriftPerc(reasoning.durationWriteMs, reasoning.durationWriteMsMax),
+                outputDurationWriteDriftPercMin: calcDriftPerc(reasoning.durationWriteMs, reasoning.durationWriteMsMin),
+                outputDurationTotalInMs: reasoning.durationTotalMs,
+                outputDurationTotalDriftPercMax: calcDriftPerc(reasoning.durationTotalMs, reasoning.durationTotalMsMax),
+                outputDurationTotalDriftPercMin: calcDriftPerc(reasoning.durationTotalMs, reasoning.durationTotalMsMin),
+                outputTokensBeforeWrite: reasoning.outputTokensBeforeWrite,
+                outputTokensBeforeWriteDriftPercMin: calcDriftPerc(reasoning.outputTokensBeforeWrite, reasoning.outputTokensBeforeWriteMin),
+                outputTokensBeforeWriteDriftPercMax: calcDriftPerc(reasoning.outputTokensBeforeWrite, reasoning.outputTokensBeforeWriteMax),
+                outputTokensWrite: reasoning.outputTokensWrite,
+                outputTokensWriteDriftPercMin: calcDriftPerc(reasoning.outputTokensWrite, reasoning.outputTokensWriteMin),
+                outputTokensWriteDriftPercMax: calcDriftPerc(reasoning.outputTokensWrite, reasoning.outputTokensWriteMax),
+                outputTokensTotal: reasoning.outputTokensTotal,
+                outputTokensTotalDriftPercMin: calcDriftPerc(reasoning.outputTokensTotal, reasoning.outputTokensTotalMin),
+                outputTokensTotalDriftPercMax: calcDriftPerc(reasoning.outputTokensTotal, reasoning.outputTokensTotalMax),
+                totalTokens: totalTokens,
+                totalTokensDriftPercMin: calcDriftPerc(totalTokens, readData.readTokens + reasoning.outputTokensTotalMin),
+                totalTokensDriftPercMax: calcDriftPerc(totalTokens, readData.readTokens + reasoning.outputTokensTotalMax),
             });
         }
         return merged;
-    }
-    calcDriftPerc(avg, val) {
-        return Math.round(((val - avg) / avg) * 100 * 100) / 100;
     }
 }
 exports.default = MetricsExtraction;

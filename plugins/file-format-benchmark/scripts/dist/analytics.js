@@ -129,14 +129,24 @@ class BenchmarkAnalytics {
         }
         const minMaxRecordCount = new Map();
         for (const userMetric of userMetrics) {
-            const tokens = userMetric.readTokens + userMetric.outputTokens;
             const entry = minMaxRecordCount.get(userMetric.recordCount);
             if (!entry) {
-                minMaxRecordCount.set(userMetric.recordCount, { min: tokens, max: tokens });
+                minMaxRecordCount.set(userMetric.recordCount, {
+                    minRead: userMetric.readTokens,
+                    maxRead: userMetric.readTokens,
+                    minOutput: userMetric.outputTokensTotal,
+                    maxOutput: userMetric.outputTokensTotal,
+                    minTotal: userMetric.totalTokens,
+                    maxTotal: userMetric.totalTokens,
+                });
             }
             else {
-                entry.max = entry.max < tokens ? tokens : entry.max;
-                entry.min = entry.min > tokens ? tokens : entry.min;
+                entry.minRead = entry.minRead > userMetric.readTokens ? userMetric.readTokens : entry.minRead;
+                entry.maxRead = entry.maxRead > userMetric.readTokens ? userMetric.readTokens : entry.maxRead;
+                entry.minOutput = entry.minOutput > userMetric.outputTokensTotal ? userMetric.outputTokensTotal : entry.minOutput;
+                entry.maxOutput = entry.maxOutput > userMetric.outputTokensTotal ? userMetric.outputTokensTotal : entry.maxOutput;
+                entry.minTotal = entry.minTotal > userMetric.totalTokens ? userMetric.totalTokens : entry.minTotal;
+                entry.maxTotal = entry.maxTotal > userMetric.totalTokens ? userMetric.totalTokens : entry.maxTotal;
                 minMaxRecordCount.set(userMetric.recordCount, entry);
             }
         }
@@ -154,8 +164,15 @@ class BenchmarkAnalytics {
                 continue;
             }
             const entry = minMaxRecordCount.get(userMetric.recordCount);
-            const totalTokensUsed = userMetric.readTokens + userMetric.outputTokens;
-            const normalizedAmountScore = entry ? this.normalizedAmountScore(entry.min - 10, entry.max + 10, totalTokensUsed) : 0;
+            const accuracy = validation.accuracy.accuracyPercent / 100;
+            const weightedAccuracy = validation.accuracy.weightedAccuracyPercent / 100;
+            const portionAccuracy = 0.7;
+            const portionTokens = 0.3;
+            const accuracyPercPartOfScore = validation.accuracy.accuracyPercent * portionAccuracy;
+            const weightedAccuracyPercPartOfScore = validation.accuracy.weightedAccuracyPercent * portionAccuracy;
+            const normalizedReadTokensScore = entry ? this.normalizedAmountScore(entry.minRead - 10, entry.maxRead + 10, userMetric.readTokens) * portionTokens : 0;
+            const normalizedOutputTokensScore = entry ? this.normalizedAmountScore(entry.minOutput - 10, entry.maxOutput + 10, userMetric.outputTokensTotal) * portionTokens : 0;
+            const normalizedTotalTokensScore = entry ? this.normalizedAmountScore(entry.minTotal - 10, entry.maxTotal + 10, userMetric.totalTokens) * portionTokens : 0;
             metrics.push({
                 testCase: userMetric.testCase,
                 format: userMetric.format,
@@ -165,36 +182,67 @@ class BenchmarkAnalytics {
                 totalValues: datasetInfo.totalValues,
                 characterCount: datasetInfo.characterCount,
                 readTokens: userMetric.readTokens,
-                readDurationInMilliseconds: userMetric.readDurationInMilliseconds,
-                readTokensPerMillisecond: parseFloat((userMetric.readTokens / userMetric.readDurationInMilliseconds).toFixed(3)),
-                avgOutputTokens: userMetric.outputTokens,
-                minOutputTokensDriftPerc: parseFloat(userMetric.outputTokensDriftPercMin.toFixed(2)),
-                maxOutputTokensDriftPerc: parseFloat(userMetric.outputTokensDriftPercMax.toFixed(2)),
-                avgReasoningDurationInMilliseconds: userMetric.reasoningDurationInMilliseconds,
-                minReasoningDurationDriftPerc: parseFloat(userMetric.reasoningDurationDriftPercMin.toFixed(2)),
-                maxReasoningDurationDriftPerc: parseFloat(userMetric.reasoningDurationDriftPercMax.toFixed(2)),
-                avgReasoningTokensPerMillisecond: parseFloat((userMetric.outputTokens / userMetric.reasoningDurationInMilliseconds).toFixed(3)),
+                readDurationInMs: userMetric.readDurationInMs,
+                readTokensPerMs: roundTo3Digits(userMetric.readTokens / userMetric.readDurationInMs),
+                outputTokensBeforeWrite: userMetric.outputTokensBeforeWrite,
+                outputTokensBeforeWriteDriftPercMin: userMetric.outputTokensBeforeWriteDriftPercMin,
+                outputTokensBeforeWriteDriftPercMax: userMetric.outputTokensBeforeWriteDriftPercMax,
+                outputTokensWrite: userMetric.outputTokensWrite,
+                outputTokensWriteDriftPercMin: userMetric.outputTokensWriteDriftPercMin,
+                outputTokensWriteDriftPercMax: userMetric.outputTokensWriteDriftPercMax,
+                outputTokensTotal: userMetric.outputTokensTotal,
+                outputTokensTotalDriftPercMin: userMetric.outputTokensTotalDriftPercMin,
+                outputTokensTotalDriftPercMax: userMetric.outputTokensTotalDriftPercMax,
+                outputDurationBeforeWriteInMs: userMetric.outputDurationBeforeWriteInMs,
+                outputDurationBeforeWriteDriftPercMin: userMetric.outputDurationBeforeWriteDriftPercMin,
+                outputDurationBeforeWriteDriftPercMax: userMetric.outputDurationBeforeWriteDriftPercMax,
+                outputDurationWriteInMs: userMetric.outputDurationWriteInMs,
+                outputDurationWriteDriftPercMin: userMetric.outputDurationWriteDriftPercMin,
+                outputDurationWriteDriftPercMax: userMetric.outputDurationWriteDriftPercMax,
+                outputDurationTotalInMs: userMetric.outputDurationTotalInMs,
+                outputDurationTotalDriftPercMin: userMetric.outputDurationTotalDriftPercMin,
+                outputDurationTotalDriftPercMax: userMetric.outputDurationTotalDriftPercMax,
+                outputTokensBeforeWritePerMs: roundTo3Digits(userMetric.outputTokensBeforeWrite / userMetric.outputDurationBeforeWriteInMs),
+                outputTokensWritePerMs: roundTo3Digits(userMetric.outputTokensWrite / userMetric.outputDurationWriteInMs),
+                outputTokensTotalPerMs: roundTo3Digits(userMetric.outputTokensTotal / userMetric.outputDurationTotalInMs),
                 totalQuestions: validation.totalQuestions,
-                avgNoAnswers: validation.totalQuestions - validation.accuracy.correct - validation.accuracy.incorrect,
-                avgIncorrectAnswers: validation.accuracy.incorrect,
-                avgCorrectAnswers: validation.accuracy.correct,
-                avgAccuracyPercent: validation.accuracy.accuracyPercent,
-                minAccuracyDriftPercent: validation.accuracy.accuracyDriftPercMin,
-                maxAccuracyDriftPercent: validation.accuracy.accuracyDriftPercMax,
-                avgWeightedAccuracyPercent: validation.accuracy.weightedAccuracyPercent,
-                minWeightedAccuracyDriftPercent: validation.accuracy.weightedAccuracyDriftPercMin,
-                maxWeightedAccuracyDriftPercent: validation.accuracy.weightedAccuracyDriftPercMax,
-                charsPerToken: parseFloat((datasetInfo.characterCount / userMetric.readTokens).toFixed(3)),
-                tokensPerValue: parseFloat((userMetric.readTokens / datasetInfo.totalValues).toFixed(3)),
-                tokensPerObject: parseFloat((userMetric.readTokens / datasetInfo.recordCount).toFixed(3)),
-                avgOutputTokensPerAnswer: parseFloat((userMetric.outputTokens / validation.totalQuestions).toFixed(3)),
-                informationValuePerToken: parseFloat(((validation.accuracy.accuracyPercent / totalTokensUsed) * 100).toFixed(3)),
-                costOfInaccuracy: parseFloat((totalTokensUsed * (1 - (validation.accuracy.accuracyPercent / 100))).toFixed(3)),
-                totalTokensUsed: totalTokensUsed,
-                efficientlyUsedTokens: parseFloat((totalTokensUsed * (validation.accuracy.accuracyPercent / 100)).toFixed(3)),
-                weightedEfficientlyUsedTokens: parseFloat((totalTokensUsed * (validation.accuracy.weightedAccuracyPercent / 100)).toFixed(3)),
-                efficiencyScore: parseFloat(((validation.accuracy.accuracyPercent * 0.7) + (normalizedAmountScore * 0.3)).toFixed(3)),
-                weightedEfficiencyScore: parseFloat(((validation.accuracy.weightedAccuracyPercent * 0.7) + (normalizedAmountScore * 0.3)).toFixed(3)),
+                noAnswers: validation.totalQuestions - validation.accuracy.correct - validation.accuracy.incorrect,
+                incorrectAnswers: validation.accuracy.incorrect,
+                correctAnswers: validation.accuracy.correct,
+                accuracyPercent: validation.accuracy.accuracyPercent,
+                accuracyDriftPercentMin: validation.accuracy.accuracyDriftPercMin,
+                accuracyDriftPercentMax: validation.accuracy.accuracyDriftPercMax,
+                weightedAccuracyPercent: validation.accuracy.weightedAccuracyPercent,
+                weightedAccuracyDriftPercentMax: validation.accuracy.weightedAccuracyDriftPercMin,
+                weightedAccuracyDriftPercentMin: validation.accuracy.weightedAccuracyDriftPercMax,
+                charsPerReadToken: roundTo3Digits(datasetInfo.characterCount / userMetric.readTokens),
+                readTokensPerValue: roundTo3Digits(userMetric.readTokens / datasetInfo.totalValues),
+                readTokensPerObject: roundTo3Digits(userMetric.readTokens / datasetInfo.recordCount),
+                outputTokensWritePerAnswer: roundTo3Digits(userMetric.outputTokensWrite / validation.totalQuestions),
+                informationValuePerReadTokens: roundTo3Digits((validation.accuracy.accuracyPercent / userMetric.readTokens) * 100),
+                informationValuePerOutputTokens: roundTo3Digits((validation.accuracy.accuracyPercent / userMetric.outputTokensTotal) * 100),
+                informationValuePerTotalTokens: roundTo3Digits((validation.accuracy.accuracyPercent / userMetric.totalTokens) * 100),
+                totalTokens: userMetric.totalTokens,
+                totalTokensDriftPercMin: userMetric.totalTokensDriftPercMin,
+                totalTokensDriftPercMax: userMetric.totalTokensDriftPercMax,
+                wastedReadTokens: roundTo3Digits(userMetric.readTokens * (1 - accuracy)),
+                wastedOutputTokens: roundTo3Digits(userMetric.outputTokensTotal * (1 - accuracy)),
+                wastedTotalTokens: roundTo3Digits(userMetric.totalTokens * (1 - accuracy)),
+                usefulReadTokens: roundTo3Digits(userMetric.readTokens * accuracy),
+                usefulOutputTokens: roundTo3Digits(userMetric.outputTokensTotal * accuracy),
+                usefulTotalTokens: roundTo3Digits(userMetric.totalTokens * accuracy),
+                weightedWastedReadTokens: roundTo3Digits(userMetric.readTokens * (1 - weightedAccuracy)),
+                weightedWastedOutputTokens: roundTo3Digits(userMetric.outputTokensTotal * (1 - weightedAccuracy)),
+                weightedWastedTotalTokens: roundTo3Digits(userMetric.totalTokens * (1 - weightedAccuracy)),
+                weightedUsefulReadTokens: roundTo3Digits(userMetric.readTokens * weightedAccuracy),
+                weightedUsefulOutputTokens: roundTo3Digits(userMetric.outputTokensTotal * weightedAccuracy),
+                weightedUsefulTotalTokens: roundTo3Digits(userMetric.totalTokens * weightedAccuracy),
+                efficiencyScoreRead: roundTo3Digits(accuracyPercPartOfScore + normalizedReadTokensScore),
+                efficiencyScoreOutput: roundTo3Digits(accuracyPercPartOfScore + normalizedOutputTokensScore),
+                efficiencyScoreTotal: roundTo3Digits(accuracyPercPartOfScore + normalizedTotalTokensScore),
+                weightedEfficiencyScoreRead: roundTo3Digits(weightedAccuracyPercPartOfScore + normalizedReadTokensScore),
+                weightedEfficiencyScoreOutput: roundTo3Digits(weightedAccuracyPercPartOfScore + normalizedOutputTokensScore),
+                weightedEfficiencyScoreTotal: roundTo3Digits(weightedAccuracyPercPartOfScore + normalizedTotalTokensScore),
             });
         }
         return metrics;
@@ -209,7 +257,6 @@ class BenchmarkAnalytics {
         if (metrics.length === 0) {
             throw new Error("No metrics to analyze");
         }
-        const rankings = this.generateRanking(metrics);
         const formats = [...new Set(metrics.map((m) => m.format))];
         const variants = [...new Set(metrics.map((m) => m.variant))];
         const recordCounts = [...new Set(metrics.map((m) => m.recordCount))].sort((a, b) => b - a);
@@ -238,80 +285,7 @@ class BenchmarkAnalytics {
                     ["structure_awareness", consts_1.QUESTIONS_WEIGHT_DISTRIBUTION["structure_awareness"]]
                 ],
             },
-            rankings,
             metrics
-        };
-    }
-    generateRanking(metrics) {
-        const recordCounts = [...new Set(metrics.map((m) => m.recordCount))].sort((a, b) => b - a);
-        const byRecordCount = {};
-        const rankingCount = 4;
-        for (const recordCount of recordCounts) {
-            const formatMetrics = metrics.filter((m) => m.recordCount === recordCount);
-            const avgCharsPerToken = Math.round(formatMetrics.reduce((sum, m) => sum + m.charsPerToken, 0) / formatMetrics.length * 1000) / 1000;
-            const avgTokensPerValue = Math.round(formatMetrics.reduce((sum, m) => sum + m.tokensPerValue, 0) / formatMetrics.length * 1000) / 1000;
-            const avgTokensPerObject = Math.round(formatMetrics.reduce((sum, m) => sum + m.tokensPerObject, 0) / formatMetrics.length * 1000) / 1000;
-            const avgAccuracy = Math.round(formatMetrics.reduce((sum, m) => sum + m.avgAccuracyPercent, 0) / formatMetrics.length * 1000) / 1000;
-            const mostTokenEfficient = [];
-            const sortedByCharsPerToken = formatMetrics.sort((a, b) => b.charsPerToken - a.charsPerToken);
-            for (let i = 0; i < sortedByCharsPerToken.length && i < rankingCount; i++) {
-                mostTokenEfficient[i] = this.createRankingEntry(sortedByCharsPerToken[i]);
-            }
-            const leastTokenUsage = [];
-            const sortedByTokenUsage = formatMetrics.sort((a, b) => a.totalTokensUsed - b.totalTokensUsed);
-            for (let i = 0; i < sortedByTokenUsage.length && i < rankingCount; i++) {
-                leastTokenUsage[i] = this.createRankingEntry(sortedByTokenUsage[i]);
-            }
-            const mostAccurate = [];
-            const sortedByAccurate = formatMetrics.sort((a, b) => b.avgAccuracyPercent - a.avgAccuracyPercent);
-            for (let i = 0; i < sortedByAccurate.length && i < rankingCount; i++) {
-                mostAccurate[i] = this.createRankingEntry(sortedByAccurate[i]);
-            }
-            const mostWeightedAccuracy = [];
-            const sortedByWeightedAccuracyPercent = formatMetrics.sort((a, b) => b.avgWeightedAccuracyPercent - a.avgWeightedAccuracyPercent);
-            for (let i = 0; i < sortedByWeightedAccuracyPercent.length && i < rankingCount; i++) {
-                mostWeightedAccuracy[i] = this.createRankingEntry(sortedByWeightedAccuracyPercent[i]);
-            }
-            const mostEfficiencyScore = [];
-            const sortedByEfficiencyScore = formatMetrics.sort((a, b) => b.efficiencyScore - a.efficiencyScore);
-            for (let i = 0; i < sortedByEfficiencyScore.length && i < rankingCount; i++) {
-                mostEfficiencyScore[i] = this.createRankingEntry(sortedByEfficiencyScore[i]);
-            }
-            const mostWeightedEfficiencyScore = [];
-            const sortedByWeightedEfficiencyScore = formatMetrics.sort((a, b) => b.weightedEfficiencyScore - a.weightedEfficiencyScore);
-            for (let i = 0; i < sortedByWeightedEfficiencyScore.length && i < rankingCount; i++) {
-                mostWeightedEfficiencyScore[i] = this.createRankingEntry(sortedByWeightedEfficiencyScore[i]);
-            }
-            byRecordCount[recordCount] = {
-                avgCharsPerToken,
-                avgTokensPerValue,
-                avgTokensPerObject,
-                avgAccuracy,
-                mostTokenEfficient: mostTokenEfficient,
-                leastTokenUsage: leastTokenUsage,
-                mostAccurate: mostAccurate,
-                mostAccurateWeighted: mostWeightedAccuracy,
-                mostEfficiencyScore: mostEfficiencyScore,
-                mostWeightedEfficiencyScore: mostWeightedEfficiencyScore
-            };
-        }
-        return byRecordCount;
-    }
-    createRankingEntry(metric) {
-        return {
-            format: metric.format,
-            hasOptionalData: metric.hasOptionalData,
-            recordCount: metric.recordCount,
-            charsPerToken: metric.charsPerToken,
-            tokensUsed: metric.totalTokensUsed,
-            tokensPerValue: metric.tokensPerValue,
-            tokensPerObject: metric.tokensPerObject,
-            accuracyPercent: metric.avgAccuracyPercent,
-            efficientlyUsedTokens: metric.efficientlyUsedTokens,
-            efficiencyScore: metric.efficiencyScore,
-            weightedAccuracyPercent: metric.avgWeightedAccuracyPercent,
-            weightedEfficientlyUsedTokens: metric.weightedEfficientlyUsedTokens,
-            weightedEfficiencyScore: metric.weightedEfficiencyScore
         };
     }
     writeOutput(analytics) {
@@ -320,7 +294,7 @@ class BenchmarkAnalytics {
             fs.mkdirSync(dir, { recursive: true });
         }
         const output = { ...analytics, metrics: analytics.metrics };
-        fs.writeFileSync(this.outputFile, JSON.stringify(output, null, 4));
+        fs.writeFileSync(this.outputFile, JSON.stringify(output, null, 2));
     }
 }
 // CLI entry point

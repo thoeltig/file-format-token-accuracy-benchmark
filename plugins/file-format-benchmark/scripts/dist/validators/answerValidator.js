@@ -51,7 +51,7 @@ class AnswerValidator {
         const correctCount = results.filter((r) => r.correct).length;
         const totalValidatable = results.length;
         const mapAsArray = [...map.entries()];
-        const weightedAccuracyPercent = mapAsArray.reduce((sum, x) => sum + Math.round((x[1].correct / (x[1].correct + x[1].incorrect + x[1].notSet)) * 10000 * consts_1.QUESTIONS_WEIGHT_DISTRIBUTION[x[0]]) / 100, 0);
+        const weightedAccuracyPercent = mapAsArray.reduce((sum, x) => sum + ToPercentage((x[1].correct / (x[1].correct + x[1].incorrect + x[1].notSet)) * consts_1.QUESTIONS_WEIGHT_DISTRIBUTION[x[0]]), 0);
         return {
             format: format,
             totalQuestions: totalValidatable,
@@ -59,8 +59,13 @@ class AnswerValidator {
             accuracy: {
                 correct: correctCount,
                 incorrect: totalValidatable - correctCount,
-                accuracyPercent: totalValidatable > 0 ? Math.round(((correctCount / totalValidatable) * 10000)) / 100 : 0,
+                accuracyPercent: ToPercentage(correctCount / totalValidatable),
                 weightedAccuracyPercent: weightedAccuracyPercent
+            },
+            charactersOfAnswers: {
+                expected: results.map(x => this.getAnswerLength(x.expectedAnswer)).reduce((sum, x) => sum + x, 0),
+                correct: results.filter(x => x.correct === true).map(x => this.getAnswerLength(x.givenAnswer)).reduce((sum, x) => sum + x, 0),
+                incorrect: results.filter(x => x.correct === false).map(x => this.getAnswerLength(x.givenAnswer)).reduce((sum, x) => sum + x, 0)
             },
             accuracyPerCategory: mapAsArray.map(x => {
                 const category = x[0];
@@ -70,11 +75,18 @@ class AnswerValidator {
                     correct: counter.correct,
                     incorrect: counter.incorrect,
                     unanswered: counter.notSet,
-                    accuracyPercent: Math.round((counter.correct / (counter.correct + counter.incorrect + counter.notSet)) * 10000) / 100,
-                    weightedAccuracyPercent: Math.round((counter.correct / (counter.correct + counter.incorrect + counter.notSet)) * 10000 * consts_1.QUESTIONS_WEIGHT_DISTRIBUTION[category]) / 100,
+                    accuracyPercent: ToPercentage(counter.correct / (counter.correct + counter.incorrect + counter.notSet)),
+                    weightedAccuracyPercent: ToPercentage((counter.correct / (counter.correct + counter.incorrect + counter.notSet)) * consts_1.QUESTIONS_WEIGHT_DISTRIBUTION[category]),
                 };
             })
         };
+    }
+    getAnswerLength(answer) {
+        if (!answer)
+            return 0;
+        if (Array.isArray(answer))
+            return answer.map(x => x.length).reduce((sum, x) => sum + x);
+        return String(answer).length;
     }
     validateSingleAnswer(question, providedAnswer) {
         const expected = question.expectedAnswer;

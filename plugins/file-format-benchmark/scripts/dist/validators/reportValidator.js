@@ -112,7 +112,10 @@ class ReportValidator {
                     incorrect: validationResult.accuracy.incorrect,
                     accuracyPercent: validationResult.accuracy.accuracyPercent,
                     weightedAccuracyPercent: validationResult.accuracy.weightedAccuracyPercent,
-                    accuracyPerCategory: validationResult.accuracyPerCategory
+                    accuracyPerCategory: validationResult.accuracyPerCategory,
+                    expectedAnswerCharacters: validationResult.charactersOfAnswers.expected,
+                    correctAnswerCharacters: validationResult.charactersOfAnswers.correct,
+                    incorrectAnswerCharacters: validationResult.charactersOfAnswers.incorrect
                 });
                 validationResult.results.forEach(x => {
                     const questionsAndProvidedAnswer = report.questionsAndProvidedAnswers.find(y => y.questionId == x.questionId);
@@ -135,7 +138,7 @@ class ReportValidator {
             console.log(`${statusIcon} ${testCase.format.padEnd(15)} ${testCase.structure.padEnd(8)} ${testCase.variant.padEnd(10)} ${String(testCase.recordCount).padEnd(4)} → ${report.accuracy.accuracyPercent.toFixed(3)}%`);
             // Save aggregated results
             const outputFile = path.join(this.resultsDir, `${testCase.format}_${testCase.structure}_${testCase.variant}_${testCase.recordCount}_validation.json`);
-            fs.writeFileSync(outputFile, JSON.stringify(report, null, 4));
+            fs.writeFileSync(outputFile, JSON.stringify(report, null, 2));
             results.push(report);
         }
         console.log(`\n✓ Validation complete. Results saved to: ${this.resultsDir}\n`);
