@@ -19,8 +19,6 @@ export interface AggregatedMetric extends Metrics {
   absOutputDurationBeforeWriteDriftPerc: number;
   absOutputDurationWriteDriftPerc: number;
   absOutputDurationTotalDriftPerc: number;
-  totalDurationInMs: number;
-  totalDurationInMsDelta: number;
   readTokensDelta: number;
   outputTokensBeforeWriteDelta: number;
   outputTokensWriteDelta: number;
@@ -201,8 +199,6 @@ export function aggregateMetrics(metrics: TestMetrics[]): AggregatedMetric[] {
       outputDurationBeforeWriteInMsDelta: 0,
       outputDurationWriteInMsDelta: 0,
       outputDurationTotalInMsDelta: 0,
-      totalDurationInMs: 0,
-      totalDurationInMsDelta: 0,
       charsPerReadTokenDelta: 0,
       readTokensPerValueDelta: 0,
       readTokensPerObjectDelta: 0,
@@ -306,7 +302,6 @@ export function aggregateMetrics(metrics: TestMetrics[]): AggregatedMetric[] {
     avgTest.outputTokensBeforeWritePerMs /= count;
     avgTest.outputTokensWritePerMs /= count;
     avgTest.outputTokensTotalPerMs /= count;
-    avgTest.totalDurationInMs /= count;
     avgTest.totalQuestions = Math.round(avgTest.totalQuestions / count);
     avgTest.noAnswers = Math.round(avgTest.noAnswers / count);
     avgTest.incorrectAnswers = Math.round(avgTest.incorrectAnswers / count);
@@ -399,7 +394,6 @@ export function aggregateMetrics(metrics: TestMetrics[]): AggregatedMetric[] {
       item.outputDurationBeforeWriteInMsDelta = optional.outputDurationBeforeWriteInMs - mandatory.outputDurationBeforeWriteInMs;
       item.outputDurationWriteInMsDelta = optional.outputDurationWriteInMs - mandatory.outputDurationWriteInMs;
       item.outputDurationTotalInMsDelta = optional.outputDurationTotalInMs - mandatory.outputDurationTotalInMs;
-      item.totalDurationInMsDelta = optional.totalDurationInMs - mandatory.totalDurationInMs;
     }
   });
 
