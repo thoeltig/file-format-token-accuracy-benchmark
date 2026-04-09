@@ -579,17 +579,17 @@ class MetricsExtraction {
                 outputDurationTotalDriftPercMax: (0, shared_1.calcDriftPerc)(reasoning.durationTotalMs, reasoning.durationTotalMsMax),
                 outputDurationTotalDriftPercMin: (0, shared_1.calcDriftPerc)(reasoning.durationTotalMs, reasoning.durationTotalMsMin),
                 outputTokensBeforeWrite: reasoning.outputTokensBeforeWrite,
-                outputTokensBeforeWriteDriftPercMin: (0, shared_1.calcDriftPerc)(reasoning.outputTokensBeforeWrite, reasoning.outputTokensBeforeWriteMin),
                 outputTokensBeforeWriteDriftPercMax: (0, shared_1.calcDriftPerc)(reasoning.outputTokensBeforeWrite, reasoning.outputTokensBeforeWriteMax),
+                outputTokensBeforeWriteDriftPercMin: (0, shared_1.calcDriftPerc)(reasoning.outputTokensBeforeWrite, reasoning.outputTokensBeforeWriteMin),
                 outputTokensWrite: reasoning.outputTokensWrite,
-                outputTokensWriteDriftPercMin: (0, shared_1.calcDriftPerc)(reasoning.outputTokensWrite, reasoning.outputTokensWriteMin),
                 outputTokensWriteDriftPercMax: (0, shared_1.calcDriftPerc)(reasoning.outputTokensWrite, reasoning.outputTokensWriteMax),
+                outputTokensWriteDriftPercMin: (0, shared_1.calcDriftPerc)(reasoning.outputTokensWrite, reasoning.outputTokensWriteMin),
                 outputTokensTotal: reasoning.outputTokensTotal,
-                outputTokensTotalDriftPercMin: (0, shared_1.calcDriftPerc)(reasoning.outputTokensTotal, reasoning.outputTokensTotalMin),
                 outputTokensTotalDriftPercMax: (0, shared_1.calcDriftPerc)(reasoning.outputTokensTotal, reasoning.outputTokensTotalMax),
+                outputTokensTotalDriftPercMin: (0, shared_1.calcDriftPerc)(reasoning.outputTokensTotal, reasoning.outputTokensTotalMin),
                 totalTokens: totalTokens,
-                totalTokensDriftPercMin: (0, shared_1.calcDriftPerc)(totalTokens, readData.readTokens + reasoning.outputTokensTotalMin),
                 totalTokensDriftPercMax: (0, shared_1.calcDriftPerc)(totalTokens, readData.readTokens + reasoning.outputTokensTotalMax),
+                totalTokensDriftPercMin: (0, shared_1.calcDriftPerc)(totalTokens, readData.readTokens + reasoning.outputTokensTotalMin),
             });
         }
         return merged;

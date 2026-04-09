@@ -10,10 +10,10 @@ function ToPercentage(value) {
 }
 exports.ToPercentage = ToPercentage;
 function roundTo2Digits(value) {
-    return value > 0 ? Math.round(value * 100) / 100 : 0;
+    return value !== 0 ? Math.round(value * 100) / 100 : 0;
 }
 exports.roundTo2Digits = roundTo2Digits;
 function roundTo3Digits(value) {
-    return value > 0 ? Math.round(value * 1000) / 1000 : 0;
+    return value !== 0 ? Math.round(value * 1000) / 1000 : 0;
 }
 exports.roundTo3Digits = roundTo3Digits;

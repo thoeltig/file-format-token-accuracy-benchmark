@@ -143,11 +143,11 @@ class BenchmarkAnalytics {
             }
             else {
                 entry.minRead = entry.minRead > userMetric.readTokens ? userMetric.readTokens : entry.minRead;
-                entry.maxRead = entry.maxRead > userMetric.readTokens ? userMetric.readTokens : entry.maxRead;
+                entry.maxRead = entry.maxRead < userMetric.readTokens ? userMetric.readTokens : entry.maxRead;
                 entry.minOutput = entry.minOutput > userMetric.outputTokensTotal ? userMetric.outputTokensTotal : entry.minOutput;
-                entry.maxOutput = entry.maxOutput > userMetric.outputTokensTotal ? userMetric.outputTokensTotal : entry.maxOutput;
+                entry.maxOutput = entry.maxOutput < userMetric.outputTokensTotal ? userMetric.outputTokensTotal : entry.maxOutput;
                 entry.minTotal = entry.minTotal > userMetric.totalTokens ? userMetric.totalTokens : entry.minTotal;
-                entry.maxTotal = entry.maxTotal > userMetric.totalTokens ? userMetric.totalTokens : entry.maxTotal;
+                entry.maxTotal = entry.maxTotal < userMetric.totalTokens ? userMetric.totalTokens : entry.maxTotal;
                 minMaxRecordCount.set(userMetric.recordCount, entry);
             }
         }

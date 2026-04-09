@@ -102,11 +102,12 @@ class ReportGenerator {
     metadata;
     constructor(aggregated, validations, metadata) {
         this.aggregated = aggregated;
-        this.aggregated.forEach(x => x.format.toUpperCase());
+        this.aggregated.forEach(x => x.format = x.format.toUpperCase());
         this.validations = validations;
+        this.validations.forEach(x => x.format = x.format.toUpperCase());
         this.metadata = metadata;
+        this.metadata.formats = [...this.metadata.formats.map(x => x.toUpperCase())];
         this.uniqueFormats = metadata.formats.sort();
-        this.uniqueFormats.forEach(x => x.toUpperCase());
         this.recordCounts = metadata.recordCounts.sort((a, b) => b - a);
     }
     line(text = '') {
@@ -242,6 +243,8 @@ class ReportGenerator {
         this.line('Tokens usage measured in this benchmark are no estimates but the real token usage the model used in this test. The token usage is reported to the user indirectly in the conversation transcript. Both read and output Tokens are directly extracted from the transcripts of the subagents:');
         this.line('- **Read Tokens**: For each data file a single read subagent is invoked with the only prompt to read the file at the provided filepath and return "Done" once finished and do nothing more. The token extraction script searches for the read tool result and extracts only the read tokens of it.');
         this.line('- **Output Tokens**: For each data file three "benchmark-full-test" subagent are invoked with data, questions and answers template files and the instructions to read everything and answer all questions in a single write tool use. The token extraction script aggregates all output tokens until and including the write tool result.');
+        this.line('   - **Output Before Write Tokens**: The output tokens which the model needed for reading the provided files and instructions.');
+        this.line('   - **Output Write Tokens**: The output tokens the model used to create the output and write the answers file.');
         this.line();
     }
     generateSummaryTLDRFormatRanking(sortedAggregated) {
@@ -303,18 +306,18 @@ class ReportGenerator {
         this.line('- Most useful output tokens:');
         this.line(`   - Optional: ${optionalMostUsefulOutputTokens.format} ${Math.round(optionalMostUsefulOutputTokens.usefulOutputTokens)} / ${Math.round(optionalMostUsefulOutputTokens.outputTokensTotal)} tokens`);
         this.line(`   - Mandatory: ${mandatoryMostUsefulOutputTokens.format} ${Math.round(mandatoryMostUsefulOutputTokens.usefulOutputTokens)} / ${Math.round(mandatoryMostUsefulOutputTokens.outputTokensTotal)} tokens`);
-        this.line('- Highest read token efficiency (%/token):');
+        this.line('- Highest read efficiency (%/token):');
         this.line(`   - Optional: ${optionalHighestEfficiencyScoreRead.format} ${optionalHighestEfficiencyScoreRead.efficiencyScoreRead.toFixed(2)}`);
         this.line(`   - Mandatory: ${mandatoryHighestEfficiencyScoreRead.format} ${mandatoryHighestEfficiencyScoreRead.efficiencyScoreRead.toFixed(2)}`);
-        this.line('- Highest output token efficiency (%/token):');
+        this.line('- Highest output efficiency (%/token):');
         this.line(`   - Optional: ${optionalHighestEfficiencyScoreOutput.format} ${optionalHighestEfficiencyScoreOutput.efficiencyScoreRead.toFixed(2)}`);
         this.line(`   - Mandatory: ${mandatoryHighestEfficiencyScoreOutput.format} ${mandatoryHighestEfficiencyScoreOutput.efficiencyScoreRead.toFixed(2)}`);
         this.line('- Lowest delta (optional-mandatory):');
         this.line(`   - Read tokens: ${lowestReadTokensDelta.format} ${Math.round(lowestReadTokensDelta.readTokensDelta)} tokens`);
         this.line(`   - Output tokens: ${lowestOutputTokensTotalDelta.format} ${Math.round(lowestOutputTokensTotalDelta.outputTokensTotalDelta)} tokens`);
         this.line(`   - Accuracy: ${lowestAccuracyDelta.format} ${lowestAccuracyDelta.accuracyDelta.toFixed(2)}%`);
-        this.line(`   - Read token efficiency: ${lowestEfficiencyScoreReadDelta.format} ${lowestEfficiencyScoreReadDelta.efficiencyScoreReadDelta.toFixed(2)}`);
-        this.line(`   - Output token efficiency: ${lowestEfficiencyScoreOutputDelta.format} ${lowestEfficiencyScoreOutputDelta.efficiencyScoreOutputDelta.toFixed(2)}`);
+        this.line(`   - Read efficiency: ${lowestEfficiencyScoreReadDelta.format} ${lowestEfficiencyScoreReadDelta.efficiencyScoreReadDelta.toFixed(2)}`);
+        this.line(`   - Output efficiency: ${lowestEfficiencyScoreOutputDelta.format} ${lowestEfficiencyScoreOutputDelta.efficiencyScoreOutputDelta.toFixed(2)}`);
         this.line();
         // 2.1.2 Worst results
         const optionalHighestTotaLTokenCost = optionals.reduce((max, a) => a.totalTokens > max.totalTokens ? a : max);
@@ -368,21 +371,21 @@ class ReportGenerator {
         this.line('- Most wasted output tokens:');
         this.line(`   - Optional: ${optionaMostWastedOutputTokens.format} ${Math.round(optionaMostWastedOutputTokens.wastedOutputTokens)} / ${Math.round(optionaMostWastedOutputTokens.outputTokensTotal)} tokens`);
         this.line(`   - Mandatory: ${mandatoryMostWastedOutputTokens.format} ${Math.round(mandatoryMostWastedOutputTokens.wastedOutputTokens)} / ${Math.round(mandatoryMostWastedOutputTokens.outputTokensTotal)} tokens`);
-        this.line('- Lowest read token efficiency (%/token):');
+        this.line('- Lowest read efficiency (%/token):');
         this.line(`   - Optional: ${optionalLowestTokenEfficiencyRead.format} ${optionalLowestTokenEfficiencyRead.efficiencyScoreRead.toFixed(2)}`);
         this.line(`   - Mandatory: ${mandatoryLowestTokenEfficiencyRead.format} ${mandatoryLowestTokenEfficiencyRead.efficiencyScoreRead.toFixed(2)}`);
-        this.line('- Lowest output token efficiency (%/token):');
+        this.line('- Lowest output efficiency (%/token):');
         this.line(`   - Optional: ${optionalLowestTokenEfficiencyOutput.format} ${optionalLowestTokenEfficiencyOutput.efficiencyScoreOutput.toFixed(2)}`);
         this.line(`   - Mandatory: ${mandatoryLowestTokenEfficiencyOutput.format} ${mandatoryLowestTokenEfficiencyOutput.efficiencyScoreOutput.toFixed(2)}`);
         this.line('- Highest delta (optional-mandatory):');
         this.line(`   - Read tokens: ${highestReadTokensDelta.format} ${Math.round(highestReadTokensDelta.readTokensDelta)} tokens`);
         this.line(`   - Output tokens: ${highestOutputTokensTotalDelta.format} ${Math.round(highestOutputTokensTotalDelta.outputTokensTotalDelta)} tokens`);
         this.line(`   - Accuracy: ${highestAccuracyDelta.format} ${highestAccuracyDelta.accuracyDelta.toFixed(2)}%`);
-        this.line(`   - Read token efficiency: ${highestEfficiencyScoreReadDelta.format} ${highestEfficiencyScoreReadDelta.efficiencyScoreReadDelta.toFixed(2)}`);
-        this.line(`   - Output token efficiency: ${highestEfficiencyScoreOutputDelta.format} ${highestEfficiencyScoreOutputDelta.efficiencyScoreOutputDelta.toFixed(2)}`);
+        this.line(`   - Read efficiency: ${highestEfficiencyScoreReadDelta.format} ${highestEfficiencyScoreReadDelta.efficiencyScoreReadDelta.toFixed(2)}`);
+        this.line(`   - Output efficiency: ${highestEfficiencyScoreOutputDelta.format} ${highestEfficiencyScoreOutputDelta.efficiencyScoreOutputDelta.toFixed(2)}`);
         this.line();
         // 2.1.3 Format Ranking
-        const sortedByTotalDurationMandatories = [...mandatories].sort((ob1, ob2) => ob1.totalDurationInMs > ob2.totalDurationInMs ? 1 : ob1.totalDurationInMs < ob2.totalDurationInMs ? -1 : 0).map((x, i, arr) => this.getRankingOfAmountDisplay(x.format, i, arr[i].totalDurationInMs / 1000, arr[0].totalDurationInMs / 1000, 's'));
+        const sortedByTotalDurationMandatories = [...mandatories].sort((ob1, ob2) => ob1.outputDurationTotalInMs > ob2.outputDurationTotalInMs ? 1 : ob1.outputDurationTotalInMs < ob2.outputDurationTotalInMs ? -1 : 0).map((x, i, arr) => this.getRankingOfDurationDisplay(x.format, i, arr[i].outputDurationTotalInMs, arr[0].outputDurationTotalInMs));
         const sortedByReadTokensMandatories = [...mandatories].sort((ob1, ob2) => ob1.readTokens > ob2.readTokens ? 1 : ob1.readTokens < ob2.readTokens ? -1 : 0).map((x, i, arr) => this.getRankingOfAmountDisplay(x.format, i, arr[i].readTokens, arr[0].readTokens));
         const sortedByOutputTokensBeforeWriteMandatories = [...mandatories].sort((ob1, ob2) => ob1.outputTokensBeforeWrite > ob2.outputTokensBeforeWrite ? 1 : ob1.outputTokensBeforeWrite < ob2.outputTokensBeforeWrite ? -1 : 0).map((x, i, arr) => this.getRankingOfAmountDisplay(x.format, i, arr[i].outputTokensBeforeWrite, arr[0].outputTokensBeforeWrite));
         const sortedByOutputTokensWriteMandatories = [...mandatories].sort((ob1, ob2) => ob1.outputTokensWrite > ob2.outputTokensWrite ? 1 : ob1.outputTokensWrite < ob2.outputTokensWrite ? -1 : 0).map((x, i, arr) => this.getRankingOfAmountDisplay(x.format, i, arr[i].outputTokensWrite, arr[0].outputTokensWrite));
@@ -408,9 +411,9 @@ class ReportGenerator {
         this.line();
         this.heading(5, 'Mandatory');
         this.line();
-        this.table(['↑ Total Duration', '↑ Read Tokens', '↑ Output Before Write Tokens', '↑ Output Write Tokens', '↑ Output Total Tokens', '↑ Total Tokens', '↓ Accuracy', '↓ Eff Score Read', '↓ Eff Score Output', '↓ Eff Score Total'], manRows);
+        this.table(['↑ Total Duration', '↑ Read Tokens', '↑ Output Before Write Tokens', '↑ Output Write Tokens', '↑ Output Tokens', '↑ Total Tokens', '↓ Accuracy', '↓ Eff Score Read', '↓ Eff Score Output', '↓ Eff Score Total'], manRows);
         this.line();
-        const sortedByTotalDurationOptionals = [...optionals].sort((ob1, ob2) => ob1.totalDurationInMs > ob2.totalDurationInMs ? 1 : ob1.totalDurationInMs < ob2.totalDurationInMs ? -1 : 0).map((x, i, arr) => this.getRankingOfAmountDisplay(x.format, i, arr[i].totalDurationInMs / 1000, arr[0].totalDurationInMs / 1000, 's'));
+        const sortedByTotalDurationOptionals = [...optionals].sort((ob1, ob2) => ob1.outputDurationTotalInMs > ob2.outputDurationTotalInMs ? 1 : ob1.outputDurationTotalInMs < ob2.outputDurationTotalInMs ? -1 : 0).map((x, i, arr) => this.getRankingOfDurationDisplay(x.format, i, arr[i].outputDurationTotalInMs, arr[0].outputDurationTotalInMs));
         const sortedByReadTokensOptionals = [...optionals].sort((ob1, ob2) => ob1.readTokens > ob2.readTokens ? 1 : ob1.readTokens < ob2.readTokens ? -1 : 0).map((x, i, arr) => this.getRankingOfAmountDisplay(x.format, i, arr[i].readTokens, arr[0].readTokens));
         const sortedByOutputTokensBeforeWriteOptionals = [...optionals].sort((ob1, ob2) => ob1.outputTokensBeforeWrite > ob2.outputTokensBeforeWrite ? 1 : ob1.outputTokensBeforeWrite < ob2.outputTokensBeforeWrite ? -1 : 0).map((x, i, arr) => this.getRankingOfAmountDisplay(x.format, i, arr[i].outputTokensBeforeWrite, arr[0].outputTokensBeforeWrite));
         const sortedByOutputTokensWriteOptionals = [...optionals].sort((ob1, ob2) => ob1.outputTokensWrite > ob2.outputTokensWrite ? 1 : ob1.outputTokensWrite < ob2.outputTokensWrite ? -1 : 0).map((x, i, arr) => this.getRankingOfAmountDisplay(x.format, i, arr[i].outputTokensWrite, arr[0].outputTokensWrite));
@@ -434,7 +437,7 @@ class ReportGenerator {
         ]);
         this.heading(5, 'Optional');
         this.line();
-        this.table(['↑ Total Duration', '↑ Read Tokens', '↑ Output Before Write Tokens', '↑ Output Write Tokens', '↑ Output Total Tokens', '↑ Total Tokens', '↓ Accuracy', '↓ Eff Score Read', '↓ Eff Score Output', '↓ Eff Score Total'], optRows);
+        this.table(['↑ Total Benchmark Duration', '↑ Read Tokens', '↑ Output Before Write Tokens', '↑ Output Write Tokens', '↑ Output Tokens', '↑ Total Tokens', '↓ Accuracy', '↓ Eff Score Read', '↓ Eff Score Output', '↓ Eff Score Total'], optRows);
         this.line();
         // 2.1.4 Category Accuracy Ranking
         const formats = [...new Set(this.validations.map(x => x.format))];
@@ -481,6 +484,12 @@ class ReportGenerator {
         this.line('<ADD_CONTENT_HERE>Analysis here</ADD_CONTENT_HERE>');
         this.line();
     }
+    getRankingOfDurationDisplay(format, idx, current, first) {
+        if (current > 1000 && first > 1000) {
+            return this.getRankingOfAmountDisplay(format, idx, current / 1000, first / 1000, 's');
+        }
+        return this.getRankingOfAmountDisplay(format, idx, current, first, 'ms');
+    }
     getRankingOfAmountDisplay(format, idx, current, first, suffix = '') {
         return format + (idx > 0 ? ` (${(current > first ? '+' : '')}${(current / first * 100 - 100).toFixed(1)}%)` : ` ≈ ${Math.round(current)}${suffix}`);
     }
@@ -522,15 +531,15 @@ class ReportGenerator {
             item.outputTokensWritePerAnswer.toFixed(3),
             item.accuracyPercent.toFixed(2),
             item.usefulReadTokens.toFixed(3),
-            item.usefulOutputTokens.toFixed(3),
             item.wastedReadTokens.toFixed(3),
+            item.usefulOutputTokens.toFixed(3),
             item.wastedOutputTokens.toFixed(3),
             item.efficiencyScoreRead.toFixed(2),
             item.efficiencyScoreOutput.toFixed(2),
             item.efficiencyScoreTotal.toFixed(2),
         ]);
         this.heading(3, '2.2 Comprehensive Benchmark Metrics');
-        this.table(['Format', 'Variant', 'Read Tokens', 'Output Total Tokens', 'Total Tokens', 'Char/Read Token', 'Output Token Write/Answer', 'Accuracy (%)', 'Useful Read Tokens', 'Useful Output Tokens', 'Wasted Read Tokens', 'Wasted Output Tokens', 'Eff Score Read', 'Eff Score Output', 'Eff Score Total'], rows);
+        this.table(['Format', 'Variant', 'Read Tokens', 'Output Tokens', 'Total Tokens', 'Char / Read Token', 'Output Write Tokens / Answer', 'Accuracy (%)', 'Useful Read Tokens', 'Wasted Read Tokens', 'Useful Output Tokens', 'Wasted Output Tokens', 'Eff Score Read', 'Eff Score Output', 'Eff Score Total'], rows);
         // 2.3 Format Robustness: Mandatory vs Optional
         const mandOptFormatDeltaRows = mandatories.map(x => {
             const mandReadTokensUsed = Math.round(x.readTokens);
@@ -573,7 +582,7 @@ class ReportGenerator {
             ];
         });
         this.heading(3, '2.3 Format Robustness: Mandatory vs Optional');
-        this.table(['Format', 'Read Tokens Man', 'Read Tokens Opt', 'Diff', 'Diff (%)', 'Output Before Write Tokens Man', 'Output Before Write Tokens Opt', 'Diff', 'Diff (%)', 'Output Write Tokens Man', 'Output Write Tokens Opt', 'Diff', 'Diff (%)', 'Output Total Tokens Man', 'Output Total Tokens Opt', 'Diff', 'Diff (%)', 'Total Tokens Man', 'Total Tokens Opt', 'Diff', 'Diff (%)'], mandOptFormatDeltaRows);
+        this.table(['Format', 'Read Tokens Man', 'Read Tokens Opt', 'Diff', 'Diff (%)', 'Output Before Write Tokens Man', 'Output Before Write Tokens Opt', 'Diff', 'Diff (%)', 'Output Write Tokens Man', 'Output Write Tokens Opt', 'Diff', 'Diff (%)', 'Output Tokens Man', 'Output Tokens Opt', 'Diff', 'Diff (%)', 'Total Tokens Man', 'Total Tokens Opt', 'Diff', 'Diff (%)'], mandOptFormatDeltaRows);
         // 2.4 Performance
         // 2.4.1 Duration & Speed
         const readPerfRows = sortedAggregated.map(item => {
@@ -682,10 +691,10 @@ class ReportGenerator {
             Math.round(item.usefulTotalTokens).toString(),
             Math.round(item.wastedTotalTokens).toString(),
             item.accuracyPercent.toFixed(2),
-            item.weightedAccuracyPercent.toFixed(2),
             item.efficiencyScoreRead.toFixed(2),
             item.efficiencyScoreOutput.toFixed(2),
             item.efficiencyScoreTotal.toFixed(2),
+            item.weightedAccuracyPercent.toFixed(2),
             item.weightedEfficiencyScoreRead.toFixed(2),
             item.weightedEfficiencyScoreOutput.toFixed(2),
             item.weightedEfficiencyScoreTotal.toFixed(2),
@@ -694,10 +703,11 @@ class ReportGenerator {
         this.heading(4, '2.6.1 Metrics');
         this.table(['Format', 'Variant',
             'Read Tokens', 'Useful Read Tokens', 'Wasted Read Tokens',
-            'Output Total Tokens', 'Useful Output Total Tokens', 'Wasted Output Total Tokens',
+            'Output Tokens', 'Useful Output Tokens', 'Wasted Output Tokens',
             'Total Tokens', 'Useful Total Tokens', 'Wasted Total Tokens',
-            'Accuracy (%)', 'Wtd Accuracy (%)',
+            'Accuracy (%)',
             'Eff Score Read', 'Eff Score Output', 'Eff Score Total',
+            'Wtd Accuracy (%)',
             'Wtd Eff Score Read', 'Wtd Eff Score Output', 'Wtd Eff Score Total'], effTokenRows);
         // 2.6.2 Read Token Utilization Efficiency: Mandatory vs Optional Data
         const mandOptEffReadTokenDeltaRows = mandatories.map(x => {
@@ -723,7 +733,7 @@ class ReportGenerator {
                 this.displayDelta(x.accuracyDelta),
                 this.calcDeltaPercentage(x.accuracyPercent, x.accuracyDelta),
                 x.efficiencyScoreRead.toFixed(2),
-                (x.efficiencyScoreRead + x.efficiencyScoreReadDelta).toString(),
+                (x.efficiencyScoreRead + x.efficiencyScoreReadDelta).toFixed(2),
                 this.displayDelta(x.efficiencyScoreReadDelta, 2),
                 this.calcDeltaPercentage(x.efficiencyScoreRead, x.efficiencyScoreReadDelta),
                 x.weightedAccuracyPercent.toFixed(2),
@@ -731,7 +741,7 @@ class ReportGenerator {
                 this.displayDelta(x.weightedAccuracyDelta),
                 this.calcDeltaPercentage(x.weightedAccuracyPercent, x.weightedAccuracyDelta),
                 x.weightedEfficiencyScoreRead.toFixed(2),
-                (x.weightedEfficiencyScoreRead + x.weightedEfficiencyScoreReadDelta).toString(),
+                (x.weightedEfficiencyScoreRead + x.weightedEfficiencyScoreReadDelta).toFixed(2),
                 this.displayDelta(x.weightedEfficiencyScoreReadDelta, 2),
                 this.calcDeltaPercentage(x.weightedEfficiencyScoreRead, x.weightedEfficiencyScoreReadDelta)
             ];
@@ -767,7 +777,7 @@ class ReportGenerator {
                 this.displayDelta(x.accuracyDelta),
                 this.calcDeltaPercentage(x.accuracyPercent, x.accuracyDelta),
                 x.efficiencyScoreOutput.toFixed(2),
-                (x.efficiencyScoreOutput + x.efficiencyScoreOutputDelta).toString(),
+                (x.efficiencyScoreOutput + x.efficiencyScoreOutputDelta).toFixed(2),
                 this.displayDelta(x.efficiencyScoreOutputDelta, 2),
                 this.calcDeltaPercentage(x.efficiencyScoreOutput, x.efficiencyScoreOutputDelta),
                 x.weightedAccuracyPercent.toFixed(2),
@@ -775,7 +785,7 @@ class ReportGenerator {
                 this.displayDelta(x.weightedAccuracyDelta),
                 this.calcDeltaPercentage(x.weightedAccuracyPercent, x.weightedAccuracyDelta),
                 x.weightedEfficiencyScoreOutput.toFixed(2),
-                (x.weightedEfficiencyScoreOutput + x.weightedEfficiencyScoreOutputDelta).toString(),
+                (x.weightedEfficiencyScoreOutput + x.weightedEfficiencyScoreOutputDelta).toFixed(2),
                 this.displayDelta(x.weightedEfficiencyScoreOutputDelta, 2),
                 this.calcDeltaPercentage(x.weightedEfficiencyScoreOutput, x.weightedEfficiencyScoreOutputDelta),
             ];
@@ -811,7 +821,7 @@ class ReportGenerator {
                 this.displayDelta(x.accuracyDelta),
                 this.calcDeltaPercentage(x.accuracyPercent, x.accuracyDelta),
                 x.efficiencyScoreTotal.toFixed(2),
-                (x.efficiencyScoreTotal + x.efficiencyScoreTotalDelta).toString(),
+                (x.efficiencyScoreTotal + x.efficiencyScoreTotalDelta).toFixed(2),
                 this.displayDelta(x.efficiencyScoreTotalDelta, 2),
                 this.calcDeltaPercentage(x.efficiencyScoreTotal, x.efficiencyScoreTotalDelta),
                 x.weightedAccuracyPercent.toFixed(2),
@@ -819,7 +829,7 @@ class ReportGenerator {
                 this.displayDelta(x.weightedAccuracyDelta),
                 this.calcDeltaPercentage(x.weightedAccuracyPercent, x.weightedAccuracyDelta),
                 x.weightedEfficiencyScoreTotal.toFixed(2),
-                (x.weightedEfficiencyScoreTotal + x.weightedEfficiencyScoreTotalDelta).toString(),
+                (x.weightedEfficiencyScoreTotal + x.weightedEfficiencyScoreTotalDelta).toFixed(2),
                 this.displayDelta(x.weightedEfficiencyScoreTotalDelta, 2),
                 this.calcDeltaPercentage(x.weightedEfficiencyScoreTotal, x.weightedEfficiencyScoreTotalDelta),
             ];
