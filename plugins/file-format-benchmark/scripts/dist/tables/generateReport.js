@@ -437,7 +437,7 @@ class ReportGenerator {
         ]);
         this.heading(5, 'Optional');
         this.line();
-        this.table(['↑ Total Benchmark Duration', '↑ Read Tokens', '↑ Output Before Write Tokens', '↑ Output Write Tokens', '↑ Output Tokens', '↑ Total Tokens', '↓ Accuracy', '↓ Eff Score Read', '↓ Eff Score Output', '↓ Eff Score Total'], optRows);
+        this.table(['↑ Total Duration', '↑ Read Tokens', '↑ Output Before Write Tokens', '↑ Output Write Tokens', '↑ Output Tokens', '↑ Total Tokens', '↓ Accuracy', '↓ Eff Score Read', '↓ Eff Score Output', '↓ Eff Score Total'], optRows);
         this.line();
         // 2.1.4 Category Accuracy Ranking
         const formats = [...new Set(this.validations.map(x => x.format))];
