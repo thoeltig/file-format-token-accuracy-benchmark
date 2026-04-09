@@ -137,11 +137,11 @@ class BenchmarkAnalytics {
         });
       }else{
         entry.minRead = entry.minRead > userMetric.readTokens ? userMetric.readTokens : entry.minRead;
-        entry.maxRead = entry.maxRead > userMetric.readTokens ? userMetric.readTokens : entry.maxRead;
+        entry.maxRead = entry.maxRead < userMetric.readTokens ? userMetric.readTokens : entry.maxRead;
         entry.minOutput = entry.minOutput > userMetric.outputTokensTotal ? userMetric.outputTokensTotal : entry.minOutput;
-        entry.maxOutput = entry.maxOutput > userMetric.outputTokensTotal ? userMetric.outputTokensTotal : entry.maxOutput;
+        entry.maxOutput = entry.maxOutput < userMetric.outputTokensTotal ? userMetric.outputTokensTotal : entry.maxOutput;
         entry.minTotal = entry.minTotal > userMetric.totalTokens ? userMetric.totalTokens : entry.minTotal;
-        entry.maxTotal = entry.maxTotal > userMetric.totalTokens ? userMetric.totalTokens : entry.maxTotal;
+        entry.maxTotal = entry.maxTotal < userMetric.totalTokens ? userMetric.totalTokens : entry.maxTotal;
         minMaxRecordCount.set(userMetric.recordCount, entry);
       }
     }
@@ -228,6 +228,7 @@ class BenchmarkAnalytics {
         informationValuePerReadTokens: roundTo3Digits((validation.accuracy.accuracyPercent / userMetric.readTokens) * 100),
         informationValuePerOutputTokens: roundTo3Digits((validation.accuracy.accuracyPercent / userMetric.outputTokensTotal) * 100),
         informationValuePerTotalTokens: roundTo3Digits((validation.accuracy.accuracyPercent / userMetric.totalTokens) * 100),
+        
         totalTokens: userMetric.totalTokens,
         totalTokensDriftPercMin: userMetric.totalTokensDriftPercMin,
         totalTokensDriftPercMax: userMetric.totalTokensDriftPercMax,

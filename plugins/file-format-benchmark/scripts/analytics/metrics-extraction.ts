@@ -717,17 +717,17 @@ class MetricsExtraction {
         outputDurationTotalDriftPercMax: calcDriftPerc(reasoning.durationTotalMs, reasoning.durationTotalMsMax),
         outputDurationTotalDriftPercMin: calcDriftPerc(reasoning.durationTotalMs, reasoning.durationTotalMsMin),
         outputTokensBeforeWrite: reasoning.outputTokensBeforeWrite,
-        outputTokensBeforeWriteDriftPercMin: calcDriftPerc(reasoning.outputTokensBeforeWrite, reasoning.outputTokensBeforeWriteMin),
         outputTokensBeforeWriteDriftPercMax: calcDriftPerc(reasoning.outputTokensBeforeWrite, reasoning.outputTokensBeforeWriteMax),
+        outputTokensBeforeWriteDriftPercMin: calcDriftPerc(reasoning.outputTokensBeforeWrite, reasoning.outputTokensBeforeWriteMin),
         outputTokensWrite: reasoning.outputTokensWrite,
-        outputTokensWriteDriftPercMin: calcDriftPerc(reasoning.outputTokensWrite, reasoning.outputTokensWriteMin),
         outputTokensWriteDriftPercMax: calcDriftPerc(reasoning.outputTokensWrite, reasoning.outputTokensWriteMax),
+        outputTokensWriteDriftPercMin: calcDriftPerc(reasoning.outputTokensWrite, reasoning.outputTokensWriteMin),
         outputTokensTotal: reasoning.outputTokensTotal,
-        outputTokensTotalDriftPercMin: calcDriftPerc(reasoning.outputTokensTotal, reasoning.outputTokensTotalMin),
         outputTokensTotalDriftPercMax: calcDriftPerc(reasoning.outputTokensTotal, reasoning.outputTokensTotalMax),
+        outputTokensTotalDriftPercMin: calcDriftPerc(reasoning.outputTokensTotal, reasoning.outputTokensTotalMin),
         totalTokens: totalTokens,
-        totalTokensDriftPercMin: calcDriftPerc(totalTokens, readData.readTokens + reasoning.outputTokensTotalMin),
         totalTokensDriftPercMax: calcDriftPerc(totalTokens, readData.readTokens + reasoning.outputTokensTotalMax),
+        totalTokensDriftPercMin: calcDriftPerc(totalTokens, readData.readTokens + reasoning.outputTokensTotalMin),
       });
     }
 
