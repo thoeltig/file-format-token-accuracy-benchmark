@@ -161,7 +161,18 @@ function aggregateMetrics(metrics) {
             absOutputTokensWriteDriftPerc: 0,
             absOutputTokensTotalDriftPerc: 0,
             absAccuracyDriftPerc: 0,
-            absweightedAccuracyDriftPerc: 0
+            absWeightedAccuracyDriftPerc: 0,
+            accuracyByCharPerc: 0,
+            accuracyByCharDriftPercMin: 0,
+            accuracyByCharDriftPercMax: 0,
+            wastedOutputWriteTokensByCharAccuracy: 0,
+            usefulOutputWriteTokensByCharAccuracy: 0,
+            efficiencyScoreOutputWriteTokensByCharAccuracy: 0,
+            absAccuracyByCharDriftPerc: 0,
+            accuracyByCharPercDelta: 0,
+            usefulOutputWriteTokensByCharAccuracyDelta: 0,
+            wastedOutputWriteTokensByCharAccuracyDelta: 0,
+            efficiencyScoreOutputWriteTokensByCharAccuracyDelta: 0,
         };
         tests.forEach(t => {
             avgTest.readTokens += t.readTokens;
@@ -226,6 +237,12 @@ function aggregateMetrics(metrics) {
             avgTest.weightedEfficiencyScoreRead += t.weightedEfficiencyScoreRead;
             avgTest.weightedEfficiencyScoreOutput += t.weightedEfficiencyScoreOutput;
             avgTest.weightedEfficiencyScoreTotal += t.weightedEfficiencyScoreTotal;
+            avgTest.accuracyByCharPerc += t.accuracyByCharPerc;
+            avgTest.accuracyByCharDriftPercMin += t.accuracyByCharDriftPercMin;
+            avgTest.accuracyByCharDriftPercMax += t.accuracyByCharDriftPercMax;
+            avgTest.wastedOutputWriteTokensByCharAccuracy += t.wastedOutputWriteTokensByCharAccuracy;
+            avgTest.usefulOutputWriteTokensByCharAccuracy += t.usefulOutputWriteTokensByCharAccuracy;
+            avgTest.efficiencyScoreOutputWriteTokensByCharAccuracy += t.efficiencyScoreOutputWriteTokensByCharAccuracy;
         });
         const count = tests.length;
         avgTest.readTokens /= count;
@@ -290,6 +307,12 @@ function aggregateMetrics(metrics) {
         avgTest.weightedEfficiencyScoreRead /= count;
         avgTest.weightedEfficiencyScoreOutput /= count;
         avgTest.weightedEfficiencyScoreTotal /= count;
+        avgTest.accuracyByCharPerc /= count;
+        avgTest.accuracyByCharDriftPercMin /= count;
+        avgTest.accuracyByCharDriftPercMax /= count;
+        avgTest.wastedOutputWriteTokensByCharAccuracy /= count;
+        avgTest.usefulOutputWriteTokensByCharAccuracy /= count;
+        avgTest.efficiencyScoreOutputWriteTokensByCharAccuracy /= count;
         avgTest.absOutputDurationBeforeWriteDriftPerc = Math.abs(avgTest.outputDurationBeforeWriteDriftPercMin) + avgTest.outputDurationBeforeWriteDriftPercMax;
         avgTest.absOutputDurationWriteDriftPerc = Math.abs(avgTest.outputDurationWriteDriftPercMin) + avgTest.outputDurationWriteDriftPercMax;
         avgTest.absOutputDurationTotalDriftPerc = Math.abs(avgTest.outputDurationTotalDriftPercMin) + avgTest.outputDurationTotalDriftPercMax;
@@ -297,7 +320,8 @@ function aggregateMetrics(metrics) {
         avgTest.absOutputTokensWriteDriftPerc = Math.abs(avgTest.outputTokensWriteDriftPercMin) + avgTest.outputTokensWriteDriftPercMax;
         avgTest.absOutputTokensTotalDriftPerc = Math.abs(avgTest.outputTokensTotalDriftPercMin) + avgTest.outputTokensTotalDriftPercMax;
         avgTest.absAccuracyDriftPerc = Math.abs(avgTest.accuracyDriftPercentMin) + avgTest.accuracyDriftPercentMax;
-        avgTest.absweightedAccuracyDriftPerc = Math.abs(avgTest.weightedAccuracyDriftPercentMin) + avgTest.weightedAccuracyDriftPercentMax;
+        avgTest.absWeightedAccuracyDriftPerc = Math.abs(avgTest.weightedAccuracyDriftPercentMin) + avgTest.weightedAccuracyDriftPercentMax;
+        avgTest.absAccuracyByCharDriftPerc = Math.abs(avgTest.accuracyByCharDriftPercMin) + avgTest.accuracyByCharDriftPercMax;
         aggregated.push(avgTest);
     });
     // Calculate deltas
@@ -337,6 +361,10 @@ function aggregateMetrics(metrics) {
             item.outputDurationBeforeWriteInMsDelta = optional.outputDurationBeforeWriteInMs - mandatory.outputDurationBeforeWriteInMs;
             item.outputDurationWriteInMsDelta = optional.outputDurationWriteInMs - mandatory.outputDurationWriteInMs;
             item.outputDurationTotalInMsDelta = optional.outputDurationTotalInMs - mandatory.outputDurationTotalInMs;
+            item.accuracyByCharPercDelta = optional.accuracyByCharPerc - mandatory.accuracyByCharPerc;
+            item.usefulOutputWriteTokensByCharAccuracyDelta = optional.usefulOutputWriteTokensByCharAccuracy - mandatory.usefulOutputWriteTokensByCharAccuracy;
+            item.wastedOutputWriteTokensByCharAccuracyDelta = optional.wastedOutputWriteTokensByCharAccuracy - mandatory.wastedOutputWriteTokensByCharAccuracy;
+            item.efficiencyScoreOutputWriteTokensByCharAccuracyDelta = optional.efficiencyScoreOutputWriteTokensByCharAccuracy - mandatory.efficiencyScoreOutputWriteTokensByCharAccuracy;
         }
     });
     return aggregated;
