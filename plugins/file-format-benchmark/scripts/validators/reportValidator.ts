@@ -10,6 +10,7 @@ import * as path from "path";
 import { AnswerValidator } from "./answerValidator";
 import { AnswerAndQuestion, Format, QuestionnaireWithAnswers, AnswerTemplate, MergedValidationReport, QuestionsAndProvidedAnswers } from "../types";
 import { DIRECTORY_ANSWERS_VALIDATION, DIRECTORY_RESULTS, DIRECTORY_SUBAGENT_OUTPUT } from "../consts";
+import { roundTo2Digits, roundTo3Digits, ToPercentage } from "../shared";
 
 // Find all test 1 files recursively (these define the test cases)
 interface TestCase {
@@ -77,7 +78,15 @@ class ReportValidator {
                     accuracyDriftPercMax: 0,
                     weightedAccuracyPercent: 0,
                     weightedAccuracyDriftPercMin: 0,
-                    weightedAccuracyDriftPercMax: 0
+                    weightedAccuracyDriftPercMax: 0,
+                    charactersOfAnswers: {
+                        expected: 0,
+                        correct: 0,
+                        incorrect: 0,
+                        accuracyByCharPerc: 0,
+                        accuracyByCharDriftPercMin: 0,
+                        accuracyByCharDriftPercMax: 0
+                    }
                 },
                 perRunAccuracy:[],
                 questionsAndProvidedAnswers: groundTruthQuestions.map<QuestionsAndProvidedAnswers>(x => {
@@ -113,10 +122,13 @@ class ReportValidator {
                     incorrect: validationResult.accuracy.incorrect,
                     accuracyPercent: validationResult.accuracy.accuracyPercent,
                     weightedAccuracyPercent: validationResult.accuracy.weightedAccuracyPercent,
-                    accuracyPerCategory: validationResult.accuracyPerCategory,
-                    expectedAnswerCharacters: validationResult.charactersOfAnswers.expected,
-                    correctAnswerCharacters: validationResult.charactersOfAnswers.correct,
-                    incorrectAnswerCharacters: validationResult.charactersOfAnswers.incorrect
+                    accuracyPerCategory: validationResult.accuracyPerCategory,                      
+                    charactersOfAnswers: {
+                        expected: validationResult.charactersOfAnswers.expected,
+                        correct: validationResult.charactersOfAnswers.correct,
+                        incorrect: validationResult.charactersOfAnswers.incorrect,
+                        accuracyByCharPerc: validationResult.charactersOfAnswers.accuracyByCharPerc
+                    }
                 });
 
                 validationResult.results.forEach(x => {
@@ -129,18 +141,29 @@ class ReportValidator {
             }
 
             // Aggregate results from all 3 runs
-            report.accuracy.correct =  Math.round((report.perRunAccuracy.reduce((sum, r) => sum + r.correct, 0) / report.perRunAccuracy.length) * 100)/100;
-            report.accuracy.incorrect =  Math.round((report.perRunAccuracy.reduce((sum, r) => sum + r.incorrect, 0) / report.perRunAccuracy.length) * 100)/100;
-            report.accuracy.accuracyPercent =  Math.round((report.perRunAccuracy.reduce((sum, r) => sum + r.accuracyPercent, 0) / report.perRunAccuracy.length) * 100)/100;
-            report.accuracy.weightedAccuracyPercent =  Math.round((report.perRunAccuracy.reduce((sum, r) => sum + r.weightedAccuracyPercent, 0) / report.perRunAccuracy.length) * 100)/100;
+            report.accuracy.correct =  roundTo2Digits(report.perRunAccuracy.reduce((sum, r) => sum + r.correct, 0) / report.perRunAccuracy.length);
+            report.accuracy.incorrect =  roundTo2Digits(report.perRunAccuracy.reduce((sum, r) => sum + r.incorrect, 0) / report.perRunAccuracy.length);
+            report.accuracy.accuracyPercent =  roundTo2Digits(report.perRunAccuracy.reduce((sum, r) => sum + r.accuracyPercent, 0) / report.perRunAccuracy.length);
+            report.accuracy.weightedAccuracyPercent =  roundTo2Digits(report.perRunAccuracy.reduce((sum, r) => sum + r.weightedAccuracyPercent, 0) / report.perRunAccuracy.length);
             
             report.accuracy.accuracyDriftPercMin = this.calcDriftPerc(report.accuracy.accuracyPercent, Math.min(...report.perRunAccuracy.map(x => x.accuracyPercent)));
             report.accuracy.accuracyDriftPercMax = this.calcDriftPerc(report.accuracy.accuracyPercent, Math.max(...report.perRunAccuracy.map(x => x.accuracyPercent)));
             report.accuracy.weightedAccuracyDriftPercMin = this.calcDriftPerc(report.accuracy.weightedAccuracyPercent, Math.min(...report.perRunAccuracy.map(x => x.weightedAccuracyPercent)));
             report.accuracy.weightedAccuracyDriftPercMax = this.calcDriftPerc(report.accuracy.weightedAccuracyPercent, Math.max(...report.perRunAccuracy.map(x => x.weightedAccuracyPercent)));
             
-            const statusIcon = report.accuracy.accuracyPercent === 100 ? "✓" : report.accuracy.accuracyPercent >= 90 ? "◐" : "✗";
-            console.log(`${statusIcon} ${testCase.format.padEnd(15)} ${testCase.structure.padEnd(8)} ${testCase.variant.padEnd(10)} ${String(testCase.recordCount).padEnd(4)} → ${report.accuracy.accuracyPercent.toFixed(3)}%`);
+            const avgAccuracyByCharPercent = ToPercentage(report.perRunAccuracy.reduce((sum, r) => sum + r.charactersOfAnswers.accuracyByCharPerc, 0) / report.perRunAccuracy.length);
+            report.accuracy.charactersOfAnswers = {
+                expected: roundTo3Digits(report.perRunAccuracy.reduce((sum, r) => sum + r.charactersOfAnswers.expected, 0) / report.perRunAccuracy.length),
+                correct: roundTo3Digits(report.perRunAccuracy.reduce((sum, r) => sum + r.charactersOfAnswers.correct, 0) / report.perRunAccuracy.length),
+                incorrect: roundTo3Digits(report.perRunAccuracy.reduce((sum, r) => sum + r.charactersOfAnswers.incorrect, 0) / report.perRunAccuracy.length),
+                accuracyByCharPerc: avgAccuracyByCharPercent,
+                accuracyByCharDriftPercMin: this.calcDriftPerc(avgAccuracyByCharPercent, Math.min(...report.perRunAccuracy.map(x => x.charactersOfAnswers.accuracyByCharPerc))),
+                accuracyByCharDriftPercMax: this.calcDriftPerc(avgAccuracyByCharPercent, Math.max(...report.perRunAccuracy.map(x => x.charactersOfAnswers.accuracyByCharPerc)))
+            };
+            
+            console.log(`${testCase.format.padEnd(15)} ${testCase.structure.padEnd(8)} ${testCase.variant.padEnd(10)} ${String(testCase.recordCount).padEnd(4)}`);
+            console.log(`Accuracy by question: ${report.accuracy.accuracyPercent === 100 ? "✓" : report.accuracy.accuracyPercent >= 90 ? "◐" : "✗"} → ${report.accuracy.accuracyPercent}%`);
+            console.log(`Accuracy by output char: ${avgAccuracyByCharPercent === 100 ? "✓" : avgAccuracyByCharPercent >= 90 ? "◐" : "✗"} → ${avgAccuracyByCharPercent}%`);
 
             // Save aggregated results
             const outputFile = path.join(this.resultsDir, `${testCase.format}_${testCase.structure}_${testCase.variant}_${testCase.recordCount}_validation.json`);

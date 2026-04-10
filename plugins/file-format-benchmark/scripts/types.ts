@@ -233,6 +233,7 @@ export interface ValidationReport {
     expected: number;
     correct: number;
     incorrect: number;
+    accuracyByCharPerc: number;
   };
   accuracyPerCategory: CategoryAnswerAccuracy[];
 }
@@ -253,7 +254,15 @@ export interface AvgAnswerAccuracy extends AnswerAccuracy{
   accuracyDriftPercMin: number;
   accuracyDriftPercMax: number;
   weightedAccuracyDriftPercMin: number;
-  weightedAccuracyDriftPercMax: number;
+  weightedAccuracyDriftPercMax: number;   
+  charactersOfAnswers: {
+    expected: number;
+    correct: number;
+    incorrect: number;
+    accuracyByCharPerc: number;
+    accuracyByCharDriftPercMin: number;
+    accuracyByCharDriftPercMax: number;
+  };
 }
 
 export interface AnswerAccuracy {
@@ -270,10 +279,13 @@ export interface CategoryAnswerAccuracy extends AnswerAccuracy {
 
 export interface PerTestRunAnswerAccuracy extends AnswerAccuracy {
   run: number;
-  accuracyPerCategory: CategoryAnswerAccuracy[];
-  expectedAnswerCharacters: number;
-  correctAnswerCharacters: number;
-  incorrectAnswerCharacters: number;
+  accuracyPerCategory: CategoryAnswerAccuracy[];    
+  charactersOfAnswers: {
+    expected: number;
+    correct: number;
+    incorrect: number;
+    accuracyByCharPerc: number;
+  };
 }
 
 export interface QuestionsAndProvidedAnswers {

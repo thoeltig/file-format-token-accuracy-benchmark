@@ -78,6 +78,9 @@ export class AnswerValidator {
     const totalValidatable = results.length;
     const mapAsArray = [...map.entries()];
     const weightedAccuracyPercent = mapAsArray.reduce((sum, x) => sum + ToPercentage((x[1].correct / (x[1].correct+x[1].incorrect+x[1].notSet))*QUESTIONS_WEIGHT_DISTRIBUTION[x[0]]), 0);
+    const expectedCharactersOfAnswers = results.map(x => this.getAnswerLength(x.expectedAnswer)).reduce((sum, x) => sum + x, 0);
+    const correctCharactersOfAnswers = results.filter(x => x.correct === true).map(x => this.getAnswerLength(x.givenAnswer)).reduce((sum, x) => sum + x, 0);
+    const incorrectCharactersOfAnswers = results.filter(x => x.correct === false).map(x => this.getAnswerLength(x.givenAnswer)).reduce((sum, x) => sum + x, 0);
 
     return {
       format: format,
@@ -90,9 +93,10 @@ export class AnswerValidator {
         weightedAccuracyPercent: weightedAccuracyPercent
       },
       charactersOfAnswers: {
-        expected: results.map(x => this.getAnswerLength(x.expectedAnswer)).reduce((sum, x) => sum + x, 0),
-        correct: results.filter(x => x.correct === true).map(x => this.getAnswerLength(x.givenAnswer)).reduce((sum, x) => sum + x, 0),
-        incorrect: results.filter(x => x.correct === false).map(x => this.getAnswerLength(x.givenAnswer)).reduce((sum, x) => sum + x, 0)
+        expected: expectedCharactersOfAnswers,
+        correct: correctCharactersOfAnswers,
+        incorrect: incorrectCharactersOfAnswers,
+        accuracyByCharPerc: ToPercentage(correctCharactersOfAnswers / expectedCharactersOfAnswers)
       },
       accuracyPerCategory: mapAsArray.map<CategoryAnswerAccuracy>(x => {
         const category = x[0];
