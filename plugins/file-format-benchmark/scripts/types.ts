@@ -567,6 +567,14 @@ export interface Metrics {
   weightedEfficiencyScoreRead: number;
   weightedEfficiencyScoreOutput: number;
   weightedEfficiencyScoreTotal: number;
+  
+  // Tokens wasted or effictively used but not by overall accuracy but by per character of output correctness. This can only be applied to the actual output write tokens.
+  accuracyByCharPerc: number;
+  accuracyByCharDriftPercMin: number;
+  accuracyByCharDriftPercMax: number;
+  wastedOutputWriteTokensByCharAccuracy: number;
+  usefulOutputWriteTokensByCharAccuracy: number;
+  efficiencyScoreOutputWriteTokensByCharAccuracy: number;
 }
 
 export interface TestMetrics extends Metrics {

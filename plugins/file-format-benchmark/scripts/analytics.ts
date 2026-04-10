@@ -123,7 +123,7 @@ class BenchmarkAnalytics {
       }
     }
     
-    const minMaxRecordCount:Map<number, {minRead:number, maxRead:number, minOutput:number, maxOutput:number, minTotal:number, maxTotal:number}> = new Map();
+    const minMaxRecordCount:Map<number, {minRead:number, maxRead:number, minOutput:number, maxOutput:number, minTotal:number, maxTotal:number, minOutputWrite:number, maxOutputWrite:number,}> = new Map();
     for (const userMetric of userMetrics) {
       const entry = minMaxRecordCount.get(userMetric.recordCount);
       if(!entry){
@@ -134,6 +134,8 @@ class BenchmarkAnalytics {
           maxOutput: userMetric.outputTokensTotal,
           minTotal: userMetric.totalTokens,
           maxTotal: userMetric.totalTokens,
+          minOutputWrite: userMetric.outputTokensWrite,
+          maxOutputWrite: userMetric.outputTokensWrite,
         });
       }else{
         entry.minRead = entry.minRead > userMetric.readTokens ? userMetric.readTokens : entry.minRead;
@@ -142,6 +144,8 @@ class BenchmarkAnalytics {
         entry.maxOutput = entry.maxOutput < userMetric.outputTokensTotal ? userMetric.outputTokensTotal : entry.maxOutput;
         entry.minTotal = entry.minTotal > userMetric.totalTokens ? userMetric.totalTokens : entry.minTotal;
         entry.maxTotal = entry.maxTotal < userMetric.totalTokens ? userMetric.totalTokens : entry.maxTotal;
+        entry.minOutputWrite = entry.minOutputWrite > userMetric.outputTokensWrite ? userMetric.outputTokensWrite : entry.minOutputWrite;
+        entry.maxOutputWrite = entry.maxOutputWrite < userMetric.outputTokensWrite ? userMetric.outputTokensWrite : entry.maxOutputWrite;
         minMaxRecordCount.set(userMetric.recordCount, entry);
       }
     }
@@ -172,6 +176,7 @@ class BenchmarkAnalytics {
       const normalizedReadTokensScore = entry ? this.normalizedAmountScore(entry.minRead-10, entry.maxRead+10, userMetric.readTokens) * portionTokens : 0;
       const normalizedOutputTokensScore = entry ? this.normalizedAmountScore(entry.minOutput-10, entry.maxOutput+10, userMetric.outputTokensTotal) * portionTokens : 0;
       const normalizedTotalTokensScore = entry ? this.normalizedAmountScore(entry.minTotal-10, entry.maxTotal+10, userMetric.totalTokens) * portionTokens : 0;
+      const normalizedOutputWriteTokensScore = entry ? this.normalizedAmountScore(entry.minOutputWrite-10, entry.maxOutputWrite+10, userMetric.outputTokensWrite) * portionTokens : 0;
       
       metrics.push({
         testCase: userMetric.testCase,
@@ -253,6 +258,13 @@ class BenchmarkAnalytics {
         weightedEfficiencyScoreRead: roundTo3Digits(weightedAccuracyPercPartOfScore + normalizedReadTokensScore),
         weightedEfficiencyScoreOutput: roundTo3Digits(weightedAccuracyPercPartOfScore + normalizedOutputTokensScore),
         weightedEfficiencyScoreTotal: roundTo3Digits(weightedAccuracyPercPartOfScore + normalizedTotalTokensScore),
+        
+        accuracyByCharPerc: validation.accuracy.charactersOfAnswers.accuracyByCharPerc,
+        accuracyByCharDriftPercMin: validation.accuracy.charactersOfAnswers.accuracyByCharDriftPercMin,
+        accuracyByCharDriftPercMax: validation.accuracy.charactersOfAnswers.accuracyByCharDriftPercMax,
+        wastedOutputWriteTokensByCharAccuracy: roundTo3Digits(userMetric.outputTokensWrite * (1 - (validation.accuracy.charactersOfAnswers.accuracyByCharPerc / 100))),
+        usefulOutputWriteTokensByCharAccuracy: roundTo3Digits(userMetric.outputTokensWrite * (validation.accuracy.charactersOfAnswers.accuracyByCharPerc / 100)),
+        efficiencyScoreOutputWriteTokensByCharAccuracy: roundTo3Digits((validation.accuracy.charactersOfAnswers.accuracyByCharPerc*portionAccuracy) + normalizedOutputWriteTokensScore),
       });
     }
 

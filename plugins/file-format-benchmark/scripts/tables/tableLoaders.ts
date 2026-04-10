@@ -39,7 +39,7 @@ export interface AggregatedMetric extends Metrics {
   accuracyDelta: number;
   absAccuracyDriftPerc: number;
   weightedAccuracyDelta: number;
-  absweightedAccuracyDriftPerc: number;
+  absWeightedAccuracyDriftPerc: number;
   efficiencyScoreReadDelta: number;
   efficiencyScoreOutputDelta: number;
   efficiencyScoreTotalDelta: number;
@@ -49,6 +49,7 @@ export interface AggregatedMetric extends Metrics {
   informationValuePerReadTokensDelta: number;
   informationValuePerOutputTokensDelta: number;
   informationValuePerTotalTokensDelta: number;
+  absAccuracyByCharDriftPerc: number;
 }
 
 export interface CategoryAccuracy {
@@ -209,7 +210,14 @@ export function aggregateMetrics(metrics: TestMetrics[]): AggregatedMetric[] {
       absOutputTokensWriteDriftPerc: 0,
       absOutputTokensTotalDriftPerc: 0,
       absAccuracyDriftPerc: 0,
-      absweightedAccuracyDriftPerc: 0
+      absWeightedAccuracyDriftPerc: 0,
+      accuracyByCharPerc: 0,
+      accuracyByCharDriftPercMin: 0,
+      accuracyByCharDriftPercMax: 0,
+      wastedOutputWriteTokensByCharAccuracy: 0,
+      usefulOutputWriteTokensByCharAccuracy: 0,
+      efficiencyScoreOutputWriteTokensByCharAccuracy: 0,
+      absAccuracyByCharDriftPerc: 0,
     };
 
     tests.forEach(t => {
@@ -275,6 +283,12 @@ export function aggregateMetrics(metrics: TestMetrics[]): AggregatedMetric[] {
       avgTest.weightedEfficiencyScoreRead += t.weightedEfficiencyScoreRead;
       avgTest.weightedEfficiencyScoreOutput += t.weightedEfficiencyScoreOutput;
       avgTest.weightedEfficiencyScoreTotal += t.weightedEfficiencyScoreTotal;
+      avgTest.accuracyByCharPerc += t.accuracyByCharPerc;
+      avgTest.accuracyByCharDriftPercMin += t.accuracyByCharDriftPercMin;
+      avgTest.accuracyByCharDriftPercMax += t.accuracyByCharDriftPercMax;
+      avgTest.wastedOutputWriteTokensByCharAccuracy += t.wastedOutputWriteTokensByCharAccuracy;
+      avgTest.usefulOutputWriteTokensByCharAccuracy += t.usefulOutputWriteTokensByCharAccuracy;
+      avgTest.efficiencyScoreOutputWriteTokensByCharAccuracy += t.efficiencyScoreOutputWriteTokensByCharAccuracy;
     });
 
     const count = tests.length;
@@ -340,6 +354,12 @@ export function aggregateMetrics(metrics: TestMetrics[]): AggregatedMetric[] {
     avgTest.weightedEfficiencyScoreRead /= count;
     avgTest.weightedEfficiencyScoreOutput /= count;
     avgTest.weightedEfficiencyScoreTotal /= count;
+    avgTest.accuracyByCharPerc/= count;
+    avgTest.accuracyByCharDriftPercMin /= count;
+    avgTest.accuracyByCharDriftPercMax /= count;
+    avgTest.wastedOutputWriteTokensByCharAccuracy /= count;
+    avgTest.usefulOutputWriteTokensByCharAccuracy /= count;
+    avgTest.efficiencyScoreOutputWriteTokensByCharAccuracy /= count;
     avgTest.absOutputDurationBeforeWriteDriftPerc = Math.abs(avgTest.outputDurationBeforeWriteDriftPercMin) + avgTest.outputDurationBeforeWriteDriftPercMax;
     avgTest.absOutputDurationWriteDriftPerc = Math.abs(avgTest.outputDurationWriteDriftPercMin) + avgTest.outputDurationWriteDriftPercMax;
     avgTest.absOutputDurationTotalDriftPerc = Math.abs(avgTest.outputDurationTotalDriftPercMin) + avgTest.outputDurationTotalDriftPercMax;
@@ -347,7 +367,8 @@ export function aggregateMetrics(metrics: TestMetrics[]): AggregatedMetric[] {
     avgTest.absOutputTokensWriteDriftPerc = Math.abs(avgTest.outputTokensWriteDriftPercMin) + avgTest.outputTokensWriteDriftPercMax;
     avgTest.absOutputTokensTotalDriftPerc = Math.abs(avgTest.outputTokensTotalDriftPercMin) + avgTest.outputTokensTotalDriftPercMax;
     avgTest.absAccuracyDriftPerc = Math.abs(avgTest.accuracyDriftPercentMin) + avgTest.accuracyDriftPercentMax;
-    avgTest.absweightedAccuracyDriftPerc = Math.abs(avgTest.weightedAccuracyDriftPercentMin) + avgTest.weightedAccuracyDriftPercentMax;
+    avgTest.absWeightedAccuracyDriftPerc = Math.abs(avgTest.weightedAccuracyDriftPercentMin) + avgTest.weightedAccuracyDriftPercentMax;
+    avgTest.absAccuracyByCharDriftPerc = Math.abs(avgTest.accuracyByCharDriftPercMin) + avgTest.accuracyByCharDriftPercMax;
     
     aggregated.push(avgTest);
   });
