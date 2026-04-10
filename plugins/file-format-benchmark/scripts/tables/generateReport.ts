@@ -166,7 +166,7 @@ class ReportGenerator {
   private generateExecutiveSummary(): void {
     this.heading(2, 'Executive Summary');
     this.line();
-    this.line(`This benchmark evaluates token efficiency and information accuracy across ${this.uniqueFormats.length} file formats using ${this.metadata.model} as the inference model. The research addresses a critical but underexplored problem: **not all tokens are equally useful**. A format that uses fewer tokens but produces inaccurate results wastes both tokens and context, while a format that accurately conveys information may justify higher token cost.`);
+    this.line(`This benchmark evaluates token efficiency and information accuracy across ${this.uniqueFormats.length} file formats using ${this.metadata.model} as the inference model. The research addresses a critical but underexplored problem: **not all tokens are equally useful**. A format that uses fewer tokens but produces inaccurate results wastes both tokens and context while a format that accurately conveys information may justify higher token cost.`);
     this.line();
 
     this.heading(3, 'Key Findings');
@@ -201,13 +201,13 @@ class ReportGenerator {
 
     this.heading(3, '1.2 Test Design');
     this.line();
-    this.line('**Data Generation:**');
+    this.heading(4, '1.2.1 Data Generation');
     this.line(`- ${this.uniqueFormats.length} formats tested: ${this.uniqueFormats.join(', ')}`);
     this.line('- 2 variants per format: mandatory (22 fields, dense) and optional (19 mandatory + 3 optional, sparse)');
     this.line(`- Record Counts: ${this.recordCounts.join(', ')}`);
     this.line();
 
-    this.line('**Question Distribution:**');
+    this.heading(4, '1.2.2 Question Distribution');
     this.line(`- ${this.metadata.questionDistribution.length} question categories reflecting practical use cases:`);
 
     let fieledretrievalAndStructureAwareness = 0;
@@ -241,42 +241,45 @@ class ReportGenerator {
     });
     this.line();
     
-    this.line('**Weighting Rationale:**');
-    this.line(`- Field retrieval + structure awareness = ${fieledretrievalAndStructureAwareness.toFixed(2)}%`);
+    this.heading(4, '1.2.3 Weighting Rationale');
+    this.line(`- **Field retrieval + structure awareness** = ${fieledretrievalAndStructureAwareness.toFixed(2)}%`);
     this.line(`   - These represent the file format itself. Understanding "what data exists and how it's organized" which is fundamental to avoiding context confusion.`);
-    this.line(`- Filtering + aggregation = ${filteringAndAggregation.toFixed(2)}%`);
+    this.line(`- **Filtering + aggregation** = ${filteringAndAggregation.toFixed(2)}%`);
     this.line(`   - These represent more the "intellectual" aspect of the model and will differ greatly depending on the model. Also if done deterministic the model still needs to do field retrieval and structure awareness on the result.`);
     this.line();
     
     this.heading(3, '1.3 Metrics Definition');
     this.line();
-    this.line('**Token Metrics:**');
-    this.line('- `readTokens`: Tokens consumed reading the data file');
-    this.line('- `outputTokens`: Tokens consumed during inference (answering questions + creating the file content)');
-    this.line('- `totalTokens`: readTokens + outputTokens');
+    this.heading(4, '1.3.1 Token Metrics');
+    this.line('- **Read Tokens**: Tokens consumed reading the data file');
+    this.line('- **Output Tokens**: Tokens consumed during inference (answering questions and creating the file content)');
+    this.line('- **Total Tokens**: **Read Tokens** + **Output Tokens**');
     this.line();
-    this.line('**Accuracy Metrics:**');
-    this.line('- `accuracy`: Correct answers / total questions');
-    this.line('- `weightedAccuracy`: Accuracy weighted by question category importanc');
+    this.heading(4, '1.3.2 Accuracy Metrics');
+    this.line('- **Accuracy**: Correct answers / total questions');
+    this.line('- **Weighted Accuracy**: Accuracy weighted by question category importanc');
     this.line();
-    this.line('**Information Value Metrics:**');
-    this.line('- `informationValuePerToken`: (accuracy% / totalTokens) × 100');
-    this.line('- `costOfInaccuracy`: totalTokens × (1 - accuracy% / 100) — tokens wasted on inaccurate output');
-    this.line();
-    this.line('**Efficiency Score:**');
+    this.heading(4, '1.3.3 Efficiency Score');
     this.line('- Composite metric balancing accuracy with normalized token cost (favour towards accuracy)')
-    this.line('- normalizedTokenCost = (((maxTotalTokens+10)-currenTotalTokens)/((maxTotalTokens+10)-(minTotalTokens-10)))*100')
-    this.line('- `efficiencyScore`: (accuracy% x 0.7) + (normalizedTokenCost * 0.3)');
-    this.line('- `weightedEfficiencyScore`: (weightedAccuracy% x 0.7) + (normalizedTokenCost * 0.3)');
+    this.line('- **Normalized Token Cost** = (((**Max Tokens** + 10) - **Curren Tokens**) / ((**Max Tokens** + 10) - (**Min Tokens** - 10))) * 100')
+    this.line('- **Efficiency Score**: (**Accuracy** % x 0.7) + (**Normalized Token Cost** * 0.3)');
+    this.line('- **Weighted Efficiency Score**: (**Weighted Accuracy** % x 0.7) + (**Normalized Token Cost** * 0.3)');
     this.line();
         
     this.heading(3, '1.4 Token Usage Measurements');
     this.line();
-    this.line('Tokens usage measured in this benchmark are no estimates but the real token usage the model used in this test. The token usage is reported to the user indirectly in the conversation transcript. Both read and output Tokens are directly extracted from the transcripts of the subagents:');
+    this.line('Tokens usage measured in this benchmark are no estimates but the real token usage the model used in this test. The token usage is reported to the user indirectly in the conversation transcript. Both read and output tokens are directly extracted from the transcripts of the subagents:');
     this.line('- **Read Tokens**: For each data file a single read subagent is invoked with the only prompt to read the file at the provided filepath and return "Done" once finished and do nothing more. The token extraction script searches for the read tool result and extracts only the read tokens of it.');
-    this.line('- **Output Tokens**: For each data file three "benchmark-full-test" subagent are invoked with data, questions and answers template files and the instructions to read everything and answer all questions in a single write tool use. The token extraction script aggregates all output tokens until and including the write tool result.');
+    this.line('- **Output Tokens**: For each data file multiple "benchmark-full-test" subagent are invoked with data, questions and answers template files and the instructions to read everything and answer all questions in a single write tool use. The token extraction script aggregates all output tokens until and including the write tool result.');
     this.line('   - **Output Before Write Tokens**: The output tokens which the model needed for reading the provided files and instructions.');
     this.line('   - **Output Write Tokens**: The output tokens the model used to create the output and write the answers file.');
+    this.line();
+    
+    this.heading(3, '1.5 Important Note');
+    this.line();
+    this.line(`These results are specific to Claude Code using the ${this.metadata.model} model. They serve as a rule of thumb for choosing the best file format depending on the use case.`);
+    this.line('However these values cannot be exactly applied to models of the same family or from other providers as token usage, accuracy and latency depend on specific model architectures and tokenizers. While the relative ranking of file formats remains consistent the absolute numbers will vary.');
+    this.line('Especially the accuracy and output tokens results will vary because these values are bound to the model size and training, instruction interpretation and reasoning token budget.');
     this.line();
   }
 
