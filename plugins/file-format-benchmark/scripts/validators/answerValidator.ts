@@ -79,7 +79,7 @@ export class AnswerValidator {
     const mapAsArray = [...map.entries()];
     const weightedAccuracyPercent = mapAsArray.reduce((sum, x) => sum + ToPercentage((x[1].correct / (x[1].correct+x[1].incorrect+x[1].notSet))*QUESTIONS_WEIGHT_DISTRIBUTION[x[0]]), 0);
     const expectedCharactersOfAnswers = results.map(x => this.getAnswerLength(x.expectedAnswer)).reduce((sum, x) => sum + x, 0);
-    const correctCharactersOfAnswers = results.filter(x => x.correct === true).map(x => this.getAnswerLength(x.givenAnswer)).reduce((sum, x) => sum + x, 0);
+    const correctCharactersOfAnswers = results.filter(x => x.correct === true).map(x => this.getAnswerLength(x.expectedAnswer)).reduce((sum, x) => sum + x, 0);
     const incorrectCharactersOfAnswers = results.filter(x => x.correct === false).map(x => this.getAnswerLength(x.givenAnswer)).reduce((sum, x) => sum + x, 0);
 
     return {

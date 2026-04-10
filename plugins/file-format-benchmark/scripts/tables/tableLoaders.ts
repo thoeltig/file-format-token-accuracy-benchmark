@@ -50,6 +50,10 @@ export interface AggregatedMetric extends Metrics {
   informationValuePerOutputTokensDelta: number;
   informationValuePerTotalTokensDelta: number;
   absAccuracyByCharDriftPerc: number;
+  accuracyByCharPercDelta: number;
+  usefulOutputWriteTokensByCharAccuracyDelta: number;
+  wastedOutputWriteTokensByCharAccuracyDelta: number;
+  efficiencyScoreOutputWriteTokensByCharAccuracyDelta: number;
 }
 
 export interface CategoryAccuracy {
@@ -218,6 +222,10 @@ export function aggregateMetrics(metrics: TestMetrics[]): AggregatedMetric[] {
       usefulOutputWriteTokensByCharAccuracy: 0,
       efficiencyScoreOutputWriteTokensByCharAccuracy: 0,
       absAccuracyByCharDriftPerc: 0,
+      accuracyByCharPercDelta: 0,
+      usefulOutputWriteTokensByCharAccuracyDelta: 0,
+      wastedOutputWriteTokensByCharAccuracyDelta: 0,
+      efficiencyScoreOutputWriteTokensByCharAccuracyDelta: 0,
     };
 
     tests.forEach(t => {
@@ -415,6 +423,10 @@ export function aggregateMetrics(metrics: TestMetrics[]): AggregatedMetric[] {
       item.outputDurationBeforeWriteInMsDelta = optional.outputDurationBeforeWriteInMs - mandatory.outputDurationBeforeWriteInMs;
       item.outputDurationWriteInMsDelta = optional.outputDurationWriteInMs - mandatory.outputDurationWriteInMs;
       item.outputDurationTotalInMsDelta = optional.outputDurationTotalInMs - mandatory.outputDurationTotalInMs;
+      item.accuracyByCharPercDelta = optional.accuracyByCharPerc - mandatory.accuracyByCharPerc;      
+      item.usefulOutputWriteTokensByCharAccuracyDelta = optional.usefulOutputWriteTokensByCharAccuracy - mandatory.usefulOutputWriteTokensByCharAccuracy;
+      item.wastedOutputWriteTokensByCharAccuracyDelta = optional.wastedOutputWriteTokensByCharAccuracy - mandatory.wastedOutputWriteTokensByCharAccuracy;
+      item.efficiencyScoreOutputWriteTokensByCharAccuracyDelta = optional.efficiencyScoreOutputWriteTokensByCharAccuracy - mandatory.efficiencyScoreOutputWriteTokensByCharAccuracy;
     }
   });
 

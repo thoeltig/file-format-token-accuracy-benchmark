@@ -10,7 +10,7 @@ import * as path from "path";
 import { AnswerValidator } from "./answerValidator";
 import { AnswerAndQuestion, Format, QuestionnaireWithAnswers, AnswerTemplate, MergedValidationReport, QuestionsAndProvidedAnswers } from "../types";
 import { DIRECTORY_ANSWERS_VALIDATION, DIRECTORY_RESULTS, DIRECTORY_SUBAGENT_OUTPUT } from "../consts";
-import { roundTo2Digits, roundTo3Digits, ToPercentage } from "../shared";
+import { roundTo2Digits, roundTo3Digits } from "../shared";
 
 // Find all test 1 files recursively (these define the test cases)
 interface TestCase {
@@ -151,7 +151,7 @@ class ReportValidator {
             report.accuracy.weightedAccuracyDriftPercMin = this.calcDriftPerc(report.accuracy.weightedAccuracyPercent, Math.min(...report.perRunAccuracy.map(x => x.weightedAccuracyPercent)));
             report.accuracy.weightedAccuracyDriftPercMax = this.calcDriftPerc(report.accuracy.weightedAccuracyPercent, Math.max(...report.perRunAccuracy.map(x => x.weightedAccuracyPercent)));
             
-            const avgAccuracyByCharPercent = ToPercentage(report.perRunAccuracy.reduce((sum, r) => sum + r.charactersOfAnswers.accuracyByCharPerc, 0) / report.perRunAccuracy.length);
+            const avgAccuracyByCharPercent = roundTo2Digits(report.perRunAccuracy.reduce((sum, r) => sum + r.charactersOfAnswers.accuracyByCharPerc, 0) / report.perRunAccuracy.length);
             report.accuracy.charactersOfAnswers = {
                 expected: roundTo3Digits(report.perRunAccuracy.reduce((sum, r) => sum + r.charactersOfAnswers.expected, 0) / report.perRunAccuracy.length),
                 correct: roundTo3Digits(report.perRunAccuracy.reduce((sum, r) => sum + r.charactersOfAnswers.correct, 0) / report.perRunAccuracy.length),
