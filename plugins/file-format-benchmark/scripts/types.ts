@@ -10,6 +10,7 @@
 export type Format = "csv" | "json_pretty" | "json_compact" | "toon_default" | "toon_keyfold" | "xml_pretty" | "xml_compact" | "yaml";
 export type Directory = "data" | "answers_validation" | "questions" | "answers_template" | "subagent_outputs" | "results";
 export type QuestionCategory = "field_retrieval" | "aggregation" | "filtering" | "structure_awareness";
+export type EfficiencyScoreCategory = "accuracy" | "tokens";
 
 export interface MetadataFlatArray {
   generatedAt: string,
@@ -597,7 +598,11 @@ export interface TestMetrics extends Metrics {
 
 export interface AnalyticsOutput {
   timestamp: string;
-  testConfigurations: {
+  testConfigurations: TestMetadata;
+  metrics: TestMetrics[];
+}
+
+export interface TestMetadata {
     metadataFile: string;
     agentIdsFile: string;
     metricsFile: string;
@@ -607,8 +612,7 @@ export interface AnalyticsOutput {
     formats: string[];
     variants: string[];
     recordCounts: number[];
+    efficiencyScoreWeight: [EfficiencyScoreCategory, number][];
     questionDistribution: [QuestionCategory, number][];
     questionWeightDistribution: [QuestionCategory, number][];
   };
-  metrics: TestMetrics[];
-}

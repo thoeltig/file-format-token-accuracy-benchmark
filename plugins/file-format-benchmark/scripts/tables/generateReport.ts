@@ -39,7 +39,7 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import { loadAnalyticsResults, aggregateMetrics, loadValidationResults, AggregatedMetric, ValidationSummary, AllQuestionCategory } from './tableLoaders';
-import { AnalyticsOutput, QuestionCategory } from '../types';
+import { AnalyticsOutput, QuestionCategory, TestMetadata } from '../types';
 import { FILE_ANALYTICS_RESULT } from '../consts';
 
 interface ReportConfig {
@@ -66,35 +66,20 @@ function parseArgs(args: string[]): ReportConfig {
 // METADATA EXTRACTION
 // ============================================================================
 
-interface Metadata {
+interface Metadata extends TestMetadata {
   generatedAt: string;
-  model: string,
-  thinking: string;
-  structure: string;
-  formats: string[];
-  variants: string[];
-  recordCounts: number[];
-  questionDistribution: [QuestionCategory, number][];
-  questionWeightDistribution: [QuestionCategory, number][];
-};
+}
 
-  interface MappingType {
-    format: string;
-    category: AllQuestionCategory;
-    accuracyPercent: number;
-  };
+interface MappingType {
+  format: string;
+  category: AllQuestionCategory;
+  accuracyPercent: number;
+};
 
 function extractMetadata(analyticsData: AnalyticsOutput): Metadata {
   return {
     generatedAt: analyticsData.timestamp || new Date().toISOString(),
-    model: analyticsData.testConfigurations.model,
-    thinking: analyticsData.testConfigurations.thinking,
-    structure: analyticsData.testConfigurations.structure,
-    formats: analyticsData.testConfigurations.formats || [],
-    variants: analyticsData.testConfigurations.variants || [],
-    recordCounts: analyticsData.testConfigurations.recordCounts || [],
-    questionDistribution: analyticsData.testConfigurations.questionDistribution || [],
-    questionWeightDistribution: analyticsData.testConfigurations.questionWeightDistribution || [],
+    ...analyticsData.testConfigurations
   };
 }
 
@@ -261,11 +246,14 @@ class ReportGenerator {
     this.line('- **Accuracy**: Correct answers / total questions');
     this.line('- **Weighted Accuracy**: Accuracy weighted by question category importance');
     this.line();
+
+    const efficiencyScoreAccuracyPortion = this.metadata.efficiencyScoreWeight.find(x => x[0] === "accuracy")?.[1] ?? 0;
+    const efficiencyScoreTokenPortion = this.metadata.efficiencyScoreWeight.find(x => x[0] === "tokens")?.[1] ?? 0;
     this.heading(4, '1.3.3 Efficiency Score');
     this.line('Composite metric balancing accuracy with normalized token count (favour towards accuracy). Each efficieny score has an indicator which token count was used in the calculation.')
     this.line('- **Normalized Tokens** = (((**Max Tokens** + 10) - **Current Tokens**) / ((**Max Tokens** + 10) - (**Min Tokens** - 10))) * 100')
-    this.line('- **Efficiency Score**: (**Accuracy** % x 0.7) + (**Normalized Tokens** * 0.3)');
-    this.line('- **Weighted Efficiency Score**: (**Weighted Accuracy** % x 0.7) + (**Normalized Tokens** * 0.3)');
+    this.line(`- **Efficiency Score**: (**Accuracy** % x ${efficiencyScoreAccuracyPortion}) + (**Normalized Tokens** * ${efficiencyScoreTokenPortion})`);
+    this.line(`- **Weighted Efficiency Score**: (**Weighted Accuracy** % x ${efficiencyScoreAccuracyPortion}) + (**Normalized Tokens** * ${efficiencyScoreTokenPortion})`);
     this.line();
         
     this.heading(3, '1.4 Token Usage Measurements');
