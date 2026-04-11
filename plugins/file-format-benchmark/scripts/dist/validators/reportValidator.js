@@ -86,6 +86,7 @@ class ReportValidator {
                         expected: 0,
                         correct: 0,
                         incorrect: 0,
+                        total: 0,
                         accuracyByCharPerc: 0,
                         accuracyByCharDriftPercMin: 0,
                         accuracyByCharDriftPercMax: 0
@@ -126,6 +127,7 @@ class ReportValidator {
                         expected: validationResult.charactersOfAnswers.expected,
                         correct: validationResult.charactersOfAnswers.correct,
                         incorrect: validationResult.charactersOfAnswers.incorrect,
+                        total: validationResult.charactersOfAnswers.total,
                         accuracyByCharPerc: validationResult.charactersOfAnswers.accuracyByCharPerc
                     }
                 });
@@ -133,7 +135,7 @@ class ReportValidator {
                     const questionsAndProvidedAnswer = report.questionsAndProvidedAnswers.find(y => y.questionId == x.questionId);
                     questionsAndProvidedAnswer?.answers.push({
                         givenAnswer: x.givenAnswer,
-                        correct: x.correct
+                        correct: x.stats.correct
                     });
                 });
             }
@@ -151,6 +153,7 @@ class ReportValidator {
                 expected: (0, shared_1.roundTo3Digits)(report.perRunAccuracy.reduce((sum, r) => sum + r.charactersOfAnswers.expected, 0) / report.perRunAccuracy.length),
                 correct: (0, shared_1.roundTo3Digits)(report.perRunAccuracy.reduce((sum, r) => sum + r.charactersOfAnswers.correct, 0) / report.perRunAccuracy.length),
                 incorrect: (0, shared_1.roundTo3Digits)(report.perRunAccuracy.reduce((sum, r) => sum + r.charactersOfAnswers.incorrect, 0) / report.perRunAccuracy.length),
+                total: (0, shared_1.roundTo3Digits)(report.perRunAccuracy.reduce((sum, r) => sum + r.charactersOfAnswers.total, 0) / report.perRunAccuracy.length),
                 accuracyByCharPerc: avgAccuracyByCharPercent,
                 accuracyByCharDriftPercMin: this.calcDriftPerc(avgAccuracyByCharPercent, Math.min(...report.perRunAccuracy.map(x => x.charactersOfAnswers.accuracyByCharPerc))),
                 accuracyByCharDriftPercMax: this.calcDriftPerc(avgAccuracyByCharPercent, Math.max(...report.perRunAccuracy.map(x => x.charactersOfAnswers.accuracyByCharPerc)))
