@@ -10,7 +10,7 @@ import * as path from "path";
 import { AnswerValidator } from "./answerValidator";
 import { AnswerAndQuestion, Format, QuestionnaireWithAnswers, AnswerTemplate, MergedValidationReport, QuestionsAndProvidedAnswers } from "../types";
 import { DIRECTORY_ANSWERS_VALIDATION, DIRECTORY_RESULTS, DIRECTORY_SUBAGENT_OUTPUT } from "../consts";
-import { roundTo2Digits, roundTo3Digits } from "../shared";
+import { calcDriftPerc, roundTo2Digits, roundTo3Digits } from "../shared";
 
 // Find all test 1 files recursively (these define the test cases)
 interface TestCase {
@@ -148,10 +148,10 @@ class ReportValidator {
             report.accuracy.accuracyPercent =  roundTo2Digits(report.perRunAccuracy.reduce((sum, r) => sum + r.accuracyPercent, 0) / report.perRunAccuracy.length);
             report.accuracy.weightedAccuracyPercent =  roundTo2Digits(report.perRunAccuracy.reduce((sum, r) => sum + r.weightedAccuracyPercent, 0) / report.perRunAccuracy.length);
             
-            report.accuracy.accuracyDriftPercMin = this.calcDriftPerc(report.accuracy.accuracyPercent, Math.min(...report.perRunAccuracy.map(x => x.accuracyPercent)));
-            report.accuracy.accuracyDriftPercMax = this.calcDriftPerc(report.accuracy.accuracyPercent, Math.max(...report.perRunAccuracy.map(x => x.accuracyPercent)));
-            report.accuracy.weightedAccuracyDriftPercMin = this.calcDriftPerc(report.accuracy.weightedAccuracyPercent, Math.min(...report.perRunAccuracy.map(x => x.weightedAccuracyPercent)));
-            report.accuracy.weightedAccuracyDriftPercMax = this.calcDriftPerc(report.accuracy.weightedAccuracyPercent, Math.max(...report.perRunAccuracy.map(x => x.weightedAccuracyPercent)));
+            report.accuracy.accuracyDriftPercMin = calcDriftPerc(report.accuracy.accuracyPercent, Math.min(...report.perRunAccuracy.map(x => x.accuracyPercent)));
+            report.accuracy.accuracyDriftPercMax = calcDriftPerc(report.accuracy.accuracyPercent, Math.max(...report.perRunAccuracy.map(x => x.accuracyPercent)));
+            report.accuracy.weightedAccuracyDriftPercMin = calcDriftPerc(report.accuracy.weightedAccuracyPercent, Math.min(...report.perRunAccuracy.map(x => x.weightedAccuracyPercent)));
+            report.accuracy.weightedAccuracyDriftPercMax = calcDriftPerc(report.accuracy.weightedAccuracyPercent, Math.max(...report.perRunAccuracy.map(x => x.weightedAccuracyPercent)));
             
             const avgAccuracyByCharPercent = roundTo2Digits(report.perRunAccuracy.reduce((sum, r) => sum + r.charactersOfAnswers.accuracyByCharPerc, 0) / report.perRunAccuracy.length);
             report.accuracy.charactersOfAnswers = {
@@ -160,8 +160,8 @@ class ReportValidator {
                 incorrect: roundTo3Digits(report.perRunAccuracy.reduce((sum, r) => sum + r.charactersOfAnswers.incorrect, 0) / report.perRunAccuracy.length),
                 total: roundTo3Digits(report.perRunAccuracy.reduce((sum, r) => sum + r.charactersOfAnswers.total, 0) / report.perRunAccuracy.length),
                 accuracyByCharPerc: avgAccuracyByCharPercent,
-                accuracyByCharDriftPercMin: this.calcDriftPerc(avgAccuracyByCharPercent, Math.min(...report.perRunAccuracy.map(x => x.charactersOfAnswers.accuracyByCharPerc))),
-                accuracyByCharDriftPercMax: this.calcDriftPerc(avgAccuracyByCharPercent, Math.max(...report.perRunAccuracy.map(x => x.charactersOfAnswers.accuracyByCharPerc)))
+                accuracyByCharDriftPercMin: calcDriftPerc(avgAccuracyByCharPercent, Math.min(...report.perRunAccuracy.map(x => x.charactersOfAnswers.accuracyByCharPerc))),
+                accuracyByCharDriftPercMax: calcDriftPerc(avgAccuracyByCharPercent, Math.max(...report.perRunAccuracy.map(x => x.charactersOfAnswers.accuracyByCharPerc)))
             };
             
             console.log(`${testCase.format.padEnd(15)} ${testCase.structure.padEnd(8)} ${testCase.variant.padEnd(10)} ${String(testCase.recordCount).padEnd(4)}`);
@@ -178,11 +178,7 @@ class ReportValidator {
         console.log(`\n✓ Validation complete. Results saved to: ${this.resultsDir}\n`);
         return results;
     }
-    
-    private calcDriftPerc(avg: number, val: number): number{
-        return Math.round(((val - avg) / avg) * 100 * 100) / 100;
-    }
-    
+        
     private findTestCases(dir: string): Map<string,TestCase> {
         const map: Map<string,TestCase> = new Map();
         const entries = fs.readdirSync(dir, { withFileTypes: true });
