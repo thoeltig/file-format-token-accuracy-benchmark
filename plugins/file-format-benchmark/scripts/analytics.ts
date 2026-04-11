@@ -9,7 +9,7 @@ import { discoverAgents } from "./analytics/agent-discovery";
 import MetricsExtraction from "./analytics/metrics-extraction";
 import { AnalyticsOutput, GeneratorResult, MergedValidationReport, TestMetrics, UserMetrics } from "./types";
 import ReportValidator from "./validators/reportValidator";
-import { DIRECTORY_ANSWERS_VALIDATION, FILE_AGENT_ID, FILE_ANALYTICS_RESULT, FILE_METADATA, FILE_METRICS, QUESTIONS_DISTRIBUTION, QUESTIONS_WEIGHT_DISTRIBUTION } from "./consts";
+import { DIRECTORY_ANSWERS_VALIDATION, EFFICIENCY_SCORE_WEIGHT, FILE_AGENT_ID, FILE_ANALYTICS_RESULT, FILE_METADATA, FILE_METRICS, QUESTIONS_DISTRIBUTION, QUESTIONS_WEIGHT_DISTRIBUTION } from "./consts";
 import { roundTo3Digits } from "./shared";
 
 class BenchmarkAnalytics {
@@ -169,14 +169,12 @@ class BenchmarkAnalytics {
       const accuracy = validation.accuracy.accuracyPercent / 100;
       const weightedAccuracy = validation.accuracy.weightedAccuracyPercent / 100;
 
-      const portionAccuracy = 0.7;
-      const portionTokens = 0.3;
-      const accuracyPercPartOfScore = validation.accuracy.accuracyPercent*portionAccuracy;
-      const weightedAccuracyPercPartOfScore = validation.accuracy.weightedAccuracyPercent*portionAccuracy;
-      const normalizedReadTokensScore = entry ? this.normalizedAmountScore(entry.minRead-10, entry.maxRead+10, userMetric.readTokens) * portionTokens : 0;
-      const normalizedOutputTokensScore = entry ? this.normalizedAmountScore(entry.minOutput-10, entry.maxOutput+10, userMetric.outputTokensTotal) * portionTokens : 0;
-      const normalizedTotalTokensScore = entry ? this.normalizedAmountScore(entry.minTotal-10, entry.maxTotal+10, userMetric.totalTokens) * portionTokens : 0;
-      const normalizedOutputWriteTokensScore = entry ? this.normalizedAmountScore(entry.minOutputWrite-10, entry.maxOutputWrite+10, userMetric.outputTokensWrite) * portionTokens : 0;
+      const accuracyPercPartOfScore = validation.accuracy.accuracyPercent * EFFICIENCY_SCORE_WEIGHT.accuracy;
+      const weightedAccuracyPercPartOfScore = validation.accuracy.weightedAccuracyPercent * EFFICIENCY_SCORE_WEIGHT.accuracy;
+      const normalizedReadTokensScore = entry ? this.normalizedAmountScore(entry.minRead-10, entry.maxRead+10, userMetric.readTokens) * EFFICIENCY_SCORE_WEIGHT.tokens : 0;
+      const normalizedOutputTokensScore = entry ? this.normalizedAmountScore(entry.minOutput-10, entry.maxOutput+10, userMetric.outputTokensTotal) * EFFICIENCY_SCORE_WEIGHT.tokens : 0;
+      const normalizedTotalTokensScore = entry ? this.normalizedAmountScore(entry.minTotal-10, entry.maxTotal+10, userMetric.totalTokens) * EFFICIENCY_SCORE_WEIGHT.tokens : 0;
+      const normalizedOutputWriteTokensScore = entry ? this.normalizedAmountScore(entry.minOutputWrite-10, entry.maxOutputWrite+10, userMetric.outputTokensWrite) * EFFICIENCY_SCORE_WEIGHT.tokens : 0;
       
       metrics.push({
         testCase: userMetric.testCase,
@@ -264,7 +262,7 @@ class BenchmarkAnalytics {
         accuracyByCharDriftPercMax: validation.accuracy.charactersOfAnswers.accuracyByCharDriftPercMax,
         wastedOutputWriteTokensByCharAccuracy: roundTo3Digits(userMetric.outputTokensWrite * (1 - (validation.accuracy.charactersOfAnswers.accuracyByCharPerc / 100))),
         usefulOutputWriteTokensByCharAccuracy: roundTo3Digits(userMetric.outputTokensWrite * (validation.accuracy.charactersOfAnswers.accuracyByCharPerc / 100)),
-        efficiencyScoreOutputWriteTokensByCharAccuracy: roundTo3Digits((validation.accuracy.charactersOfAnswers.accuracyByCharPerc*portionAccuracy) + normalizedOutputWriteTokensScore),
+        efficiencyScoreOutputWriteTokensByCharAccuracy: roundTo3Digits((validation.accuracy.charactersOfAnswers.accuracyByCharPerc * EFFICIENCY_SCORE_WEIGHT.accuracy) + normalizedOutputWriteTokensScore),
       });
     }
 
@@ -300,6 +298,10 @@ class BenchmarkAnalytics {
         formats,
         variants, 
         recordCounts,
+        efficiencyScoreWeight: [
+          ["accuracy",EFFICIENCY_SCORE_WEIGHT.accuracy],
+          ["tokens",EFFICIENCY_SCORE_WEIGHT.tokens],
+        ],
         questionDistribution: [
           ["field_retrieval", QUESTIONS_DISTRIBUTION["field_retrieval"]],
           ["filtering", QUESTIONS_DISTRIBUTION["filtering"]],
