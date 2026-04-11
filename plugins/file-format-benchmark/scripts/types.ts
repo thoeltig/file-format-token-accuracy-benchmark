@@ -214,9 +214,18 @@ export interface ValidationResult {
   question: string;
   givenAnswer: string | number | string[] | boolean;
   expectedAnswer: string | number | string[] | boolean;
-  correct: boolean;
+  stats: ValidationStats;
   category: QuestionCategory;
   method: AnswerValidationMethod;
+}
+
+export interface ValidationStats {
+  correct: boolean;
+  expectedChars: number;
+  correctChars: number;
+  incorrectChars: number;
+  totalChars: number;
+  accuracyByChar: number;
 }
 
 export interface ValidationReport {
