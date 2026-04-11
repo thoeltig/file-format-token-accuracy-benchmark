@@ -229,12 +229,7 @@ export interface ValidationReport {
     accuracyPercent: number;
     weightedAccuracyPercent: number;  
   };
-  charactersOfAnswers: {
-    expected: number;
-    correct: number;
-    incorrect: number;
-    accuracyByCharPerc: number;
-  };
+  charactersOfAnswers: CharactersOfAnswers;
   accuracyPerCategory: CategoryAnswerAccuracy[];
 }
 
@@ -254,15 +249,8 @@ export interface AvgAnswerAccuracy extends AnswerAccuracy{
   accuracyDriftPercMin: number;
   accuracyDriftPercMax: number;
   weightedAccuracyDriftPercMin: number;
-  weightedAccuracyDriftPercMax: number;   
-  charactersOfAnswers: {
-    expected: number;
-    correct: number;
-    incorrect: number;
-    accuracyByCharPerc: number;
-    accuracyByCharDriftPercMin: number;
-    accuracyByCharDriftPercMax: number;
-  };
+  weightedAccuracyDriftPercMax: number;
+  charactersOfAnswers: ExtendedCharactersOfAnswers;
 }
 
 export interface AnswerAccuracy {
@@ -274,18 +262,32 @@ export interface AnswerAccuracy {
 
 export interface CategoryAnswerAccuracy extends AnswerAccuracy {
   category: QuestionCategory;
-  unanswered: number; 
+  unanswered: number;  
+  charactersOfAnswers: CharactersOfAnswers;
 }
 
 export interface PerTestRunAnswerAccuracy extends AnswerAccuracy {
   run: number;
   accuracyPerCategory: CategoryAnswerAccuracy[];    
-  charactersOfAnswers: {
-    expected: number;
-    correct: number;
-    incorrect: number;
-    accuracyByCharPerc: number;
-  };
+  charactersOfAnswers: CharactersOfAnswers;
+}
+
+export interface ExtendedCharactersOfAnswers extends CharactersOfAnswers{
+    accuracyByCharDriftPercMin: number;
+    accuracyByCharDriftPercMax: number;
+}
+
+export interface CharactersOfAnswers {
+  // The count of characters in the original answers
+  expected: number;
+  // The count of correct characters in the given answers
+  correct: number;
+  // The count of incorrect and missing characters in the given answers
+  incorrect: number;
+  // The sum of correct, incorrect and missing characters in the given answers
+  total: number;  
+  // The by char accuracy is calculated 'correct / total' because
+  accuracyByCharPerc: number;
 }
 
 export interface QuestionsAndProvidedAnswers {
