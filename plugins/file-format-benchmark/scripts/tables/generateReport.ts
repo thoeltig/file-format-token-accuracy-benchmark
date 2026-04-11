@@ -259,11 +259,11 @@ class ReportGenerator {
     this.heading(4, '1.3.2 Accuracy Metrics');
     this.line('- **Accuracy By Char**: Correct char per answers / expected characters per answer');
     this.line('- **Accuracy**: Correct answers / total questions');
-    this.line('- **Weighted Accuracy**: Accuracy weighted by question category importanc');
+    this.line('- **Weighted Accuracy**: Accuracy weighted by question category importance');
     this.line();
     this.heading(4, '1.3.3 Efficiency Score');
     this.line('Composite metric balancing accuracy with normalized token count (favour towards accuracy). Each efficieny score has an indicator which token count was used in the calculation.')
-    this.line('- **Normalized Tokens** = (((**Max Tokens** + 10) - **Curren Tokens**) / ((**Max Tokens** + 10) - (**Min Tokens** - 10))) * 100')
+    this.line('- **Normalized Tokens** = (((**Max Tokens** + 10) - **Current Tokens**) / ((**Max Tokens** + 10) - (**Min Tokens** - 10))) * 100')
     this.line('- **Efficiency Score**: (**Accuracy** % x 0.7) + (**Normalized Tokens** * 0.3)');
     this.line('- **Weighted Efficiency Score**: (**Weighted Accuracy** % x 0.7) + (**Normalized Tokens** * 0.3)');
     this.line();
@@ -374,8 +374,8 @@ class ReportGenerator {
     this.line(`   - Optional: ${optionalHighestEfficiencyScoreRead.format} ${optionalHighestEfficiencyScoreRead.efficiencyScoreRead.toFixed(2)}`);
     this.line(`   - Mandatory: ${mandatoryHighestEfficiencyScoreRead.format} ${mandatoryHighestEfficiencyScoreRead.efficiencyScoreRead.toFixed(2)}`);
     this.line('- Highest output efficiency (%/token):');
-    this.line(`   - Optional: ${optionalHighestEfficiencyScoreOutput.format} ${optionalHighestEfficiencyScoreOutput.efficiencyScoreRead.toFixed(2)}`);
-    this.line(`   - Mandatory: ${mandatoryHighestEfficiencyScoreOutput.format} ${mandatoryHighestEfficiencyScoreOutput.efficiencyScoreRead.toFixed(2)}`);
+    this.line(`   - Optional: ${optionalHighestEfficiencyScoreOutput.format} ${optionalHighestEfficiencyScoreOutput.efficiencyScoreOutput.toFixed(2)}`);
+    this.line(`   - Mandatory: ${mandatoryHighestEfficiencyScoreOutput.format} ${mandatoryHighestEfficiencyScoreOutput.efficiencyScoreOutput.toFixed(2)}`);
     this.line('- Highest accuracy by char:');
     this.line(`   - Optional: ${optionalHighestAccuracyByCharPerc.format} ${optionalHighestAccuracyByCharPerc.accuracyByCharPerc.toFixed(2)}%`);
     this.line(`   - Mandatory: ${mandatoryHighestAccuracyByCharPerc.format} ${mandatoryHighestAccuracyByCharPerc.accuracyByCharPerc.toFixed(2)}%`);
@@ -735,15 +735,15 @@ class ReportGenerator {
         mandReadTokensUsed.toString(),
         optReadTokensUsed.toString(),
         this.displayDelta(readTokenDiff, 0),
-        this.calcDeltaPercentage(mandReadTokensUsed, readTokenDiff),        
+        this.calcDeltaPercentage(mandReadTokensUsed, readTokenDiff),
         mandOutputTokensBeforeWrite.toString(),
         optOutputTokensBeforeWrite.toString(),
-        this.displayDelta(outputTokensWriteDiff, 0),
-        this.calcDeltaPercentage(mandOutputTokensBeforeWrite, outputTokensWriteDiff),    
+        this.displayDelta(outputTokensBeforeWriteDiff, 0),
+        this.calcDeltaPercentage(mandOutputTokensBeforeWrite, outputTokensBeforeWriteDiff),
         mandOutputTokensWrite.toString(),
         optOutputTokensWrite.toString(),
-        this.displayDelta(outputTokensTotalDiff, 0),
-        this.calcDeltaPercentage(mandOutputTokensWrite, outputTokensTotalDiff),
+        this.displayDelta(outputTokensWriteDiff, 0),
+        this.calcDeltaPercentage(mandOutputTokensWrite, outputTokensWriteDiff),
         mandOutputTokensTotal.toString(),
         optOutputTokensTotal.toString(),
         this.displayDelta(outputTokensTotalDiff, 0),
@@ -757,7 +757,12 @@ class ReportGenerator {
     
     this.heading(3, '2.3 Format Robustness: Mandatory vs Optional');
     this.table(
-      ['Format', 'Read Tokens Man', 'Read Tokens Opt', 'Diff', 'Diff (%)', 'Output Before Write Tokens Man', 'Output Before Write Tokens Opt', 'Diff', 'Diff (%)',  'Output Write Tokens Man', 'Output Write Tokens Opt', 'Diff', 'Diff (%)', 'Output Tokens Man', 'Output Tokens Opt', 'Diff', 'Diff (%)', 'Total Tokens Man', 'Total Tokens Opt', 'Diff', 'Diff (%)'],
+      ['Format', 
+        'Read Tokens Man', 'Read Tokens Opt', 'Diff', 'Diff (%)', 
+        'Output Before Write Tokens Man', 'Output Before Write Tokens Opt', 'Diff', 'Diff (%)',  
+        'Output Write Tokens Man', 'Output Write Tokens Opt', 'Diff', 'Diff (%)', 
+        'Output Tokens Man', 'Output Tokens Opt', 'Diff', 'Diff (%)', 
+        'Total Tokens Man', 'Total Tokens Opt', 'Diff', 'Diff (%)'],
       mandOptFormatDeltaRows
     );
 
@@ -923,7 +928,7 @@ class ReportGenerator {
       ];
     });
     
-    this.heading(4, '2.6.2 Read Tokens Mandatory vs Optional Data');
+    this.heading(4, '2.6.2 Mandatory vs Optional');
     this.table(
       ['Format', 
         'Output Write Tokens Man', 'Output Write Tokens Opt', 'Diff', 'Diff (%)', 'Useful Output Write Tokens (Acc By Char) Man', 'Useful Output Write Tokens (Acc By Char) Opt', 'Diff', 'Diff (%)', 'Wasted Output Write Tokens (Acc By Char) Man', 'Wasted Output Write Tokens (Acc By Char) Opt', 'Diff', 'Diff (%)',
@@ -1120,16 +1125,17 @@ class ReportGenerator {
     const answerQualityRows = sortedAggregated.map(item => [
       item.format,
       item.variant.substring(0, 3),
-      item.correctAnswers.toString(),
-      item.incorrectAnswers.toString(),
-      item.noAnswers.toString(),
+      item.correctAnswers.toFixed(2),
+      item.incorrectAnswers.toFixed(2),
+      item.noAnswers.toFixed(2),
       item.accuracyPercent.toFixed(2),
+      item.accuracyByCharPerc.toFixed(2),
     ]);
     
     this.heading(3, '2.8 Answer Per Format Breakdown');
     this.heading(4, '2.8.1 Metrics'); 
     this.table(
-      ['Format', 'Variant', 'Correct Answers', 'Incorrect Answers', 'No Answers',  'Accuracy (%)'],
+      ['Format', 'Variant', 'Correct Answers', 'Incorrect Answers', 'No Answers',  'Accuracy (%)',  'Accuracy by Char (%)'],
       answerQualityRows
     );
     
@@ -1137,27 +1143,30 @@ class ReportGenerator {
     const mandOptAnswerDeltaRows = mandatories.map(x =>{    
       return [
         x.format,
-        x.correctAnswers.toString(),
-        (x.correctAnswers + x.correctAnswersDelta).toString(),
+        x.correctAnswers.toFixed(2),
+        (x.correctAnswers + x.correctAnswersDelta).toFixed(2),
         this.displayDelta(x.correctAnswersDelta, 0),
         this.calcDeltaPercentage(x.correctAnswers, x.correctAnswersDelta),
-        x.incorrectAnswers.toString(),
-        (x.incorrectAnswers + x.incorrectAnswersDelta).toString(),
+        x.incorrectAnswers.toFixed(2),
+        (x.incorrectAnswers + x.incorrectAnswersDelta).toFixed(2),
         this.displayDelta(x.incorrectAnswersDelta, 0),
         this.calcDeltaPercentage(x.incorrectAnswers, x.incorrectAnswersDelta),
-        x.noAnswers.toString(),
-        (x.noAnswers + x.noAnswersDelta).toString(),
+        x.noAnswers.toFixed(2),
+        (x.noAnswers + x.noAnswersDelta).toFixed(2),
         this.displayDelta(x.noAnswersDelta, 0),
         this.calcDeltaPercentage(x.noAnswers, x.noAnswersDelta),
         x.accuracyPercent.toFixed(2),
         (x.accuracyPercent + x.accuracyDelta).toFixed(2),
-        this.displayDelta(x.accuracyDelta)
+        this.displayDelta(x.accuracyDelta),
+        x.accuracyByCharPerc.toFixed(2),
+        (x.accuracyByCharPerc + x.accuracyByCharPercDelta).toFixed(2),
+        this.displayDelta(x.accuracyByCharPerc)
       ];
     });
     
     this.heading(4, '2.8.2 Mandatory vs Optional Data');
     this.table(
-      ['Format', 'Correct Man', 'Correct Opt', 'Diff', 'Diff (%)', 'Incorrect Man', 'Incorrect Opt', 'Diff', 'Diff (%)', 'No Answers Man', 'No Answers Opt', 'Diff', 'Diff (%)', 'Accuracy (%) Man', 'Accuracy (%) Opt', 'Diff (%)'],
+      ['Format', 'Correct Man', 'Correct Opt', 'Diff', 'Diff (%)', 'Incorrect Man', 'Incorrect Opt', 'Diff', 'Diff (%)', 'No Answers Man', 'No Answers Opt', 'Diff', 'Diff (%)', 'Accuracy (%) Man', 'Accuracy (%) Opt', 'Diff (%)', 'Accuracy by Char (%) Man', 'Accuracy by Char (%) Opt', 'Diff (%)'],
       mandOptAnswerDeltaRows
     );
 
@@ -1227,10 +1236,10 @@ class ReportGenerator {
   }
 
   private generateAppendices(): void {
-    this.heading(2, '4. Appendices');
+    this.heading(2, '3. Appendices');
     this.line();
 
-    this.heading(3, '4.1 Appendix A: Test Infrastructure');
+    this.heading(3, '3.1 Appendix A: Test Infrastructure');
     this.line(`- **Test Date**: ${new Date(this.metadata.generatedAt).toISOString().split('T')[0]}`);
     this.line(`- **Model**: ${this.metadata.model}`);
     this.line(`- **Thinking**: ${this.metadata.thinking}`);
@@ -1240,7 +1249,7 @@ class ReportGenerator {
     this.line(`- **Total Test Cases**: ${this.aggregated.length}`);
     this.line();
 
-    this.heading(3, '4.2 Appendix B: Benchmark Configuration');
+    this.heading(3, '3.2 Appendix B: Benchmark Configuration');
     this.metadata.questionDistribution.forEach((q: any) => {
       const weight = this.metadata.questionWeightDistribution.find((w: any) => w[0] === q[0]);
       const weightPercent = weight ? (weight[1] * 100).toFixed(2) : '0.0';
