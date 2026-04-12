@@ -171,14 +171,12 @@ class BenchmarkAnalytics {
             const entry = minMaxRecordCount.get(userMetric.recordCount);
             const accuracy = validation.accuracy.accuracyPercent / 100;
             const weightedAccuracy = validation.accuracy.weightedAccuracyPercent / 100;
-            const portionAccuracy = 0.7;
-            const portionTokens = 0.3;
-            const accuracyPercPartOfScore = validation.accuracy.accuracyPercent * portionAccuracy;
-            const weightedAccuracyPercPartOfScore = validation.accuracy.weightedAccuracyPercent * portionAccuracy;
-            const normalizedReadTokensScore = entry ? this.normalizedAmountScore(entry.minRead - 10, entry.maxRead + 10, userMetric.readTokens) * portionTokens : 0;
-            const normalizedOutputTokensScore = entry ? this.normalizedAmountScore(entry.minOutput - 10, entry.maxOutput + 10, userMetric.outputTokensTotal) * portionTokens : 0;
-            const normalizedTotalTokensScore = entry ? this.normalizedAmountScore(entry.minTotal - 10, entry.maxTotal + 10, userMetric.totalTokens) * portionTokens : 0;
-            const normalizedOutputWriteTokensScore = entry ? this.normalizedAmountScore(entry.minOutputWrite - 10, entry.maxOutputWrite + 10, userMetric.outputTokensWrite) * portionTokens : 0;
+            const accuracyPercPartOfScore = validation.accuracy.accuracyPercent * consts_1.EFFICIENCY_SCORE_WEIGHT.accuracy;
+            const weightedAccuracyPercPartOfScore = validation.accuracy.weightedAccuracyPercent * consts_1.EFFICIENCY_SCORE_WEIGHT.accuracy;
+            const normalizedReadTokensScore = entry ? this.normalizedAmountScore(entry.minRead - 10, entry.maxRead + 10, userMetric.readTokens) * consts_1.EFFICIENCY_SCORE_WEIGHT.tokens : 0;
+            const normalizedOutputTokensScore = entry ? this.normalizedAmountScore(entry.minOutput - 10, entry.maxOutput + 10, userMetric.outputTokensTotal) * consts_1.EFFICIENCY_SCORE_WEIGHT.tokens : 0;
+            const normalizedTotalTokensScore = entry ? this.normalizedAmountScore(entry.minTotal - 10, entry.maxTotal + 10, userMetric.totalTokens) * consts_1.EFFICIENCY_SCORE_WEIGHT.tokens : 0;
+            const normalizedOutputWriteTokensScore = entry ? this.normalizedAmountScore(entry.minOutputWrite - 10, entry.maxOutputWrite + 10, userMetric.outputTokensWrite) * consts_1.EFFICIENCY_SCORE_WEIGHT.tokens : 0;
             metrics.push({
                 testCase: userMetric.testCase,
                 format: userMetric.format,
@@ -254,7 +252,7 @@ class BenchmarkAnalytics {
                 accuracyByCharDriftPercMax: validation.accuracy.charactersOfAnswers.accuracyByCharDriftPercMax,
                 wastedOutputWriteTokensByCharAccuracy: (0, shared_1.roundTo3Digits)(userMetric.outputTokensWrite * (1 - (validation.accuracy.charactersOfAnswers.accuracyByCharPerc / 100))),
                 usefulOutputWriteTokensByCharAccuracy: (0, shared_1.roundTo3Digits)(userMetric.outputTokensWrite * (validation.accuracy.charactersOfAnswers.accuracyByCharPerc / 100)),
-                efficiencyScoreOutputWriteTokensByCharAccuracy: (0, shared_1.roundTo3Digits)((validation.accuracy.charactersOfAnswers.accuracyByCharPerc * portionAccuracy) + normalizedOutputWriteTokensScore),
+                efficiencyScoreOutputWriteTokensByCharAccuracy: (0, shared_1.roundTo3Digits)((validation.accuracy.charactersOfAnswers.accuracyByCharPerc * consts_1.EFFICIENCY_SCORE_WEIGHT.accuracy) + normalizedOutputWriteTokensScore),
             });
         }
         return metrics;
@@ -284,6 +282,10 @@ class BenchmarkAnalytics {
                 formats,
                 variants,
                 recordCounts,
+                efficiencyScoreWeight: [
+                    ["accuracy", consts_1.EFFICIENCY_SCORE_WEIGHT.accuracy],
+                    ["tokens", consts_1.EFFICIENCY_SCORE_WEIGHT.tokens],
+                ],
                 questionDistribution: [
                     ["field_retrieval", consts_1.QUESTIONS_DISTRIBUTION["field_retrieval"]],
                     ["filtering", consts_1.QUESTIONS_DISTRIBUTION["filtering"]],

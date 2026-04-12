@@ -603,16 +603,16 @@ export interface AnalyticsOutput {
 }
 
 export interface TestMetadata {
-    metadataFile: string;
-    agentIdsFile: string;
-    metricsFile: string;
-    model: string;
-    thinking: string;
-    structure: string;
-    formats: string[];
-    variants: string[];
-    recordCounts: number[];
-    efficiencyScoreWeight: [EfficiencyScoreCategory, number][];
-    questionDistribution: [QuestionCategory, number][];
-    questionWeightDistribution: [QuestionCategory, number][];
-  };
+  metadataFile: string;
+  agentIdsFile: string;
+  metricsFile: string;
+  model: string;
+  thinking: string;
+  structure: string;
+  formats: string[];
+  variants: string[];
+  recordCounts: number[];
+  efficiencyScoreWeight: [EfficiencyScoreCategory, number][];
+  questionDistribution: [QuestionCategory, number][];
+  questionWeightDistribution: [QuestionCategory, number][];
+}

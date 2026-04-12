@@ -144,10 +144,10 @@ class ReportValidator {
             report.accuracy.incorrect = (0, shared_1.roundTo2Digits)(report.perRunAccuracy.reduce((sum, r) => sum + r.incorrect, 0) / report.perRunAccuracy.length);
             report.accuracy.accuracyPercent = (0, shared_1.roundTo2Digits)(report.perRunAccuracy.reduce((sum, r) => sum + r.accuracyPercent, 0) / report.perRunAccuracy.length);
             report.accuracy.weightedAccuracyPercent = (0, shared_1.roundTo2Digits)(report.perRunAccuracy.reduce((sum, r) => sum + r.weightedAccuracyPercent, 0) / report.perRunAccuracy.length);
-            report.accuracy.accuracyDriftPercMin = this.calcDriftPerc(report.accuracy.accuracyPercent, Math.min(...report.perRunAccuracy.map(x => x.accuracyPercent)));
-            report.accuracy.accuracyDriftPercMax = this.calcDriftPerc(report.accuracy.accuracyPercent, Math.max(...report.perRunAccuracy.map(x => x.accuracyPercent)));
-            report.accuracy.weightedAccuracyDriftPercMin = this.calcDriftPerc(report.accuracy.weightedAccuracyPercent, Math.min(...report.perRunAccuracy.map(x => x.weightedAccuracyPercent)));
-            report.accuracy.weightedAccuracyDriftPercMax = this.calcDriftPerc(report.accuracy.weightedAccuracyPercent, Math.max(...report.perRunAccuracy.map(x => x.weightedAccuracyPercent)));
+            report.accuracy.accuracyDriftPercMin = (0, shared_1.calcDriftPerc)(report.accuracy.accuracyPercent, Math.min(...report.perRunAccuracy.map(x => x.accuracyPercent)));
+            report.accuracy.accuracyDriftPercMax = (0, shared_1.calcDriftPerc)(report.accuracy.accuracyPercent, Math.max(...report.perRunAccuracy.map(x => x.accuracyPercent)));
+            report.accuracy.weightedAccuracyDriftPercMin = (0, shared_1.calcDriftPerc)(report.accuracy.weightedAccuracyPercent, Math.min(...report.perRunAccuracy.map(x => x.weightedAccuracyPercent)));
+            report.accuracy.weightedAccuracyDriftPercMax = (0, shared_1.calcDriftPerc)(report.accuracy.weightedAccuracyPercent, Math.max(...report.perRunAccuracy.map(x => x.weightedAccuracyPercent)));
             const avgAccuracyByCharPercent = (0, shared_1.roundTo2Digits)(report.perRunAccuracy.reduce((sum, r) => sum + r.charactersOfAnswers.accuracyByCharPerc, 0) / report.perRunAccuracy.length);
             report.accuracy.charactersOfAnswers = {
                 expected: (0, shared_1.roundTo3Digits)(report.perRunAccuracy.reduce((sum, r) => sum + r.charactersOfAnswers.expected, 0) / report.perRunAccuracy.length),
@@ -155,8 +155,8 @@ class ReportValidator {
                 incorrect: (0, shared_1.roundTo3Digits)(report.perRunAccuracy.reduce((sum, r) => sum + r.charactersOfAnswers.incorrect, 0) / report.perRunAccuracy.length),
                 total: (0, shared_1.roundTo3Digits)(report.perRunAccuracy.reduce((sum, r) => sum + r.charactersOfAnswers.total, 0) / report.perRunAccuracy.length),
                 accuracyByCharPerc: avgAccuracyByCharPercent,
-                accuracyByCharDriftPercMin: this.calcDriftPerc(avgAccuracyByCharPercent, Math.min(...report.perRunAccuracy.map(x => x.charactersOfAnswers.accuracyByCharPerc))),
-                accuracyByCharDriftPercMax: this.calcDriftPerc(avgAccuracyByCharPercent, Math.max(...report.perRunAccuracy.map(x => x.charactersOfAnswers.accuracyByCharPerc)))
+                accuracyByCharDriftPercMin: (0, shared_1.calcDriftPerc)(avgAccuracyByCharPercent, Math.min(...report.perRunAccuracy.map(x => x.charactersOfAnswers.accuracyByCharPerc))),
+                accuracyByCharDriftPercMax: (0, shared_1.calcDriftPerc)(avgAccuracyByCharPercent, Math.max(...report.perRunAccuracy.map(x => x.charactersOfAnswers.accuracyByCharPerc)))
             };
             console.log(`${testCase.format.padEnd(15)} ${testCase.structure.padEnd(8)} ${testCase.variant.padEnd(10)} ${String(testCase.recordCount).padEnd(4)}`);
             console.log(`Accuracy by question: ${report.accuracy.accuracyPercent === 100 ? "✓" : report.accuracy.accuracyPercent >= 90 ? "◐" : "✗"} → ${report.accuracy.accuracyPercent}%`);
@@ -168,9 +168,6 @@ class ReportValidator {
         }
         console.log(`\n✓ Validation complete. Results saved to: ${this.resultsDir}\n`);
         return results;
-    }
-    calcDriftPerc(avg, val) {
-        return Math.round(((val - avg) / avg) * 100 * 100) / 100;
     }
     findTestCases(dir) {
         const map = new Map();

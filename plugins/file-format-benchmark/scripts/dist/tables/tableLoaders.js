@@ -269,10 +269,10 @@ function aggregateMetrics(metrics) {
         avgTest.outputTokensBeforeWritePerMs /= count;
         avgTest.outputTokensWritePerMs /= count;
         avgTest.outputTokensTotalPerMs /= count;
-        avgTest.totalQuestions = Math.round(avgTest.totalQuestions / count);
-        avgTest.noAnswers = Math.round(avgTest.noAnswers / count);
-        avgTest.incorrectAnswers = Math.round(avgTest.incorrectAnswers / count);
-        avgTest.correctAnswers = Math.round(avgTest.correctAnswers / count);
+        avgTest.totalQuestions /= count;
+        avgTest.noAnswers /= count;
+        avgTest.incorrectAnswers /= count;
+        avgTest.correctAnswers /= count;
         avgTest.accuracyPercent /= count;
         avgTest.accuracyDriftPercentMin /= count;
         avgTest.accuracyDriftPercentMax /= count;
@@ -342,9 +342,9 @@ function aggregateMetrics(metrics) {
             item.wastedTotalTokensDelta = optional.wastedTotalTokens - mandatory.wastedTotalTokens;
             item.accuracyDelta = optional.accuracyPercent - mandatory.accuracyPercent;
             item.weightedAccuracyDelta = optional.weightedAccuracyPercent - mandatory.weightedAccuracyPercent;
-            item.correctAnswersDelta = Math.round(optional.correctAnswers - mandatory.correctAnswers);
-            item.incorrectAnswersDelta = Math.round(optional.incorrectAnswers - mandatory.incorrectAnswers);
-            item.noAnswersDelta = Math.round(optional.noAnswers - mandatory.noAnswers);
+            item.correctAnswersDelta = optional.correctAnswers - mandatory.correctAnswers;
+            item.incorrectAnswersDelta = optional.incorrectAnswers - mandatory.incorrectAnswers;
+            item.noAnswersDelta = optional.noAnswers - mandatory.noAnswers;
             item.efficiencyScoreReadDelta = optional.efficiencyScoreRead - mandatory.efficiencyScoreRead;
             item.efficiencyScoreOutputDelta = optional.efficiencyScoreOutput - mandatory.efficiencyScoreOutput;
             item.efficiencyScoreTotalDelta = optional.efficiencyScoreTotal - mandatory.efficiencyScoreTotal;
