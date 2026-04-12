@@ -227,8 +227,8 @@ class ReportGenerator {
         this.heading(4, '1.3.3 Efficiency Score');
         this.line('Composite metric balancing accuracy with normalized token count (favour towards accuracy). Each efficieny score has an indicator which token count was used in the calculation.');
         this.line('- **Normalized Tokens** = (((**Max Tokens** + 10) - **Current Tokens**) / ((**Max Tokens** + 10) - (**Min Tokens** - 10))) * 100');
-        this.line(`- **Efficiency Score**: (**Accuracy** % x ${efficiencyScoreAccuracyPortion}) + (**Normalized Tokens** * ${efficiencyScoreTokenPortion})`);
-        this.line(`- **Weighted Efficiency Score**: (**Weighted Accuracy** % x ${efficiencyScoreAccuracyPortion}) + (**Normalized Tokens** * ${efficiencyScoreTokenPortion})`);
+        this.line(`- **Efficiency Score**: (**Accuracy** % * ${efficiencyScoreAccuracyPortion}) + (**Normalized Tokens** * ${efficiencyScoreTokenPortion})`);
+        this.line(`- **Weighted Efficiency Score**: (**Weighted Accuracy** % * ${efficiencyScoreAccuracyPortion}) + (**Normalized Tokens** * ${efficiencyScoreTokenPortion})`);
         this.line();
         this.heading(3, '1.4 Token Usage Measurements');
         this.line();

@@ -16,8 +16,8 @@ exports.FILE_METRICS = "metrics.json";
 exports.RECORD_COUNT = 31;
 exports.VARIANTS = [true, false];
 exports.EFFICIENCY_SCORE_WEIGHT = {
-    accuracy: 0.66,
-    tokens: 0.33
+    accuracy: 0.6666,
+    tokens: 0.3333
 };
 exports.QUESTIONS_COUNT = 125;
 exports.QUESTIONS_DISTRIBUTION = {
