@@ -22,7 +22,7 @@ export function convertToCsv(data: FlatArrayDataSet | NestedDataSet): string {
   });
 
   // Sort fields for consistency
-  const headers = Array.from(allFields).sort();
+  const headers = Array.from(allFields);
 
   // Create CSV header
   const csvLines: string[] = [headers.map(escapeCsvField).join(",")];
