@@ -308,6 +308,17 @@ export class AnswerValidator {
    * Array/set validation - check if given answer contains all expected items
    */
   private validateArraySet(given: unknown, expected: string[]): ValidationStats {
+    if(expected.length == 0 && (Array.isArray(given) || typeof given === "string") && given.length === 0){
+      return {
+        correct: true,
+        expectedChars: 0,
+        correctChars: 0,
+        incorrectChars: 0,
+        totalChars: 0,
+        accuracyByChar: 0
+      };
+    }
+
     const expectedChars = expected.reduce((sum, curr) => sum + curr.length, 0);
     let givenItems: string[] = [];
 
