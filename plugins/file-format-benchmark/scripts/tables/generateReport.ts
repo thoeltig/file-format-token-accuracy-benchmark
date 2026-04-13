@@ -245,12 +245,15 @@ class ReportGenerator {
     this.line('- **Accuracy By Char**: Correct char per answers / expected characters per answer');
     this.line('- **Accuracy**: Correct answers / total questions');
     this.line('- **Weighted Accuracy**: Accuracy weighted by question category importance');
+    this.line('- **Information Value**: (**Accuracy** % / **Tokens**) * 100');
     this.line();
 
     const efficiencyScoreAccuracyPortion = this.metadata.efficiencyScoreWeight.find(x => x[0] === "accuracy")?.[1] ?? 0;
     const efficiencyScoreTokenPortion = this.metadata.efficiencyScoreWeight.find(x => x[0] === "tokens")?.[1] ?? 0;
     this.heading(4, '1.3.3 Efficiency Score');
     this.line('Composite metric balancing accuracy with normalized token count (favour towards accuracy). Each efficieny score has an indicator which token count was used in the calculation.')
+    this.line(`- **Accuracy To Token Ratio** = ${(efficiencyScoreAccuracyPortion * 100).toFixed(2)} % to ${(efficiencyScoreTokenPortion * 100).toFixed(2)} %`)
+    this.line('- **Normalized Tokens** = (((**Max Tokens** + 10) - **Current Tokens**) / ((**Max Tokens** + 10) - (**Min Tokens** - 10))) * 100')
     this.line('- **Normalized Tokens** = (((**Max Tokens** + 10) - **Current Tokens**) / ((**Max Tokens** + 10) - (**Min Tokens** - 10))) * 100')
     this.line(`- **Efficiency Score**: (**Accuracy** % * ${efficiencyScoreAccuracyPortion}) + (**Normalized Tokens** * ${efficiencyScoreTokenPortion})`);
     this.line(`- **Weighted Efficiency Score**: (**Weighted Accuracy** % * ${efficiencyScoreAccuracyPortion}) + (**Normalized Tokens** * ${efficiencyScoreTokenPortion})`);

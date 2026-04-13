@@ -18,8 +18,8 @@ export const FILE_METRICS:string = "metrics.json";
 export const RECORD_COUNT = 31;
 export const VARIANTS: boolean[] = [true, false];
 export const EFFICIENCY_SCORE_WEIGHT = {
-    accuracy: 0.6666,
-    tokens: 0.3333
+    accuracy: 0.66666,
+    tokens: 0.33333
 };
 export const QUESTIONS_COUNT = 125;
 export const QUESTIONS_DISTRIBUTION = {
