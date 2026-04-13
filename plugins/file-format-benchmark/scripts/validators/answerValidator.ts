@@ -135,6 +135,7 @@ export class AnswerValidator {
 
     const mapAsArray = [...map.entries()];
     const weightedAccuracyPercent = mapAsArray.reduce((sum, x) => sum + ToPercentage((x[1].correctCount / x[1].totalCount) * QUESTIONS_WEIGHT_DISTRIBUTION[x[0]]), 0);
+    const weightedAccuracyByCharPercent = mapAsArray.reduce((sum, x) => sum + ToPercentage((x[1].accuracyByChar / x[1].totalCount) * QUESTIONS_WEIGHT_DISTRIBUTION[x[0]]), 0);
     return {
       format: format,
       totalQuestions: totalResultCount,
@@ -150,13 +151,17 @@ export class AnswerValidator {
         correct: stats.correctChars,
         incorrect: stats.incorrectChars,
         total: stats.totalChars,
-        accuracyByCharPerc: ToPercentage(stats.accuracyByChar)
+        accuracyByCharPerc: ToPercentage(stats.accuracyByChar),
+        weightedAccuracyByCharPerc: weightedAccuracyByCharPercent
       },
       accuracyPerCategory: mapAsArray.map<CategoryAnswerAccuracy>(x => {
         const category = x[0];
         const counter = x[1];
+        const weight = QUESTIONS_WEIGHT_DISTRIBUTION[category];
         const accuracy = counter.correctCount / counter.totalCount;
-        const weightedAccuracy = accuracy * QUESTIONS_WEIGHT_DISTRIBUTION[category];
+        const weightedAccuracy = accuracy * weight;
+        const accuracyByCharPerc = counter.accuracyByChar / counter.totalCount;
+        const weightedAccuracyByCharPerc = accuracyByCharPerc * weight;
 
         return {      
           category: category,    
@@ -170,7 +175,8 @@ export class AnswerValidator {
             correct: counter.correctChars,
             incorrect: counter.incorrectChars,
             total: counter.totalChars,
-            accuracyByCharPerc: ToPercentage(counter.accuracyByChar / counter.totalCount),
+            accuracyByCharPerc: ToPercentage(accuracyByCharPerc),
+            weightedAccuracyByCharPerc: ToPercentage(weightedAccuracyByCharPerc),
           }
         };
       })

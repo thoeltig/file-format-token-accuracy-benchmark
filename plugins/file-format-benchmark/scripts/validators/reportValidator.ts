@@ -85,8 +85,11 @@ class ReportValidator {
                         incorrect: 0,
                         total: 0,
                         accuracyByCharPerc: 0,
-                        accuracyByCharDriftPercMin: 0,
-                        accuracyByCharDriftPercMax: 0
+                        accuracyByCharPercDriftMin: 0,
+                        accuracyByCharPercDriftMax: 0,
+                        weightedAccuracyByCharPerc: 0,
+                        weightedAccuracyByCharPercDriftMin: 0,
+                        weightedAccuracyByCharPercDriftMax: 0
                     }
                 },
                 perRunAccuracy:[],
@@ -129,7 +132,8 @@ class ReportValidator {
                         correct: validationResult.charactersOfAnswers.correct,
                         incorrect: validationResult.charactersOfAnswers.incorrect,
                         total: validationResult.charactersOfAnswers.total,
-                        accuracyByCharPerc: validationResult.charactersOfAnswers.accuracyByCharPerc
+                        accuracyByCharPerc: validationResult.charactersOfAnswers.accuracyByCharPerc,
+                        weightedAccuracyByCharPerc: validationResult.charactersOfAnswers.weightedAccuracyByCharPerc
                     }
                 });
 
@@ -154,14 +158,18 @@ class ReportValidator {
             report.accuracy.weightedAccuracyDriftPercMax = calcDriftPerc(report.accuracy.weightedAccuracyPercent, Math.max(...report.perRunAccuracy.map(x => x.weightedAccuracyPercent)));
             
             const avgAccuracyByCharPercent = roundTo2Digits(report.perRunAccuracy.reduce((sum, r) => sum + r.charactersOfAnswers.accuracyByCharPerc, 0) / report.perRunAccuracy.length);
+            const avgWeightedAccuracyByCharPercent = roundTo2Digits(report.perRunAccuracy.reduce((sum, r) => sum + r.charactersOfAnswers.weightedAccuracyByCharPerc, 0) / report.perRunAccuracy.length);
             report.accuracy.charactersOfAnswers = {
                 expected: roundTo3Digits(report.perRunAccuracy.reduce((sum, r) => sum + r.charactersOfAnswers.expected, 0) / report.perRunAccuracy.length),
                 correct: roundTo3Digits(report.perRunAccuracy.reduce((sum, r) => sum + r.charactersOfAnswers.correct, 0) / report.perRunAccuracy.length),
                 incorrect: roundTo3Digits(report.perRunAccuracy.reduce((sum, r) => sum + r.charactersOfAnswers.incorrect, 0) / report.perRunAccuracy.length),
                 total: roundTo3Digits(report.perRunAccuracy.reduce((sum, r) => sum + r.charactersOfAnswers.total, 0) / report.perRunAccuracy.length),
                 accuracyByCharPerc: avgAccuracyByCharPercent,
-                accuracyByCharDriftPercMin: calcDriftPerc(avgAccuracyByCharPercent, Math.min(...report.perRunAccuracy.map(x => x.charactersOfAnswers.accuracyByCharPerc))),
-                accuracyByCharDriftPercMax: calcDriftPerc(avgAccuracyByCharPercent, Math.max(...report.perRunAccuracy.map(x => x.charactersOfAnswers.accuracyByCharPerc)))
+                accuracyByCharPercDriftMin: calcDriftPerc(avgAccuracyByCharPercent, Math.min(...report.perRunAccuracy.map(x => x.charactersOfAnswers.accuracyByCharPerc))),
+                accuracyByCharPercDriftMax: calcDriftPerc(avgAccuracyByCharPercent, Math.max(...report.perRunAccuracy.map(x => x.charactersOfAnswers.accuracyByCharPerc))),
+                weightedAccuracyByCharPerc: avgWeightedAccuracyByCharPercent,
+                weightedAccuracyByCharPercDriftMin: calcDriftPerc(avgAccuracyByCharPercent, Math.min(...report.perRunAccuracy.map(x => x.charactersOfAnswers.weightedAccuracyByCharPerc))),
+                weightedAccuracyByCharPercDriftMax: calcDriftPerc(avgAccuracyByCharPercent, Math.max(...report.perRunAccuracy.map(x => x.charactersOfAnswers.weightedAccuracyByCharPerc)))
             };
             
             console.log(`${testCase.format.padEnd(15)} ${testCase.structure.padEnd(8)} ${testCase.variant.padEnd(10)} ${String(testCase.recordCount).padEnd(4)}`);

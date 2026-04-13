@@ -283,8 +283,10 @@ export interface PerTestRunAnswerAccuracy extends AnswerAccuracy {
 }
 
 export interface ExtendedCharactersOfAnswers extends CharactersOfAnswers{
-    accuracyByCharDriftPercMin: number;
-    accuracyByCharDriftPercMax: number;
+    accuracyByCharPercDriftMin: number;
+    accuracyByCharPercDriftMax: number;
+    weightedAccuracyByCharPercDriftMin: number;
+    weightedAccuracyByCharPercDriftMax: number;
 }
 
 export interface CharactersOfAnswers {
@@ -298,6 +300,7 @@ export interface CharactersOfAnswers {
   total: number;  
   // The by char accuracy is calculated 'correct / total' because
   accuracyByCharPerc: number;
+  weightedAccuracyByCharPerc: number;
 }
 
 export interface QuestionsAndProvidedAnswers {
