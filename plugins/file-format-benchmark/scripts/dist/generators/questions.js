@@ -399,7 +399,7 @@ class QuestionnaireGenerator {
         }
         const map = this.rand.getUniqueFieldsAndValues(ctx.records, remainingCount);
         map.forEach((_, field) => {
-            const expectedArray = Array.from(new Set(ctx.records.map((r) => String(r[field] || "")).filter(f => f !== "")));
+            const expectedArray = Array.from(new Set(ctx.records.map((r) => String(r[field]))));
             startId++;
             questions.push({
                 id: startId,
