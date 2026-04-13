@@ -583,13 +583,43 @@ export interface Metrics {
   weightedEfficiencyScoreOutput: number;
   weightedEfficiencyScoreTotal: number;
   
-  // Tokens wasted or effictively used but not by overall accuracy but by per character of output correctness. This can only be applied to the actual output write tokens.
+  // Accuracy by per character correctness in the output. Same logic as the above values but calculated with the different accuracy value.
+  expectedChars: number;
+  correctChars: number;
+  incorrectChars: number;
+  totalChars: number;
+  
   accuracyByCharPerc: number;
-  accuracyByCharDriftPercMin: number;
-  accuracyByCharDriftPercMax: number;
-  wastedOutputWriteTokensByCharAccuracy: number;
-  usefulOutputWriteTokensByCharAccuracy: number;
-  efficiencyScoreOutputWriteTokensByCharAccuracy: number;
+  accuracyByCharPercDriftMin: number;
+  accuracyByCharPercDriftMax: number;
+  weightedAccuracyByCharPerc: number;
+  weightedAccuracyByCharPercDriftMin: number;
+  weightedAccuracyByCharPercDriftMax: number;
+
+  informationValuePerReadTokensAccuracyByCharPerc: number;
+  informationValuePerOutputTokensAccuracyByCharPerc: number;
+  informationValuePerTotalTokensAccuracyByCharPerc: number;
+
+  wastedReadTokensAccuracyByCharPerc: number;
+  wastedOutputTokensAccuracyByCharPerc: number;
+  wastedTotalTokensAccuracyByCharPerc: number;
+  usefulReadTokensAccuracyByCharPerc: number;
+  usefulOutputTokensAccuracyByCharPerc: number;
+  usefulTotalTokensAccuracyByCharPerc: number;
+  
+  weightedWastedReadTokensAccuracyByCharPerc: number;
+  weightedWastedOutputTokensAccuracyByCharPerc: number;
+  weightedWastedTotalTokensAccuracyByCharPerc: number;
+  weightedUsefulReadTokensAccuracyByCharPerc: number;
+  weightedUsefulOutputTokensAccuracyByCharPerc: number;
+  weightedUsefulTotalTokensAccuracyByCharPerc: number;
+
+  efficiencyScoreReadAccuracyByCharPerc: number;
+  efficiencyScoreOutputAccuracyByCharPerc: number;
+  efficiencyScoreTotalAccuracyByCharPerc: number;
+  weightedEfficiencyScoreReadAccuracyByCharPerc: number;
+  weightedEfficiencyScoreOutputAccuracyByCharPerc: number;
+  weightedEfficiencyScoreTotalAccuracyByCharPerc: number;
 }
 
 export interface TestMetrics extends Metrics {
