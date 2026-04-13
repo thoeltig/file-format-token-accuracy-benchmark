@@ -1,6 +1,6 @@
 import * as fs from 'fs';
 import * as path from 'path';
-import { QuestionCategory, MergedValidationReport, TestMetrics, AnalyticsOutput, Metrics } from '../types';
+import { QuestionCategory, MergedValidationReport, TestMetrics, AnalyticsOutput, Metrics, CharactersOfAnswers } from '../types';
 
 // ============================================================================
 // LOCAL TYPES
@@ -16,16 +16,10 @@ export interface AggregatedMetric extends Metrics {
   outputDurationBeforeWriteInMsDelta: number;
   outputDurationWriteInMsDelta: number;
   outputDurationTotalInMsDelta: number;
-  absOutputDurationBeforeWriteDriftPerc: number;
-  absOutputDurationWriteDriftPerc: number;
-  absOutputDurationTotalDriftPerc: number;
   readTokensDelta: number;
   outputTokensBeforeWriteDelta: number;
   outputTokensWriteDelta: number;
   outputTokensTotalDelta: number;
-  absOutputTokensBeforeWriteDriftPerc: number;
-  absOutputTokensWriteDriftPerc: number;
-  absOutputTokensTotalDriftPerc: number;
   totalTokensDelta: number;
   usefulReadTokensDelta: number;
   usefulOutputTokensDelta: number;
@@ -37,9 +31,7 @@ export interface AggregatedMetric extends Metrics {
   incorrectAnswersDelta: number;
   noAnswersDelta: number;
   accuracyDelta: number;
-  absAccuracyDriftPerc: number;
   weightedAccuracyDelta: number;
-  absWeightedAccuracyDriftPerc: number;
   efficiencyScoreReadDelta: number;
   efficiencyScoreOutputDelta: number;
   efficiencyScoreTotalDelta: number;
@@ -49,11 +41,28 @@ export interface AggregatedMetric extends Metrics {
   informationValuePerReadTokensDelta: number;
   informationValuePerOutputTokensDelta: number;
   informationValuePerTotalTokensDelta: number;
-  absAccuracyByCharDriftPerc: number;
+
+  expectedCharsDelta: number;
+  correctCharsDelta: number;
+  incorrectCharsDelta: number;
+  totalCharsDelta: number;
+  usefulReadTokensAccuracyByCharPercDelta: number;
+  usefulOutputTokensAccuracyByCharPercDelta: number;
+  usefulTotalTokensAccuracyByCharPercDelta: number;  
+  wastedReadTokensAccuracyByCharPercDelta: number;
+  wastedOutputTokensAccuracyByCharPercDelta: number;
+  wastedTotalTokensAccuracyByCharPercDelta: number;
   accuracyByCharPercDelta: number;
-  usefulOutputWriteTokensByCharAccuracyDelta: number;
-  wastedOutputWriteTokensByCharAccuracyDelta: number;
-  efficiencyScoreOutputWriteTokensByCharAccuracyDelta: number;
+  weightedAccuracyByCharPercDelta: number;
+  efficiencyScoreReadAccuracyByCharPercDelta: number;
+  efficiencyScoreOutputAccuracyByCharPercDelta: number;
+  efficiencyScoreTotalAccuracyByCharPercDelta: number;
+  weightedEfficiencyScoreReadAccuracyByCharPercDelta: number;
+  weightedEfficiencyScoreOutputAccuracyByCharPercDelta: number;
+  weightedEfficiencyScoreTotalAccuracyByCharPercDelta: number;
+  informationValuePerReadTokensAccuracyByCharPercDelta: number;
+  informationValuePerOutputTokensAccuracyByCharPercDelta: number;
+  informationValuePerTotalTokensAccuracyByCharPercDelta: number;
 }
 
 export interface CategoryAccuracy {
@@ -63,6 +72,7 @@ export interface CategoryAccuracy {
   correct: number;
   incorrect: number;
   unanswered: number;
+  charactersOfAnswers: CharactersOfAnswers
 }
 
 export interface ValidationSummary {
@@ -207,25 +217,58 @@ export function aggregateMetrics(metrics: TestMetrics[]): AggregatedMetric[] {
       charsPerReadTokenDelta: 0,
       readTokensPerValueDelta: 0,
       readTokensPerObjectDelta: 0,
-      absOutputDurationBeforeWriteDriftPerc: 0,
-      absOutputDurationWriteDriftPerc: 0,
-      absOutputDurationTotalDriftPerc: 0,
-      absOutputTokensBeforeWriteDriftPerc: 0,
-      absOutputTokensWriteDriftPerc: 0,
-      absOutputTokensTotalDriftPerc: 0,
-      absAccuracyDriftPerc: 0,
-      absWeightedAccuracyDriftPerc: 0,
-      accuracyByCharPerc: 0,
-      accuracyByCharDriftPercMin: 0,
-      accuracyByCharDriftPercMax: 0,
-      wastedOutputWriteTokensByCharAccuracy: 0,
-      usefulOutputWriteTokensByCharAccuracy: 0,
-      efficiencyScoreOutputWriteTokensByCharAccuracy: 0,
-      absAccuracyByCharDriftPerc: 0,
+      usefulReadTokensAccuracyByCharPercDelta: 0,
+      usefulOutputTokensAccuracyByCharPercDelta: 0,
+      usefulTotalTokensAccuracyByCharPercDelta: 0,
+      wastedReadTokensAccuracyByCharPercDelta: 0,
+      wastedOutputTokensAccuracyByCharPercDelta: 0,
+      wastedTotalTokensAccuracyByCharPercDelta: 0,
       accuracyByCharPercDelta: 0,
-      usefulOutputWriteTokensByCharAccuracyDelta: 0,
-      wastedOutputWriteTokensByCharAccuracyDelta: 0,
-      efficiencyScoreOutputWriteTokensByCharAccuracyDelta: 0,
+      weightedAccuracyByCharPercDelta: 0,
+      efficiencyScoreReadAccuracyByCharPercDelta: 0,
+      efficiencyScoreOutputAccuracyByCharPercDelta: 0,
+      efficiencyScoreTotalAccuracyByCharPercDelta: 0,
+      weightedEfficiencyScoreReadAccuracyByCharPercDelta: 0,
+      weightedEfficiencyScoreOutputAccuracyByCharPercDelta: 0,
+      weightedEfficiencyScoreTotalAccuracyByCharPercDelta: 0,
+      accuracyByCharPerc: 0,
+      accuracyByCharPercDriftMin: 0,
+      accuracyByCharPercDriftMax: 0,
+      weightedAccuracyByCharPerc: 0,
+      weightedAccuracyByCharPercDriftMin: 0,
+      weightedAccuracyByCharPercDriftMax: 0,
+      wastedReadTokensAccuracyByCharPerc: 0,
+      wastedOutputTokensAccuracyByCharPerc: 0,
+      wastedTotalTokensAccuracyByCharPerc: 0,
+      usefulReadTokensAccuracyByCharPerc: 0,
+      usefulOutputTokensAccuracyByCharPerc: 0,
+      usefulTotalTokensAccuracyByCharPerc: 0,
+      weightedWastedReadTokensAccuracyByCharPerc: 0,
+      weightedWastedOutputTokensAccuracyByCharPerc: 0,
+      weightedWastedTotalTokensAccuracyByCharPerc: 0,
+      weightedUsefulReadTokensAccuracyByCharPerc: 0,
+      weightedUsefulOutputTokensAccuracyByCharPerc: 0,
+      weightedUsefulTotalTokensAccuracyByCharPerc: 0,
+      efficiencyScoreReadAccuracyByCharPerc: 0,
+      efficiencyScoreOutputAccuracyByCharPerc: 0,
+      efficiencyScoreTotalAccuracyByCharPerc: 0,
+      weightedEfficiencyScoreReadAccuracyByCharPerc: 0,
+      weightedEfficiencyScoreOutputAccuracyByCharPerc: 0,
+      weightedEfficiencyScoreTotalAccuracyByCharPerc: 0,
+      informationValuePerReadTokensAccuracyByCharPercDelta: 0,
+      informationValuePerOutputTokensAccuracyByCharPercDelta: 0,
+      informationValuePerTotalTokensAccuracyByCharPercDelta: 0,
+      informationValuePerReadTokensAccuracyByCharPerc: 0,
+      informationValuePerOutputTokensAccuracyByCharPerc: 0,
+      informationValuePerTotalTokensAccuracyByCharPerc: 0,
+      expectedCharsDelta: 0,
+      correctCharsDelta: 0,
+      incorrectCharsDelta: 0,
+      totalCharsDelta: 0,
+      expectedChars: 0,
+      correctChars: 0,
+      incorrectChars: 0,
+      totalChars: 0
     };
 
     tests.forEach(t => {
@@ -291,12 +334,38 @@ export function aggregateMetrics(metrics: TestMetrics[]): AggregatedMetric[] {
       avgTest.weightedEfficiencyScoreRead += t.weightedEfficiencyScoreRead;
       avgTest.weightedEfficiencyScoreOutput += t.weightedEfficiencyScoreOutput;
       avgTest.weightedEfficiencyScoreTotal += t.weightedEfficiencyScoreTotal;
+
+      avgTest.expectedChars += t.expectedChars;
+      avgTest.correctChars += t.correctChars;
+      avgTest.incorrectChars += t.incorrectChars;
+      avgTest.totalChars += t.totalChars;
       avgTest.accuracyByCharPerc += t.accuracyByCharPerc;
-      avgTest.accuracyByCharDriftPercMin += t.accuracyByCharDriftPercMin;
-      avgTest.accuracyByCharDriftPercMax += t.accuracyByCharDriftPercMax;
-      avgTest.wastedOutputWriteTokensByCharAccuracy += t.wastedOutputWriteTokensByCharAccuracy;
-      avgTest.usefulOutputWriteTokensByCharAccuracy += t.usefulOutputWriteTokensByCharAccuracy;
-      avgTest.efficiencyScoreOutputWriteTokensByCharAccuracy += t.efficiencyScoreOutputWriteTokensByCharAccuracy;
+      avgTest.accuracyByCharPercDriftMin += t.accuracyByCharPercDriftMin;
+      avgTest.accuracyByCharPercDriftMax += t.accuracyByCharPercDriftMax;
+      avgTest.weightedAccuracyByCharPerc += t.weightedAccuracyByCharPerc;
+      avgTest.weightedAccuracyByCharPercDriftMin += t.weightedAccuracyByCharPercDriftMin;
+      avgTest.weightedAccuracyByCharPercDriftMax += t.weightedAccuracyByCharPercDriftMax;
+      avgTest.wastedReadTokensAccuracyByCharPerc += t.wastedReadTokensAccuracyByCharPerc;
+      avgTest.wastedOutputTokensAccuracyByCharPerc += t.wastedOutputTokensAccuracyByCharPerc;
+      avgTest.wastedTotalTokensAccuracyByCharPerc += t.wastedTotalTokensAccuracyByCharPerc;
+      avgTest.usefulReadTokensAccuracyByCharPerc += t.usefulReadTokensAccuracyByCharPerc;
+      avgTest.usefulOutputTokensAccuracyByCharPerc += t.usefulOutputTokensAccuracyByCharPerc;
+      avgTest.usefulTotalTokensAccuracyByCharPerc += t.usefulTotalTokensAccuracyByCharPerc;
+      avgTest.weightedWastedReadTokensAccuracyByCharPerc += t.weightedWastedReadTokensAccuracyByCharPerc;
+      avgTest.weightedWastedOutputTokensAccuracyByCharPerc += t.weightedWastedOutputTokensAccuracyByCharPerc;
+      avgTest.weightedWastedTotalTokensAccuracyByCharPerc += t.weightedWastedTotalTokensAccuracyByCharPerc;
+      avgTest.weightedUsefulReadTokensAccuracyByCharPerc += t.weightedUsefulReadTokensAccuracyByCharPerc;
+      avgTest.weightedUsefulOutputTokensAccuracyByCharPerc += t.weightedUsefulOutputTokensAccuracyByCharPerc;
+      avgTest.weightedUsefulTotalTokensAccuracyByCharPerc += t.weightedUsefulTotalTokensAccuracyByCharPerc;
+      avgTest.efficiencyScoreReadAccuracyByCharPerc += t.efficiencyScoreReadAccuracyByCharPerc;
+      avgTest.efficiencyScoreOutputAccuracyByCharPerc += t.efficiencyScoreOutputAccuracyByCharPerc;
+      avgTest.efficiencyScoreTotalAccuracyByCharPerc += t.efficiencyScoreTotalAccuracyByCharPerc;
+      avgTest.weightedEfficiencyScoreReadAccuracyByCharPerc += t.weightedEfficiencyScoreReadAccuracyByCharPerc;
+      avgTest.weightedEfficiencyScoreOutputAccuracyByCharPerc += t.weightedEfficiencyScoreOutputAccuracyByCharPerc;
+      avgTest.weightedEfficiencyScoreTotalAccuracyByCharPerc += t.weightedEfficiencyScoreTotalAccuracyByCharPerc;
+      avgTest.informationValuePerReadTokensAccuracyByCharPerc += t.informationValuePerReadTokensAccuracyByCharPerc;
+      avgTest.informationValuePerOutputTokensAccuracyByCharPerc += t.informationValuePerOutputTokensAccuracyByCharPerc;
+      avgTest.informationValuePerTotalTokensAccuracyByCharPerc += t.informationValuePerTotalTokensAccuracyByCharPerc;
     });
 
     const count = tests.length;
@@ -362,21 +431,38 @@ export function aggregateMetrics(metrics: TestMetrics[]): AggregatedMetric[] {
     avgTest.weightedEfficiencyScoreRead /= count;
     avgTest.weightedEfficiencyScoreOutput /= count;
     avgTest.weightedEfficiencyScoreTotal /= count;
-    avgTest.accuracyByCharPerc/= count;
-    avgTest.accuracyByCharDriftPercMin /= count;
-    avgTest.accuracyByCharDriftPercMax /= count;
-    avgTest.wastedOutputWriteTokensByCharAccuracy /= count;
-    avgTest.usefulOutputWriteTokensByCharAccuracy /= count;
-    avgTest.efficiencyScoreOutputWriteTokensByCharAccuracy /= count;
-    avgTest.absOutputDurationBeforeWriteDriftPerc = Math.abs(avgTest.outputDurationBeforeWriteDriftPercMin) + avgTest.outputDurationBeforeWriteDriftPercMax;
-    avgTest.absOutputDurationWriteDriftPerc = Math.abs(avgTest.outputDurationWriteDriftPercMin) + avgTest.outputDurationWriteDriftPercMax;
-    avgTest.absOutputDurationTotalDriftPerc = Math.abs(avgTest.outputDurationTotalDriftPercMin) + avgTest.outputDurationTotalDriftPercMax;
-    avgTest.absOutputTokensBeforeWriteDriftPerc = Math.abs(avgTest.outputTokensBeforeWriteDriftPercMin) + avgTest.outputTokensBeforeWriteDriftPercMax;
-    avgTest.absOutputTokensWriteDriftPerc = Math.abs(avgTest.outputTokensWriteDriftPercMin) + avgTest.outputTokensWriteDriftPercMax;
-    avgTest.absOutputTokensTotalDriftPerc = Math.abs(avgTest.outputTokensTotalDriftPercMin) + avgTest.outputTokensTotalDriftPercMax;
-    avgTest.absAccuracyDriftPerc = Math.abs(avgTest.accuracyDriftPercentMin) + avgTest.accuracyDriftPercentMax;
-    avgTest.absWeightedAccuracyDriftPerc = Math.abs(avgTest.weightedAccuracyDriftPercentMin) + avgTest.weightedAccuracyDriftPercentMax;
-    avgTest.absAccuracyByCharDriftPerc = Math.abs(avgTest.accuracyByCharDriftPercMin) + avgTest.accuracyByCharDriftPercMax;
+    
+    avgTest.expectedChars /= count;
+    avgTest.correctChars /= count;
+    avgTest.incorrectChars /= count;
+    avgTest.totalChars /= count;
+    avgTest.accuracyByCharPerc /= count;
+    avgTest.accuracyByCharPercDriftMin /= count;
+    avgTest.accuracyByCharPercDriftMax /= count;
+    avgTest.weightedAccuracyByCharPerc /= count;
+    avgTest.weightedAccuracyByCharPercDriftMin /= count;
+    avgTest.weightedAccuracyByCharPercDriftMax /= count;
+    avgTest.wastedReadTokensAccuracyByCharPerc /= count;
+    avgTest.wastedOutputTokensAccuracyByCharPerc /= count;
+    avgTest.wastedTotalTokensAccuracyByCharPerc /= count;
+    avgTest.usefulReadTokensAccuracyByCharPerc /= count;
+    avgTest.usefulOutputTokensAccuracyByCharPerc /= count;
+    avgTest.usefulTotalTokensAccuracyByCharPerc /= count;
+    avgTest.weightedWastedReadTokensAccuracyByCharPerc /= count;
+    avgTest.weightedWastedOutputTokensAccuracyByCharPerc /= count;
+    avgTest.weightedWastedTotalTokensAccuracyByCharPerc /= count;
+    avgTest.weightedUsefulReadTokensAccuracyByCharPerc /= count;
+    avgTest.weightedUsefulOutputTokensAccuracyByCharPerc /= count;
+    avgTest.weightedUsefulTotalTokensAccuracyByCharPerc /= count;
+    avgTest.efficiencyScoreReadAccuracyByCharPerc /= count;
+    avgTest.efficiencyScoreOutputAccuracyByCharPerc /= count;
+    avgTest.efficiencyScoreTotalAccuracyByCharPerc /= count;
+    avgTest.weightedEfficiencyScoreReadAccuracyByCharPerc /= count;
+    avgTest.weightedEfficiencyScoreOutputAccuracyByCharPerc /= count;
+    avgTest.weightedEfficiencyScoreTotalAccuracyByCharPerc /= count;
+    avgTest.informationValuePerReadTokensAccuracyByCharPerc /= count;
+    avgTest.informationValuePerOutputTokensAccuracyByCharPerc /= count;
+    avgTest.informationValuePerTotalTokensAccuracyByCharPerc /= count;
     
     aggregated.push(avgTest);
   });
@@ -423,10 +509,28 @@ export function aggregateMetrics(metrics: TestMetrics[]): AggregatedMetric[] {
       item.outputDurationBeforeWriteInMsDelta = optional.outputDurationBeforeWriteInMs - mandatory.outputDurationBeforeWriteInMs;
       item.outputDurationWriteInMsDelta = optional.outputDurationWriteInMs - mandatory.outputDurationWriteInMs;
       item.outputDurationTotalInMsDelta = optional.outputDurationTotalInMs - mandatory.outputDurationTotalInMs;
-      item.accuracyByCharPercDelta = optional.accuracyByCharPerc - mandatory.accuracyByCharPerc;      
-      item.usefulOutputWriteTokensByCharAccuracyDelta = optional.usefulOutputWriteTokensByCharAccuracy - mandatory.usefulOutputWriteTokensByCharAccuracy;
-      item.wastedOutputWriteTokensByCharAccuracyDelta = optional.wastedOutputWriteTokensByCharAccuracy - mandatory.wastedOutputWriteTokensByCharAccuracy;
-      item.efficiencyScoreOutputWriteTokensByCharAccuracyDelta = optional.efficiencyScoreOutputWriteTokensByCharAccuracy - mandatory.efficiencyScoreOutputWriteTokensByCharAccuracy;
+      
+      item.expectedCharsDelta = optional.expectedChars - mandatory.expectedChars;
+      item.correctCharsDelta = optional.correctChars - mandatory.correctChars;
+      item.incorrectCharsDelta = optional.incorrectChars - mandatory.incorrectChars;
+      item.totalCharsDelta = optional.totalChars - mandatory.totalChars;
+      item.accuracyByCharPercDelta = optional.accuracyByCharPerc - mandatory.accuracyByCharPerc;
+      item.weightedAccuracyByCharPercDelta = optional.weightedAccuracyByCharPerc - mandatory.weightedAccuracyByCharPerc;
+      item.usefulReadTokensAccuracyByCharPercDelta = optional.usefulReadTokensAccuracyByCharPerc - mandatory.usefulReadTokensAccuracyByCharPerc;
+      item.usefulOutputTokensAccuracyByCharPercDelta = optional.usefulOutputTokensAccuracyByCharPerc - mandatory.usefulOutputTokensAccuracyByCharPerc;
+      item.usefulTotalTokensAccuracyByCharPercDelta = optional.usefulTotalTokensAccuracyByCharPerc - mandatory.usefulTotalTokensAccuracyByCharPerc;
+      item.wastedReadTokensAccuracyByCharPercDelta = optional.wastedReadTokensAccuracyByCharPerc - mandatory.wastedReadTokensAccuracyByCharPerc;
+      item.wastedOutputTokensAccuracyByCharPercDelta = optional.wastedOutputTokensAccuracyByCharPerc - mandatory.wastedOutputTokensAccuracyByCharPerc;
+      item.wastedTotalTokensAccuracyByCharPercDelta = optional.wastedTotalTokensAccuracyByCharPerc - mandatory.wastedTotalTokensAccuracyByCharPerc;
+      item.efficiencyScoreReadAccuracyByCharPercDelta = optional.efficiencyScoreReadAccuracyByCharPerc - mandatory.efficiencyScoreReadAccuracyByCharPerc;
+      item.efficiencyScoreOutputAccuracyByCharPercDelta = optional.efficiencyScoreOutputAccuracyByCharPerc - mandatory.efficiencyScoreOutputAccuracyByCharPerc;
+      item.efficiencyScoreTotalAccuracyByCharPercDelta = optional.efficiencyScoreTotalAccuracyByCharPerc - mandatory.efficiencyScoreTotalAccuracyByCharPerc;
+      item.weightedEfficiencyScoreReadAccuracyByCharPercDelta = optional.weightedEfficiencyScoreReadAccuracyByCharPerc - mandatory.weightedEfficiencyScoreReadAccuracyByCharPerc;
+      item.weightedEfficiencyScoreOutputAccuracyByCharPercDelta = optional.weightedEfficiencyScoreOutputAccuracyByCharPerc - mandatory.weightedEfficiencyScoreOutputAccuracyByCharPerc;
+      item.weightedEfficiencyScoreTotalAccuracyByCharPercDelta = optional.weightedEfficiencyScoreTotalAccuracyByCharPerc - mandatory.weightedEfficiencyScoreTotalAccuracyByCharPerc;
+      item.informationValuePerReadTokensAccuracyByCharPercDelta = optional.informationValuePerReadTokensAccuracyByCharPerc - mandatory.informationValuePerReadTokensAccuracyByCharPerc;
+      item.informationValuePerOutputTokensAccuracyByCharPercDelta = optional.informationValuePerOutputTokensAccuracyByCharPerc - mandatory.informationValuePerOutputTokensAccuracyByCharPerc;
+      item.informationValuePerTotalTokensAccuracyByCharPercDelta = optional.informationValuePerTotalTokensAccuracyByCharPerc - mandatory.informationValuePerTotalTokensAccuracyByCharPerc;
     }
   });
 
@@ -445,7 +549,7 @@ export function loadValidationResults(resultsPath: string): ValidationSummary[] 
     const data = JSON.parse(content) as MergedValidationReport;
 
     // Average accuracyPerCategory across all runs
-    const categoryMap: { [key in AllQuestionCategory]?: { correct: number; incorrect: number; unanswered: number; accuracy: number; weightedAccuracy: number } } = {};
+    const categoryMap: { [key in AllQuestionCategory]?: { correct: number; incorrect: number; unanswered: number; accuracy: number; weightedAccuracy: number, charactersOfAnswers: CharactersOfAnswers } } = {};
 
     if (data.perRunAccuracy && Array.isArray(data.perRunAccuracy)) {
       data.perRunAccuracy.forEach(run => {
@@ -459,6 +563,14 @@ export function loadValidationResults(resultsPath: string): ValidationSummary[] 
                 unanswered: 0,
                 accuracy: 0,
                 weightedAccuracy: 0,
+                charactersOfAnswers: {
+                  expected: 0,
+                  correct: 0,
+                  incorrect: 0,
+                  total: 0,
+                  accuracyByCharPerc: 0,
+                  weightedAccuracyByCharPerc: 0
+                }
               };
             }
             const entry = categoryMap[catName];
@@ -468,6 +580,13 @@ export function loadValidationResults(resultsPath: string): ValidationSummary[] 
               entry.unanswered += cat.unanswered;
               entry.accuracy += cat.accuracyPercent;
               entry.weightedAccuracy += cat.weightedAccuracyPercent;
+
+              entry.charactersOfAnswers.expected += cat.charactersOfAnswers.expected;
+              entry.charactersOfAnswers.correct += cat.charactersOfAnswers.correct;
+              entry.charactersOfAnswers.incorrect += cat.charactersOfAnswers.incorrect;
+              entry.charactersOfAnswers.total += cat.charactersOfAnswers.total;
+              entry.charactersOfAnswers.accuracyByCharPerc += cat.charactersOfAnswers.accuracyByCharPerc;
+              entry.charactersOfAnswers.weightedAccuracyByCharPerc += cat.charactersOfAnswers.weightedAccuracyByCharPerc;
             }
           });
         }
@@ -484,7 +603,15 @@ export function loadValidationResults(resultsPath: string): ValidationSummary[] 
             weightedAccuracyPercent: stats.weightedAccuracy / runCount,
             correct: stats.correct / runCount,
             incorrect: stats.incorrect / runCount,
-            unanswered: stats.unanswered / runCount,
+            unanswered: stats.unanswered / runCount,            
+            charactersOfAnswers: {
+              expected: stats.charactersOfAnswers.expected / runCount,
+              correct: stats.charactersOfAnswers.correct / runCount,
+              incorrect: stats.charactersOfAnswers.incorrect / runCount,
+              total: stats.charactersOfAnswers.total / runCount,
+              accuracyByCharPerc: stats.charactersOfAnswers.accuracyByCharPerc / runCount,
+              weightedAccuracyByCharPerc: stats.charactersOfAnswers.weightedAccuracyByCharPerc / runCount,
+            }
           });
         }
       });
