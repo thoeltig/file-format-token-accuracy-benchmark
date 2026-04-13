@@ -99,6 +99,7 @@ class AnswerValidator {
         stats.accuracyByChar /= totalResultCount;
         const mapAsArray = [...map.entries()];
         const weightedAccuracyPercent = mapAsArray.reduce((sum, x) => sum + (0, shared_1.ToPercentage)((x[1].correctCount / x[1].totalCount) * consts_1.QUESTIONS_WEIGHT_DISTRIBUTION[x[0]]), 0);
+        const weightedAccuracyByCharPercent = mapAsArray.reduce((sum, x) => sum + (0, shared_1.ToPercentage)((x[1].accuracyByChar / x[1].totalCount) * consts_1.QUESTIONS_WEIGHT_DISTRIBUTION[x[0]]), 0);
         return {
             format: format,
             totalQuestions: totalResultCount,
@@ -114,13 +115,17 @@ class AnswerValidator {
                 correct: stats.correctChars,
                 incorrect: stats.incorrectChars,
                 total: stats.totalChars,
-                accuracyByCharPerc: (0, shared_1.ToPercentage)(stats.accuracyByChar)
+                accuracyByCharPerc: (0, shared_1.ToPercentage)(stats.accuracyByChar),
+                weightedAccuracyByCharPerc: weightedAccuracyByCharPercent
             },
             accuracyPerCategory: mapAsArray.map(x => {
                 const category = x[0];
                 const counter = x[1];
+                const weight = consts_1.QUESTIONS_WEIGHT_DISTRIBUTION[category];
                 const accuracy = counter.correctCount / counter.totalCount;
-                const weightedAccuracy = accuracy * consts_1.QUESTIONS_WEIGHT_DISTRIBUTION[category];
+                const weightedAccuracy = accuracy * weight;
+                const accuracyByCharPerc = counter.accuracyByChar / counter.totalCount;
+                const weightedAccuracyByCharPerc = accuracyByCharPerc * weight;
                 return {
                     category: category,
                     correct: counter.correctCount,
@@ -133,7 +138,8 @@ class AnswerValidator {
                         correct: counter.correctChars,
                         incorrect: counter.incorrectChars,
                         total: counter.totalChars,
-                        accuracyByCharPerc: (0, shared_1.ToPercentage)(counter.accuracyByChar / counter.totalCount),
+                        accuracyByCharPerc: (0, shared_1.ToPercentage)(accuracyByCharPerc),
+                        weightedAccuracyByCharPerc: (0, shared_1.ToPercentage)(weightedAccuracyByCharPerc),
                     }
                 };
             })

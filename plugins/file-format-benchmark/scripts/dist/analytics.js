@@ -138,9 +138,7 @@ class BenchmarkAnalytics {
                     minOutput: userMetric.outputTokensTotal,
                     maxOutput: userMetric.outputTokensTotal,
                     minTotal: userMetric.totalTokens,
-                    maxTotal: userMetric.totalTokens,
-                    minOutputWrite: userMetric.outputTokensWrite,
-                    maxOutputWrite: userMetric.outputTokensWrite,
+                    maxTotal: userMetric.totalTokens
                 });
             }
             else {
@@ -150,8 +148,6 @@ class BenchmarkAnalytics {
                 entry.maxOutput = entry.maxOutput < userMetric.outputTokensTotal ? userMetric.outputTokensTotal : entry.maxOutput;
                 entry.minTotal = entry.minTotal > userMetric.totalTokens ? userMetric.totalTokens : entry.minTotal;
                 entry.maxTotal = entry.maxTotal < userMetric.totalTokens ? userMetric.totalTokens : entry.maxTotal;
-                entry.minOutputWrite = entry.minOutputWrite > userMetric.outputTokensWrite ? userMetric.outputTokensWrite : entry.minOutputWrite;
-                entry.maxOutputWrite = entry.maxOutputWrite < userMetric.outputTokensWrite ? userMetric.outputTokensWrite : entry.maxOutputWrite;
                 minMaxRecordCount.set(userMetric.recordCount, entry);
             }
         }
@@ -171,12 +167,15 @@ class BenchmarkAnalytics {
             const entry = minMaxRecordCount.get(userMetric.recordCount);
             const accuracy = validation.accuracy.accuracyPercent / 100;
             const weightedAccuracy = validation.accuracy.weightedAccuracyPercent / 100;
+            const accuracyByCharPerc = validation.accuracy.charactersOfAnswers.accuracyByCharPerc / 100;
+            const weightedAccuracyByCharPerc = validation.accuracy.charactersOfAnswers.weightedAccuracyByCharPerc / 100;
             const accuracyPercPartOfScore = validation.accuracy.accuracyPercent * consts_1.EFFICIENCY_SCORE_WEIGHT.accuracy;
             const weightedAccuracyPercPartOfScore = validation.accuracy.weightedAccuracyPercent * consts_1.EFFICIENCY_SCORE_WEIGHT.accuracy;
+            const accuracyByCharPercPartOfScore = validation.accuracy.charactersOfAnswers.accuracyByCharPerc * consts_1.EFFICIENCY_SCORE_WEIGHT.accuracy;
+            const weightedAccuracyByCharPercPartOfScore = validation.accuracy.charactersOfAnswers.weightedAccuracyByCharPerc * consts_1.EFFICIENCY_SCORE_WEIGHT.accuracy;
             const normalizedReadTokensScore = entry ? this.normalizedAmountScore(entry.minRead - 10, entry.maxRead + 10, userMetric.readTokens) * consts_1.EFFICIENCY_SCORE_WEIGHT.tokens : 0;
             const normalizedOutputTokensScore = entry ? this.normalizedAmountScore(entry.minOutput - 10, entry.maxOutput + 10, userMetric.outputTokensTotal) * consts_1.EFFICIENCY_SCORE_WEIGHT.tokens : 0;
             const normalizedTotalTokensScore = entry ? this.normalizedAmountScore(entry.minTotal - 10, entry.maxTotal + 10, userMetric.totalTokens) * consts_1.EFFICIENCY_SCORE_WEIGHT.tokens : 0;
-            const normalizedOutputWriteTokensScore = entry ? this.normalizedAmountScore(entry.minOutputWrite - 10, entry.maxOutputWrite + 10, userMetric.outputTokensWrite) * consts_1.EFFICIENCY_SCORE_WEIGHT.tokens : 0;
             metrics.push({
                 testCase: userMetric.testCase,
                 format: userMetric.format,
@@ -247,12 +246,37 @@ class BenchmarkAnalytics {
                 weightedEfficiencyScoreRead: (0, shared_1.roundTo3Digits)(weightedAccuracyPercPartOfScore + normalizedReadTokensScore),
                 weightedEfficiencyScoreOutput: (0, shared_1.roundTo3Digits)(weightedAccuracyPercPartOfScore + normalizedOutputTokensScore),
                 weightedEfficiencyScoreTotal: (0, shared_1.roundTo3Digits)(weightedAccuracyPercPartOfScore + normalizedTotalTokensScore),
+                expectedChars: validation.accuracy.charactersOfAnswers.expected,
+                correctChars: validation.accuracy.charactersOfAnswers.correct,
+                incorrectChars: validation.accuracy.charactersOfAnswers.incorrect,
+                totalChars: validation.accuracy.charactersOfAnswers.total,
                 accuracyByCharPerc: validation.accuracy.charactersOfAnswers.accuracyByCharPerc,
-                accuracyByCharDriftPercMin: validation.accuracy.charactersOfAnswers.accuracyByCharDriftPercMin,
-                accuracyByCharDriftPercMax: validation.accuracy.charactersOfAnswers.accuracyByCharDriftPercMax,
-                wastedOutputWriteTokensByCharAccuracy: (0, shared_1.roundTo3Digits)(userMetric.outputTokensWrite * (1 - (validation.accuracy.charactersOfAnswers.accuracyByCharPerc / 100))),
-                usefulOutputWriteTokensByCharAccuracy: (0, shared_1.roundTo3Digits)(userMetric.outputTokensWrite * (validation.accuracy.charactersOfAnswers.accuracyByCharPerc / 100)),
-                efficiencyScoreOutputWriteTokensByCharAccuracy: (0, shared_1.roundTo3Digits)((validation.accuracy.charactersOfAnswers.accuracyByCharPerc * consts_1.EFFICIENCY_SCORE_WEIGHT.accuracy) + normalizedOutputWriteTokensScore),
+                accuracyByCharPercDriftMin: validation.accuracy.charactersOfAnswers.accuracyByCharPercDriftMin,
+                accuracyByCharPercDriftMax: validation.accuracy.charactersOfAnswers.accuracyByCharPercDriftMax,
+                weightedAccuracyByCharPerc: validation.accuracy.charactersOfAnswers.weightedAccuracyByCharPerc,
+                weightedAccuracyByCharPercDriftMax: validation.accuracy.charactersOfAnswers.weightedAccuracyByCharPercDriftMin,
+                weightedAccuracyByCharPercDriftMin: validation.accuracy.charactersOfAnswers.weightedAccuracyByCharPercDriftMax,
+                informationValuePerReadTokensAccuracyByCharPerc: (0, shared_1.roundTo3Digits)((validation.accuracy.charactersOfAnswers.accuracyByCharPerc / userMetric.readTokens) * 100),
+                informationValuePerOutputTokensAccuracyByCharPerc: (0, shared_1.roundTo3Digits)((validation.accuracy.charactersOfAnswers.accuracyByCharPerc / userMetric.outputTokensTotal) * 100),
+                informationValuePerTotalTokensAccuracyByCharPerc: (0, shared_1.roundTo3Digits)((validation.accuracy.charactersOfAnswers.accuracyByCharPerc / userMetric.totalTokens) * 100),
+                wastedReadTokensAccuracyByCharPerc: (0, shared_1.roundTo3Digits)(userMetric.readTokens * (1 - accuracyByCharPerc)),
+                wastedOutputTokensAccuracyByCharPerc: (0, shared_1.roundTo3Digits)(userMetric.outputTokensTotal * (1 - accuracyByCharPerc)),
+                wastedTotalTokensAccuracyByCharPerc: (0, shared_1.roundTo3Digits)(userMetric.totalTokens * (1 - accuracyByCharPerc)),
+                usefulReadTokensAccuracyByCharPerc: (0, shared_1.roundTo3Digits)(userMetric.readTokens * accuracyByCharPerc),
+                usefulOutputTokensAccuracyByCharPerc: (0, shared_1.roundTo3Digits)(userMetric.outputTokensTotal * accuracyByCharPerc),
+                usefulTotalTokensAccuracyByCharPerc: (0, shared_1.roundTo3Digits)(userMetric.totalTokens * accuracyByCharPerc),
+                weightedWastedReadTokensAccuracyByCharPerc: (0, shared_1.roundTo3Digits)(userMetric.readTokens * (1 - weightedAccuracyByCharPerc)),
+                weightedWastedOutputTokensAccuracyByCharPerc: (0, shared_1.roundTo3Digits)(userMetric.outputTokensTotal * (1 - weightedAccuracyByCharPerc)),
+                weightedWastedTotalTokensAccuracyByCharPerc: (0, shared_1.roundTo3Digits)(userMetric.totalTokens * (1 - weightedAccuracyByCharPerc)),
+                weightedUsefulReadTokensAccuracyByCharPerc: (0, shared_1.roundTo3Digits)(userMetric.readTokens * weightedAccuracyByCharPerc),
+                weightedUsefulOutputTokensAccuracyByCharPerc: (0, shared_1.roundTo3Digits)(userMetric.outputTokensTotal * weightedAccuracyByCharPerc),
+                weightedUsefulTotalTokensAccuracyByCharPerc: (0, shared_1.roundTo3Digits)(userMetric.totalTokens * weightedAccuracyByCharPerc),
+                efficiencyScoreReadAccuracyByCharPerc: (0, shared_1.roundTo3Digits)(accuracyByCharPercPartOfScore + normalizedReadTokensScore),
+                efficiencyScoreOutputAccuracyByCharPerc: (0, shared_1.roundTo3Digits)(accuracyByCharPercPartOfScore + normalizedOutputTokensScore),
+                efficiencyScoreTotalAccuracyByCharPerc: (0, shared_1.roundTo3Digits)(accuracyByCharPercPartOfScore + normalizedTotalTokensScore),
+                weightedEfficiencyScoreReadAccuracyByCharPerc: (0, shared_1.roundTo3Digits)(weightedAccuracyByCharPercPartOfScore + normalizedReadTokensScore),
+                weightedEfficiencyScoreOutputAccuracyByCharPerc: (0, shared_1.roundTo3Digits)(weightedAccuracyByCharPercPartOfScore + normalizedOutputTokensScore),
+                weightedEfficiencyScoreTotalAccuracyByCharPerc: (0, shared_1.roundTo3Digits)(weightedAccuracyByCharPercPartOfScore + normalizedTotalTokensScore),
             });
         }
         return metrics;
