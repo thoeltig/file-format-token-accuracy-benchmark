@@ -238,14 +238,14 @@ class ReportGenerator {
           break;
       }
 
-      this.line(`   - **${this.getQuestionCategoryLabel(q[0])} (${q[1]} questions, ${weightPerc.toFixed(2)}% weight):** ${questionCategoryDescription}`);
+      this.line(`   - **${this.getQuestionCategoryLabel(q[0])} (${q[1]} questions, ${this.printRounded(weightPerc, 2)}% weight):** ${questionCategoryDescription}`);
     });
     this.line();
     
     this.heading(4, '1.2.3 Weighting Rationale');
-    this.line(`- **Field retrieval + structure awareness** = ${fieledretrievalAndStructureAwareness.toFixed(2)}%`);
+    this.line(`- **Field retrieval + structure awareness** = ${this.printRounded(fieledretrievalAndStructureAwareness, 2)}%`);
     this.line(`   - These represent the file format itself. Understanding "what data exists and how it's organized" which is fundamental to avoiding context confusion.`);
-    this.line(`- **Filtering + aggregation** = ${filteringAndAggregation.toFixed(2)}%`);
+    this.line(`- **Filtering + aggregation** = ${this.printRounded(filteringAndAggregation, 2)}%`);
     this.line(`   - These represent more the "intellectual" aspect of the model and will differ greatly depending on the model. Also if done deterministic the model still needs to do field retrieval and structure awareness on the result.`);
     this.line();
     
@@ -267,7 +267,7 @@ class ReportGenerator {
     const efficiencyScoreTokenPortion = this.metadata.efficiencyScoreWeight.find(x => x[0] === "tokens")?.[1] ?? 0;
     this.heading(4, '1.3.3 Efficiency Score');
     this.line('Composite metric balancing accuracy with normalized token count (favour towards accuracy). Each efficieny score has an indicator which token count was used in the calculation.')
-    this.line(`- **Accuracy To Token Ratio** = ${(efficiencyScoreAccuracyPortion * 100).toFixed(2)} % to ${(efficiencyScoreTokenPortion * 100).toFixed(2)} %`)
+    this.line(`- **Accuracy To Token Ratio** = ${this.printRounded(efficiencyScoreAccuracyPortion * 100, 2)} % to ${this.printRounded(efficiencyScoreTokenPortion * 100, 2)} %`)
     this.line('- **Normalized Tokens** = (((**Max Tokens** + 10) - **Current Tokens**) / ((**Max Tokens** + 10) - (**Min Tokens** - 10))) * 100')
     this.line('- **Normalized Tokens** = (((**Max Tokens** + 10) - **Current Tokens**) / ((**Max Tokens** + 10) - (**Min Tokens** - 10))) * 100')
     this.line(`- **Efficiency Score**: (**Accuracy** % * ${efficiencyScoreAccuracyPortion}) + (**Normalized Tokens** * ${efficiencyScoreTokenPortion})`);
@@ -493,11 +493,11 @@ class ReportGenerator {
   }
   
   private getRankingOfAmountDisplay(format: string, idx: number, current: number, first: number, suffix: string = ''){
-    return format + (idx > 0 ? ` (${(current > first ?'+' : '')}${(current/first*100-100).toFixed(2)}%)` : ` ≈ ${Math.round(current)}${suffix}`);
+    return format + (idx > 0 ? ` (${this.printRounded(current/first*100-100, 2, true)}%)` : ` ≈ ${this.printRounded(current, 0)}${suffix}`);
   }
   
   private getRankingOfPercentageDisplay(format: string, idx: number, current: number, first: number){
-    return format + (idx > 0 ? ` (${(current > first ?'+' : '')}${(current-first).toFixed(2)}%)` : ` ≈ ${current.toFixed(2)}%`);
+    return format + (idx > 0 ? ` (${this.printRounded(current-first, 2, true)}%)` : ` ≈ ${this.printRounded(current, 2)}%`);
   }
 
   private generateResults(): void {
@@ -535,24 +535,24 @@ class ReportGenerator {
       Math.round(item.readTokens).toString(),
       Math.round(item.outputTokensTotal).toString(),
       Math.round(item.totalTokens).toString(),
-      item.charsPerReadToken.toFixed(3),
-      item.outputTokensWritePerAnswer.toFixed(3),
-      item.accuracyPercent.toFixed(2),
-      item.usefulReadTokens.toFixed(3),
-      item.wastedReadTokens.toFixed(3),
-      item.usefulOutputTokens.toFixed(3),
-      item.wastedOutputTokens.toFixed(3),
-      item.efficiencyScoreRead.toFixed(2),
-      item.efficiencyScoreOutput.toFixed(2),
-      item.efficiencyScoreTotal.toFixed(2),
-      item.accuracyByCharPerc.toFixed(2),
-      item.usefulReadTokensAccuracyByCharPerc.toFixed(3),
-      item.wastedReadTokensAccuracyByCharPerc.toFixed(3),
-      item.usefulOutputTokensAccuracyByCharPerc.toFixed(3),
-      item.wastedOutputTokensAccuracyByCharPerc.toFixed(3),
-      item.efficiencyScoreReadAccuracyByCharPerc.toFixed(2),
-      item.efficiencyScoreOutputAccuracyByCharPerc.toFixed(2),
-      item.efficiencyScoreTotalAccuracyByCharPerc.toFixed(2),
+      this.printRounded(item.charsPerReadToken, 3),
+      this.printRounded(item.outputTokensWritePerAnswer, 3),
+      this.printRounded(item.accuracyPercent, 2),
+      this.printRounded(item.usefulReadTokens, 3),
+      this.printRounded(item.wastedReadTokens, 3),
+      this.printRounded(item.usefulOutputTokens, 3),
+      this.printRounded(item.wastedOutputTokens, 3),
+      this.printRounded(item.efficiencyScoreRead, 2),
+      this.printRounded(item.efficiencyScoreOutput, 2),
+      this.printRounded(item.efficiencyScoreTotal, 2),
+      this.printRounded(item.accuracyByCharPerc, 2),
+      this.printRounded(item.usefulReadTokensAccuracyByCharPerc, 3),
+      this.printRounded(item.wastedReadTokensAccuracyByCharPerc, 3),
+      this.printRounded(item.usefulOutputTokensAccuracyByCharPerc, 3),
+      this.printRounded(item.wastedOutputTokensAccuracyByCharPerc, 3),
+      this.printRounded(item.efficiencyScoreReadAccuracyByCharPerc, 2),
+      this.printRounded(item.efficiencyScoreOutputAccuracyByCharPerc, 2),
+      this.printRounded(item.efficiencyScoreTotalAccuracyByCharPerc, 2),
     ]);
 
     this.heading(3, '2.2 Comprehensive Benchmark Metrics');
@@ -586,26 +586,26 @@ class ReportGenerator {
       const optTotalTokensUsed = mandtotalTokens + totalTokenDiff;
       return [
         x.format,
-        mandReadTokensUsed.toString(),
-        optReadTokensUsed.toString(),
+        this.printRounded(mandReadTokensUsed, 0),
+        this.printRounded(optReadTokensUsed, 0),
         this.displayDelta(readTokenDiff, 0),
-        this.calcDeltaPercentage(mandReadTokensUsed, readTokenDiff),
-        mandOutputTokensBeforeWrite.toString(),
-        optOutputTokensBeforeWrite.toString(),
+        this.calcDeltaPercentage(mandReadTokensUsed, readTokenDiff, 2),
+        this.printRounded(mandOutputTokensBeforeWrite, 0),
+        this.printRounded(optOutputTokensBeforeWrite, 0),
         this.displayDelta(outputTokensBeforeWriteDiff, 0),
-        this.calcDeltaPercentage(mandOutputTokensBeforeWrite, outputTokensBeforeWriteDiff),
-        mandOutputTokensWrite.toString(),
-        optOutputTokensWrite.toString(),
+        this.calcDeltaPercentage(mandOutputTokensBeforeWrite, outputTokensBeforeWriteDiff, 2),
+        this.printRounded(mandOutputTokensWrite, 0),
+        this.printRounded(optOutputTokensWrite, 0),
         this.displayDelta(outputTokensWriteDiff, 0),
-        this.calcDeltaPercentage(mandOutputTokensWrite, outputTokensWriteDiff),
-        mandOutputTokensTotal.toString(),
-        optOutputTokensTotal.toString(),
+        this.calcDeltaPercentage(mandOutputTokensWrite, outputTokensWriteDiff, 2),
+        this.printRounded(mandOutputTokensTotal, 0),
+        this.printRounded(optOutputTokensTotal, 0),
         this.displayDelta(outputTokensTotalDiff, 0),
-        this.calcDeltaPercentage(mandOutputTokensTotal, outputTokensTotalDiff),
-        mandtotalTokens.toString(),
-        optTotalTokensUsed.toString(),
+        this.calcDeltaPercentage(mandOutputTokensTotal, outputTokensTotalDiff, 2),
+        this.printRounded(mandtotalTokens, 0),
+        this.printRounded(optTotalTokensUsed, 0),
         this.displayDelta(totalTokenDiff, 0),
-        this.calcDeltaPercentage(mandtotalTokens, totalTokenDiff),
+        this.calcDeltaPercentage(mandtotalTokens, totalTokenDiff, 2),
       ];
     });
     
@@ -628,17 +628,17 @@ class ReportGenerator {
       return [
         item.format,
         item.variant.substring(0, 3),
-        Math.round(item.readDurationInMs).toString(),
-        item.readTokensPerMs.toFixed(3),
-        (item.readDurationInMs / item.recordCount).toFixed(2),
-        Math.round(item.outputDurationBeforeWriteInMs).toString(),
-        Math.round(item.outputDurationWriteInMs).toString(),
-        item.outputTokensWritePerMs.toFixed(3),
-        (item.outputDurationWriteInMs / item.totalQuestions).toFixed(2),
-        Math.round(totalDurationInMs).toString(),
-        totalTokensPerMs.toFixed(3),
-        (totalDurationInMs / (item.recordCount + item.totalQuestions)).toFixed(2),
-        Math.round(item.outputDurationTotalInMs).toString(),
+        this.printRounded(item.readDurationInMs, 0),
+        this.printRounded(item.readTokensPerMs, 3),
+        this.printRounded(item.readDurationInMs / item.recordCount, 2),
+        this.printRounded(item.outputDurationBeforeWriteInMs, 0),
+        this.printRounded(item.outputDurationWriteInMs, 0),
+        this.printRounded(item.outputTokensWritePerMs, 3),
+        this.printRounded(item.outputDurationWriteInMs / item.totalQuestions, 2),
+        this.printRounded(totalDurationInMs, 0),
+        this.printRounded(totalTokensPerMs, 3),
+        this.printRounded(totalDurationInMs / (item.recordCount + item.totalQuestions), 2),
+        this.printRounded(item.outputDurationTotalInMs, 0),
       ];
     });
     
@@ -663,26 +663,26 @@ class ReportGenerator {
       const outputDurationTotalDelta = x.outputDurationTotalInMsDelta / 1000;
       return [
         x.format,
-        manReadDuration.toString(),
-        (manReadDuration + readDurationDelta).toString(),
+        this.printRounded(manReadDuration, 0),
+        this.printRounded(manReadDuration + readDurationDelta, 0),
         this.displayDelta(readDurationDelta, 0),
-        this.calcDeltaPercentage(manReadDuration, readDurationDelta),
-        manOutputDurationBeforeWrite.toFixed(2),
-        (manOutputDurationBeforeWrite + outputDurationBeforeWriteDelta).toFixed(2),
+        this.calcDeltaPercentage(manReadDuration, readDurationDelta, 2),
+        this.printRounded(manOutputDurationBeforeWrite, 2),
+        this.printRounded(manOutputDurationBeforeWrite + outputDurationBeforeWriteDelta, 2),
         this.displayDelta(outputDurationBeforeWriteDelta, 2),
-        this.calcDeltaPercentage(manOutputDurationBeforeWrite, outputDurationBeforeWriteDelta),
-        manOutputDurationWrite.toFixed(2),
-        (manOutputDurationWrite + outputDurationWriteDelta).toFixed(2),
+        this.calcDeltaPercentage(manOutputDurationBeforeWrite, outputDurationBeforeWriteDelta, 2),
+        this.printRounded(manOutputDurationWrite, 2),
+        this.printRounded(manOutputDurationWrite + outputDurationWriteDelta, 2),
         this.displayDelta(outputDurationWriteDelta, 2),
-        this.calcDeltaPercentage(manOutputDurationWrite, outputDurationWriteDelta),
-        manTotalDuration.toFixed(2),
-        (manTotalDuration + totalDurationDelta).toFixed(2),
+        this.calcDeltaPercentage(manOutputDurationWrite, outputDurationWriteDelta, 2),
+        this.printRounded(manTotalDuration, 2),
+        this.printRounded(manTotalDuration + totalDurationDelta, 2),
         this.displayDelta(totalDurationDelta, 2),
-        this.calcDeltaPercentage(manTotalDuration, totalDurationDelta),        
-        manOutputDurationTotal.toFixed(2),
-        (manOutputDurationTotal + outputDurationTotalDelta).toFixed(2),
+        this.calcDeltaPercentage(manTotalDuration, totalDurationDelta, 2),
+        this.printRounded(manOutputDurationTotal, 2),
+        this.printRounded(manOutputDurationTotal + outputDurationTotalDelta, 2),
         this.displayDelta(outputDurationTotalDelta, 2),
-        this.calcDeltaPercentage(manOutputDurationTotal, outputDurationTotalDelta),
+        this.calcDeltaPercentage(manOutputDurationTotal, outputDurationTotalDelta, 2),
       ];
     });
     
@@ -701,15 +701,15 @@ class ReportGenerator {
     const structRows = sortedAggregated.map(item => [
       item.format,
       item.variant.substring(0, 3),
-      item.charsPerReadToken.toFixed(3),
-      item.readTokensPerValue.toFixed(3),
-      item.readTokensPerObject.toFixed(3),
-      item.informationValuePerReadTokens.toFixed(3),
-      item.informationValuePerOutputTokens.toFixed(3),
-      item.informationValuePerTotalTokens.toFixed(3),
-      item.informationValuePerReadTokensAccuracyByCharPerc.toFixed(3),
-      item.informationValuePerOutputTokensAccuracyByCharPerc.toFixed(3),
-      item.informationValuePerTotalTokensAccuracyByCharPerc.toFixed(3)
+      this.printRounded(item.charsPerReadToken, 3),
+      this.printRounded(item.readTokensPerValue, 3),
+      this.printRounded(item.readTokensPerObject, 3),
+      this.printRounded(item.informationValuePerReadTokens, 3),
+      this.printRounded(item.informationValuePerOutputTokens, 3),
+      this.printRounded(item.informationValuePerTotalTokens, 3),
+      this.printRounded(item.informationValuePerReadTokensAccuracyByCharPerc, 3),
+      this.printRounded(item.informationValuePerOutputTokensAccuracyByCharPerc, 3),
+      this.printRounded(item.informationValuePerTotalTokensAccuracyByCharPerc, 3)
     ]);
     
     this.heading(3, '2.5 Structural Efficiency');
@@ -723,18 +723,18 @@ class ReportGenerator {
     const mandOptStructuralDeltaRows = mandatories.map(x =>{    
       return [
         x.format,
-        x.charsPerReadToken.toFixed(3),
-        (x.charsPerReadToken + x.charsPerReadTokenDelta).toFixed(3),
+        this.printRounded(x.charsPerReadToken, 3),
+        this.printRounded(x.charsPerReadToken + x.charsPerReadTokenDelta, 3),
         this.displayDelta(x.charsPerReadTokenDelta, 3),
-        this.calcDeltaPercentage(x.charsPerReadToken, x.charsPerReadTokenDelta),
-        x.readTokensPerValue.toFixed(3),
-        (x.readTokensPerValue + x.readTokensPerValueDelta).toFixed(3),
+        this.calcDeltaPercentage(x.charsPerReadToken, x.charsPerReadTokenDelta, 2),
+        this.printRounded(x.readTokensPerValue, 3),
+        this.printRounded(x.readTokensPerValue + x.readTokensPerValueDelta, 3),
         this.displayDelta(x.readTokensPerValueDelta, 3),
-        this.calcDeltaPercentage(x.readTokensPerValue, x.readTokensPerValueDelta),
-        x.readTokensPerObject.toFixed(3),
-        (x.readTokensPerObject + x.readTokensPerObjectDelta).toFixed(3),
+        this.calcDeltaPercentage(x.readTokensPerValue, x.readTokensPerValueDelta, 2),
+        this.printRounded(x.readTokensPerObject, 3),
+        this.printRounded(x.readTokensPerObject + x.readTokensPerObjectDelta, 3),
         this.displayDelta(x.readTokensPerObjectDelta, 3),
-        this.calcDeltaPercentage(x.readTokensPerObject, x.readTokensPerObjectDelta),
+        this.calcDeltaPercentage(x.readTokensPerObject, x.readTokensPerObjectDelta, 2),
       ];
     });
     
@@ -748,18 +748,18 @@ class ReportGenerator {
     const mandOptStructuralInformationDeltaRows = mandatories.map(x =>{    
       return [
         x.format,
-        x.informationValuePerReadTokens.toFixed(3),
-        (x.informationValuePerReadTokens + x.informationValuePerReadTokensDelta).toFixed(3),
+        this.printRounded(x.informationValuePerReadTokens, 3),
+        this.printRounded(x.informationValuePerReadTokens + x.informationValuePerReadTokensDelta, 3),
         this.displayDelta(x.informationValuePerReadTokensDelta, 3),
-        this.calcDeltaPercentage(x.informationValuePerReadTokens, x.informationValuePerReadTokensDelta),        
-        x.informationValuePerOutputTokens.toFixed(3),
-        (x.informationValuePerOutputTokens + x.informationValuePerOutputTokensDelta).toFixed(3),
+        this.calcDeltaPercentage(x.informationValuePerReadTokens, x.informationValuePerReadTokensDelta, 2),
+        this.printRounded(x.informationValuePerOutputTokens, 3),
+        this.printRounded(x.informationValuePerOutputTokens + x.informationValuePerOutputTokensDelta, 3),
         this.displayDelta(x.informationValuePerOutputTokensDelta, 3),
-        this.calcDeltaPercentage(x.informationValuePerOutputTokens, x.informationValuePerOutputTokensDelta),        
-        x.informationValuePerTotalTokens.toFixed(3),
-        (x.informationValuePerTotalTokens + x.informationValuePerTotalTokensDelta).toFixed(3),
+        this.calcDeltaPercentage(x.informationValuePerOutputTokens, x.informationValuePerOutputTokensDelta, 2),
+        this.printRounded(x.informationValuePerTotalTokens, 3),
+        this.printRounded(x.informationValuePerTotalTokens + x.informationValuePerTotalTokensDelta, 3),
         this.displayDelta(x.informationValuePerTotalTokensDelta, 3),
-        this.calcDeltaPercentage(x.informationValuePerTotalTokens, x.informationValuePerTotalTokensDelta),
+        this.calcDeltaPercentage(x.informationValuePerTotalTokens, x.informationValuePerTotalTokensDelta, 2),
       ];
     });
     
@@ -773,18 +773,18 @@ class ReportGenerator {
     const mandOptStructuralInformationByCharacterDeltaRows = mandatories.map(x =>{    
       return [
         x.format,
-        x.informationValuePerReadTokensAccuracyByCharPerc.toFixed(3),
-        (x.informationValuePerReadTokensAccuracyByCharPerc + x.informationValuePerReadTokensAccuracyByCharPercDelta).toFixed(3),
+        this.printRounded(x.informationValuePerReadTokensAccuracyByCharPerc, 3),
+        this.printRounded(x.informationValuePerReadTokensAccuracyByCharPerc + x.informationValuePerReadTokensAccuracyByCharPercDelta, 3),
         this.displayDelta(x.informationValuePerReadTokensAccuracyByCharPercDelta, 3),
-        this.calcDeltaPercentage(x.informationValuePerReadTokensAccuracyByCharPerc, x.informationValuePerReadTokensAccuracyByCharPercDelta),        
-        x.informationValuePerOutputTokensAccuracyByCharPerc.toFixed(3),
-        (x.informationValuePerOutputTokensAccuracyByCharPerc + x.informationValuePerOutputTokensAccuracyByCharPercDelta).toFixed(3),
+        this.calcDeltaPercentage(x.informationValuePerReadTokensAccuracyByCharPerc, x.informationValuePerReadTokensAccuracyByCharPercDelta, 2),
+        this.printRounded(x.informationValuePerOutputTokensAccuracyByCharPerc, 3),
+        this.printRounded(x.informationValuePerOutputTokensAccuracyByCharPerc + x.informationValuePerOutputTokensAccuracyByCharPercDelta, 3),
         this.displayDelta(x.informationValuePerOutputTokensAccuracyByCharPercDelta, 3),
-        this.calcDeltaPercentage(x.informationValuePerOutputTokensAccuracyByCharPerc, x.informationValuePerOutputTokensAccuracyByCharPercDelta),        
-        x.informationValuePerTotalTokensAccuracyByCharPerc.toFixed(3),
-        (x.informationValuePerTotalTokensAccuracyByCharPerc + x.informationValuePerTotalTokensAccuracyByCharPercDelta).toFixed(3),
+        this.calcDeltaPercentage(x.informationValuePerOutputTokensAccuracyByCharPerc, x.informationValuePerOutputTokensAccuracyByCharPercDelta, 2),
+        this.printRounded(x.informationValuePerTotalTokensAccuracyByCharPerc, 3),
+        this.printRounded(x.informationValuePerTotalTokensAccuracyByCharPerc + x.informationValuePerTotalTokensAccuracyByCharPercDelta, 3),
         this.displayDelta(x.informationValuePerTotalTokensAccuracyByCharPercDelta, 3),
-        this.calcDeltaPercentage(x.informationValuePerTotalTokensAccuracyByCharPerc, x.informationValuePerTotalTokensAccuracyByCharPercDelta),
+        this.calcDeltaPercentage(x.informationValuePerTotalTokensAccuracyByCharPerc, x.informationValuePerTotalTokensAccuracyByCharPercDelta, 2),
       ];
     });
     
@@ -798,23 +798,23 @@ class ReportGenerator {
     const effTokenRows = sortedAggregated.map(item => [
       item.format,
       item.variant.substring(0, 3),
-      Math.round(item.readTokens).toString(),
-      Math.round(item.usefulReadTokens).toString(),
-      Math.round(item.wastedReadTokens).toString(),
-      Math.round(item.outputTokensTotal).toString(),
-      Math.round(item.usefulOutputTokens).toString(),
-      Math.round(item.wastedOutputTokens).toString(),
-      Math.round(item.totalTokens).toString(),
-      Math.round(item.usefulTotalTokens).toString(),
-      Math.round(item.wastedTotalTokens).toString(),
-      item.accuracyPercent.toFixed(2),
-      item.efficiencyScoreRead.toFixed(2),
-      item.efficiencyScoreOutput.toFixed(2),
-      item.efficiencyScoreTotal.toFixed(2),
-      item.weightedAccuracyPercent.toFixed(2),
-      item.weightedEfficiencyScoreRead.toFixed(2),
-      item.weightedEfficiencyScoreOutput.toFixed(2),
-      item.weightedEfficiencyScoreTotal.toFixed(2),
+      this.printRounded(item.readTokens, 0),
+      this.printRounded(item.usefulReadTokens, 0),
+      this.printRounded(item.wastedReadTokens, 0),
+      this.printRounded(item.outputTokensTotal, 0),
+      this.printRounded(item.usefulOutputTokens, 0),
+      this.printRounded(item.wastedOutputTokens, 0),
+      this.printRounded(item.totalTokens, 0),
+      this.printRounded(item.usefulTotalTokens, 0),
+      this.printRounded(item.wastedTotalTokens, 0),
+      this.printRounded(item.accuracyPercent, 2),
+      this.printRounded(item.efficiencyScoreRead, 2),
+      this.printRounded(item.efficiencyScoreOutput, 2),
+      this.printRounded(item.efficiencyScoreTotal, 2),
+      this.printRounded(item.weightedAccuracyPercent, 2),
+      this.printRounded(item.weightedEfficiencyScoreRead, 2),
+      this.printRounded(item.weightedEfficiencyScoreOutput, 2),
+      this.printRounded(item.weightedEfficiencyScoreTotal, 2),
     ]);
     
     this.heading(3, '2.6 Token Utilization Efficiency');
@@ -838,34 +838,32 @@ class ReportGenerator {
       const wastedReadTokens = Math.round(x.wastedReadTokens);
       return [
         x.format,
-        readTokens.toString(),
-        Math.round(readTokens + x.readTokensDelta).toString(),
+        this.printRounded(readTokens, 0),
+        this.printRounded(readTokens + x.readTokensDelta, 0),
         this.displayDelta(x.readTokensDelta, 0),
-        this.calcDeltaPercentage(readTokens, x.readTokensDelta),
-        usefulReadTokens.toString(),
-        Math.round(usefulReadTokens + x.usefulReadTokensDelta).toString(),
+        this.calcDeltaPercentage(readTokens, x.readTokensDelta, 2),
+        this.printRounded(usefulReadTokens, 0),
+        this.printRounded(usefulReadTokens + x.usefulReadTokensDelta, 0),
         this.displayDelta(x.usefulReadTokensDelta, 0),
-        this.calcDeltaPercentage(usefulReadTokens, x.usefulReadTokensDelta),
-        wastedReadTokens.toString(),
-        Math.round(wastedReadTokens + x.wastedReadTokensDelta).toString(),
+        this.calcDeltaPercentage(usefulReadTokens, x.usefulReadTokensDelta, 2),
+        this.printRounded(wastedReadTokens, 0),
+        this.printRounded(wastedReadTokens + x.wastedReadTokensDelta, 0),
         this.displayDelta(x.wastedReadTokensDelta, 0),
-        this.calcDeltaPercentage(wastedReadTokens, x.wastedReadTokensDelta),
-        x.accuracyPercent.toFixed(2),
-        (x.accuracyPercent + x.accuracyDelta).toFixed(2),
-        this.displayDelta(x.accuracyDelta),
-        this.calcDeltaPercentage(x.accuracyPercent, x.accuracyDelta),
-        x.efficiencyScoreRead.toFixed(2),
-        (x.efficiencyScoreRead + x.efficiencyScoreReadDelta).toFixed(2),
+        this.calcDeltaPercentage(wastedReadTokens, x.wastedReadTokensDelta, 2),
+        this.printRounded(x.accuracyPercent, 2),
+        this.printRounded(x.accuracyPercent + x.accuracyDelta, 2),
+        this.displayDelta(x.accuracyDelta, 2),
+        this.printRounded(x.efficiencyScoreRead, 2),
+        this.printRounded(x.efficiencyScoreRead + x.efficiencyScoreReadDelta, 2),
         this.displayDelta(x.efficiencyScoreReadDelta, 2),
-        this.calcDeltaPercentage(x.efficiencyScoreRead, x.efficiencyScoreReadDelta),
-        x.weightedAccuracyPercent.toFixed(2),
-        (x.weightedAccuracyPercent + x.weightedAccuracyDelta).toFixed(2),
-        this.displayDelta(x.weightedAccuracyDelta),
-        this.calcDeltaPercentage(x.weightedAccuracyPercent, x.weightedAccuracyDelta),
-        x.weightedEfficiencyScoreRead.toFixed(2),
-        (x.weightedEfficiencyScoreRead + x.weightedEfficiencyScoreReadDelta).toFixed(2),
+        this.calcDeltaPercentage(x.efficiencyScoreRead, x.efficiencyScoreReadDelta, 2),
+        this.printRounded(x.weightedAccuracyPercent, 2),
+        this.printRounded(x.weightedAccuracyPercent + x.weightedAccuracyDelta, 2),
+        this.displayDelta(x.weightedAccuracyDelta, 2),
+        this.printRounded(x.weightedEfficiencyScoreRead, 2),
+        this.printRounded(x.weightedEfficiencyScoreRead + x.weightedEfficiencyScoreReadDelta, 2),
         this.displayDelta(x.weightedEfficiencyScoreReadDelta, 2),
-        this.calcDeltaPercentage(x.weightedEfficiencyScoreRead, x.weightedEfficiencyScoreReadDelta)
+        this.calcDeltaPercentage(x.weightedEfficiencyScoreRead, x.weightedEfficiencyScoreReadDelta, 2)
       ];
     });
     
@@ -887,34 +885,32 @@ class ReportGenerator {
       const wastedOutputTokens = Math.round(x.wastedOutputTokens);
       return [
         x.format,   
-        outputTokens.toString(),
-        Math.round(outputTokens + x.outputTokensTotalDelta).toString(),
+        this.printRounded(outputTokens, 0),
+        this.printRounded(outputTokens + x.outputTokensTotalDelta, 0),
         this.displayDelta(x.outputTokensTotalDelta, 0),
-        this.calcDeltaPercentage(outputTokens, x.outputTokensTotalDelta),
-        usefulOutputTokens.toString(),
-        Math.round(usefulOutputTokens + x.usefulOutputTokensDelta).toString(),
+        this.calcDeltaPercentage(outputTokens, x.outputTokensTotalDelta, 2),
+        this.printRounded(usefulOutputTokens, 0),
+        this.printRounded(usefulOutputTokens + x.usefulOutputTokensDelta, 0),
         this.displayDelta(x.usefulOutputTokensDelta, 0),
-        this.calcDeltaPercentage(usefulOutputTokens, x.usefulOutputTokensDelta),
-        wastedOutputTokens.toString(),
-        Math.round(wastedOutputTokens + x.wastedOutputTokensDelta).toString(),
+        this.calcDeltaPercentage(usefulOutputTokens, x.usefulOutputTokensDelta, 2),
+        this.printRounded(wastedOutputTokens, 0),
+        this.printRounded(wastedOutputTokens + x.wastedOutputTokensDelta, 0),
         this.displayDelta(x.wastedOutputTokensDelta, 0),
-        this.calcDeltaPercentage(wastedOutputTokens, x.wastedOutputTokensDelta),
-        x.accuracyPercent.toFixed(2),
-        (x.accuracyPercent + x.accuracyDelta).toFixed(2),
-        this.displayDelta(x.accuracyDelta),
-        this.calcDeltaPercentage(x.accuracyPercent, x.accuracyDelta),
-        x.efficiencyScoreOutput.toFixed(2),
-        (x.efficiencyScoreOutput + x.efficiencyScoreOutputDelta).toFixed(2),
+        this.calcDeltaPercentage(wastedOutputTokens, x.wastedOutputTokensDelta, 2),
+        this.printRounded(x.accuracyPercent, 2),
+        this.printRounded(x.accuracyPercent + x.accuracyDelta, 2),
+        this.displayDelta(x.accuracyDelta, 2),
+        this.printRounded(x.efficiencyScoreOutput, 2),
+        this.printRounded(x.efficiencyScoreOutput + x.efficiencyScoreOutputDelta, 2),
         this.displayDelta(x.efficiencyScoreOutputDelta, 2),
-        this.calcDeltaPercentage(x.efficiencyScoreOutput, x.efficiencyScoreOutputDelta),
-        x.weightedAccuracyPercent.toFixed(2),
-        (x.weightedAccuracyPercent + x.weightedAccuracyDelta).toFixed(2),
-        this.displayDelta(x.weightedAccuracyDelta),
-        this.calcDeltaPercentage(x.weightedAccuracyPercent, x.weightedAccuracyDelta),
-        x.weightedEfficiencyScoreOutput.toFixed(2),
-        (x.weightedEfficiencyScoreOutput + x.weightedEfficiencyScoreOutputDelta).toFixed(2),
+        this.calcDeltaPercentage(x.efficiencyScoreOutput, x.efficiencyScoreOutputDelta, 2),
+        this.printRounded(x.weightedAccuracyPercent, 2),
+        this.printRounded(x.weightedAccuracyPercent + x.weightedAccuracyDelta, 2),
+        this.displayDelta(x.weightedAccuracyDelta, 2),
+        this.printRounded(x.weightedEfficiencyScoreOutput, 2),
+        this.printRounded(x.weightedEfficiencyScoreOutput + x.weightedEfficiencyScoreOutputDelta, 2),
         this.displayDelta(x.weightedEfficiencyScoreOutputDelta, 2),
-        this.calcDeltaPercentage(x.weightedEfficiencyScoreOutput, x.weightedEfficiencyScoreOutputDelta),
+        this.calcDeltaPercentage(x.weightedEfficiencyScoreOutput, x.weightedEfficiencyScoreOutputDelta, 2),
       ];
     });
     
@@ -936,34 +932,32 @@ class ReportGenerator {
       const wastedTotalTokens = Math.round(x.wastedTotalTokens);
       return [
         x.format,
-        totalTokens.toString(),
-        Math.round(totalTokens + x.totalTokensDelta).toString(),
+        this.printRounded(totalTokens, 0),
+        this.printRounded(totalTokens + x.totalTokensDelta, 0),
         this.displayDelta(x.totalTokensDelta, 0),
-        this.calcDeltaPercentage(totalTokens, x.totalTokensDelta),
-        usefulTotalTokens.toString(),
-        Math.round(usefulTotalTokens + x.usefulTotalTokensDelta).toString(),
+        this.calcDeltaPercentage(totalTokens, x.totalTokensDelta, 2),
+        this.printRounded(usefulTotalTokens, 0),
+        this.printRounded(usefulTotalTokens + x.usefulTotalTokensDelta, 0),
         this.displayDelta(x.usefulTotalTokensDelta, 0),
-        this.calcDeltaPercentage(usefulTotalTokens, x.usefulTotalTokensDelta),
-        wastedTotalTokens.toString(),
-        Math.round(wastedTotalTokens + x.wastedTotalTokensDelta).toString(),
+        this.calcDeltaPercentage(usefulTotalTokens, x.usefulTotalTokensDelta, 2),
+        this.printRounded(wastedTotalTokens, 0),
+        this.printRounded(wastedTotalTokens + x.wastedTotalTokensDelta, 0),
         this.displayDelta(x.wastedTotalTokensDelta, 0),
-        this.calcDeltaPercentage(wastedTotalTokens, x.wastedTotalTokensDelta),
-        x.accuracyPercent.toFixed(2),
-        (x.accuracyPercent + x.accuracyDelta).toFixed(2),
-        this.displayDelta(x.accuracyDelta),
-        this.calcDeltaPercentage(x.accuracyPercent, x.accuracyDelta),
-        x.efficiencyScoreTotal.toFixed(2),
-        (x.efficiencyScoreTotal + x.efficiencyScoreTotalDelta).toFixed(2),
+        this.calcDeltaPercentage(wastedTotalTokens, x.wastedTotalTokensDelta, 2),
+        this.printRounded(x.accuracyPercent, 2),
+        this.printRounded(x.accuracyPercent + x.accuracyDelta, 2),
+        this.displayDelta(x.accuracyDelta, 2),
+        this.printRounded(x.efficiencyScoreTotal, 2),
+        this.printRounded(x.efficiencyScoreTotal + x.efficiencyScoreTotalDelta, 2),
         this.displayDelta(x.efficiencyScoreTotalDelta, 2),
-        this.calcDeltaPercentage(x.efficiencyScoreTotal, x.efficiencyScoreTotalDelta),
-        x.weightedAccuracyPercent.toFixed(2),
-        (x.weightedAccuracyPercent + x.weightedAccuracyDelta).toFixed(2),
-        this.displayDelta(x.weightedAccuracyDelta),
-        this.calcDeltaPercentage(x.weightedAccuracyPercent, x.weightedAccuracyDelta),
-        x.weightedEfficiencyScoreTotal.toFixed(2),
-        (x.weightedEfficiencyScoreTotal + x.weightedEfficiencyScoreTotalDelta).toFixed(2),
+        this.calcDeltaPercentage(x.efficiencyScoreTotal, x.efficiencyScoreTotalDelta, 2),
+        this.printRounded(x.weightedAccuracyPercent, 2),
+        this.printRounded(x.weightedAccuracyPercent + x.weightedAccuracyDelta, 2),
+        this.displayDelta(x.weightedAccuracyDelta, 2),
+        this.printRounded(x.weightedEfficiencyScoreTotal, 2),
+        this.printRounded(x.weightedEfficiencyScoreTotal + x.weightedEfficiencyScoreTotalDelta, 2),
         this.displayDelta(x.weightedEfficiencyScoreTotalDelta, 2),
-        this.calcDeltaPercentage(x.weightedEfficiencyScoreTotal, x.weightedEfficiencyScoreTotalDelta),
+        this.calcDeltaPercentage(x.weightedEfficiencyScoreTotal, x.weightedEfficiencyScoreTotalDelta, 2),
       ];
     });
     
@@ -982,23 +976,23 @@ class ReportGenerator {
     const effTokenRowsAccuracyByCharPerc = sortedAggregated.map(item => [
       item.format,
       item.variant.substring(0, 3),
-      Math.round(item.readTokens).toString(),
-      Math.round(item.usefulReadTokensAccuracyByCharPerc).toString(),
-      Math.round(item.wastedReadTokensAccuracyByCharPerc).toString(),
-      Math.round(item.outputTokensTotal).toString(),
-      Math.round(item.usefulOutputTokensAccuracyByCharPerc).toString(),
-      Math.round(item.wastedOutputTokensAccuracyByCharPerc).toString(),
-      Math.round(item.totalTokens).toString(),
-      Math.round(item.usefulTotalTokensAccuracyByCharPerc).toString(),
-      Math.round(item.wastedTotalTokensAccuracyByCharPerc).toString(),
-      item.accuracyByCharPerc.toFixed(2),
-      item.efficiencyScoreReadAccuracyByCharPerc.toFixed(2),
-      item.efficiencyScoreOutputAccuracyByCharPerc.toFixed(2),
-      item.efficiencyScoreTotalAccuracyByCharPerc.toFixed(2),
-      item.weightedAccuracyByCharPerc.toFixed(2),
-      item.weightedEfficiencyScoreReadAccuracyByCharPerc.toFixed(2),
-      item.weightedEfficiencyScoreOutputAccuracyByCharPerc.toFixed(2),
-      item.weightedEfficiencyScoreTotalAccuracyByCharPerc.toFixed(2),
+      this.printRounded(item.readTokens, 0),
+      this.printRounded(item.usefulReadTokensAccuracyByCharPerc, 0),
+      this.printRounded(item.wastedReadTokensAccuracyByCharPerc, 0),
+      this.printRounded(item.outputTokensTotal, 0),
+      this.printRounded(item.usefulOutputTokensAccuracyByCharPerc, 0),
+      this.printRounded(item.wastedOutputTokensAccuracyByCharPerc, 0),
+      this.printRounded(item.totalTokens, 0),
+      this.printRounded(item.usefulTotalTokensAccuracyByCharPerc, 0),
+      this.printRounded(item.wastedTotalTokensAccuracyByCharPerc, 0),
+      this.printRounded(item.accuracyByCharPerc, 2),
+      this.printRounded(item.efficiencyScoreReadAccuracyByCharPerc, 2),
+      this.printRounded(item.efficiencyScoreOutputAccuracyByCharPerc, 2),
+      this.printRounded(item.efficiencyScoreTotalAccuracyByCharPerc, 2),
+      this.printRounded(item.weightedAccuracyByCharPerc, 2),
+      this.printRounded(item.weightedEfficiencyScoreReadAccuracyByCharPerc, 2),
+      this.printRounded(item.weightedEfficiencyScoreOutputAccuracyByCharPerc, 2),
+      this.printRounded(item.weightedEfficiencyScoreTotalAccuracyByCharPerc, 2),
     ]);
     
     this.heading(3, '2.7 Token Utilization Efficiency (Accuracy by Character)');
@@ -1022,34 +1016,32 @@ class ReportGenerator {
       const wastedReadTokens = Math.round(x.wastedReadTokensAccuracyByCharPerc);
       return [
         x.format,
-        readTokens.toString(),
-        Math.round(readTokens + x.readTokensDelta).toString(),
+        this.printRounded(readTokens, 0),
+        this.printRounded(readTokens + x.readTokensDelta, 0),
         this.displayDelta(x.readTokensDelta, 0),
-        this.calcDeltaPercentage(readTokens, x.readTokensDelta),
-        usefulReadTokens.toString(),
-        Math.round(usefulReadTokens + x.usefulReadTokensAccuracyByCharPercDelta).toString(),
+        this.calcDeltaPercentage(readTokens, x.readTokensDelta, 2),
+        this.printRounded(usefulReadTokens, 0),
+        this.printRounded(usefulReadTokens + x.usefulReadTokensAccuracyByCharPercDelta, 0),
         this.displayDelta(x.usefulReadTokensAccuracyByCharPercDelta, 0),
-        this.calcDeltaPercentage(usefulReadTokens, x.usefulReadTokensAccuracyByCharPercDelta),
-        wastedReadTokens.toString(),
-        Math.round(wastedReadTokens + x.wastedReadTokensAccuracyByCharPercDelta).toString(),
+        this.calcDeltaPercentage(usefulReadTokens, x.usefulReadTokensAccuracyByCharPercDelta, 2),
+        this.printRounded(wastedReadTokens, 0),
+        this.printRounded(wastedReadTokens + x.wastedReadTokensAccuracyByCharPercDelta, 0),
         this.displayDelta(x.wastedReadTokensAccuracyByCharPercDelta, 0),
-        this.calcDeltaPercentage(wastedReadTokens, x.wastedReadTokensAccuracyByCharPercDelta),
-        x.accuracyByCharPerc.toFixed(2),
-        (x.accuracyByCharPerc + x.accuracyByCharPercDelta).toFixed(2),
-        this.displayDelta(x.accuracyByCharPercDelta),
-        this.calcDeltaPercentage(x.accuracyByCharPerc, x.accuracyByCharPercDelta),
-        x.efficiencyScoreReadAccuracyByCharPerc.toFixed(2),
-        (x.efficiencyScoreReadAccuracyByCharPerc + x.efficiencyScoreReadAccuracyByCharPercDelta).toFixed(2),
+        this.calcDeltaPercentage(wastedReadTokens, x.wastedReadTokensAccuracyByCharPercDelta, 2),
+        this.printRounded(x.accuracyByCharPerc, 2),
+        this.printRounded(x.accuracyByCharPerc + x.accuracyByCharPercDelta, 2),
+        this.displayDelta(x.accuracyByCharPercDelta, 2),
+        this.printRounded(x.efficiencyScoreReadAccuracyByCharPerc, 2),
+        this.printRounded(x.efficiencyScoreReadAccuracyByCharPerc + x.efficiencyScoreReadAccuracyByCharPercDelta, 2),
         this.displayDelta(x.efficiencyScoreReadAccuracyByCharPercDelta, 2),
-        this.calcDeltaPercentage(x.efficiencyScoreReadAccuracyByCharPerc, x.efficiencyScoreReadAccuracyByCharPercDelta),
-        x.weightedAccuracyByCharPerc.toFixed(2),
-        (x.weightedAccuracyByCharPerc + x.weightedAccuracyByCharPercDelta).toFixed(2),
-        this.displayDelta(x.weightedAccuracyByCharPercDelta),
-        this.calcDeltaPercentage(x.weightedAccuracyByCharPerc, x.weightedAccuracyByCharPercDelta),
-        x.weightedEfficiencyScoreReadAccuracyByCharPerc.toFixed(2),
-        (x.weightedEfficiencyScoreReadAccuracyByCharPerc + x.weightedEfficiencyScoreReadAccuracyByCharPercDelta).toFixed(2),
+        this.calcDeltaPercentage(x.efficiencyScoreReadAccuracyByCharPerc, x.efficiencyScoreReadAccuracyByCharPercDelta, 2),
+        this.printRounded(x.weightedAccuracyByCharPerc, 2),
+        this.printRounded(x.weightedAccuracyByCharPerc + x.weightedAccuracyByCharPercDelta, 2),
+        this.displayDelta(x.weightedAccuracyByCharPercDelta, 2),
+        this.printRounded(x.weightedEfficiencyScoreReadAccuracyByCharPerc, 2),
+        this.printRounded(x.weightedEfficiencyScoreReadAccuracyByCharPerc + x.weightedEfficiencyScoreReadAccuracyByCharPercDelta, 2),
         this.displayDelta(x.weightedEfficiencyScoreReadAccuracyByCharPercDelta, 2),
-        this.calcDeltaPercentage(x.weightedEfficiencyScoreReadAccuracyByCharPerc, x.weightedEfficiencyScoreReadAccuracyByCharPercDelta)
+        this.calcDeltaPercentage(x.weightedEfficiencyScoreReadAccuracyByCharPerc, x.weightedEfficiencyScoreReadAccuracyByCharPercDelta, 2)
       ];
     });
     
@@ -1071,34 +1063,32 @@ class ReportGenerator {
       const wastedOutputTokens = Math.round(x.wastedOutputTokensAccuracyByCharPerc);
       return [
         x.format,   
-        outputTokens.toString(),
-        Math.round(outputTokens + x.outputTokensTotalDelta).toString(),
+        this.printRounded(outputTokens, 0),
+        this.printRounded(outputTokens + x.outputTokensTotalDelta, 0),
         this.displayDelta(x.outputTokensTotalDelta, 0),
-        this.calcDeltaPercentage(outputTokens, x.outputTokensTotalDelta),
-        usefulOutputTokens.toString(),
-        Math.round(usefulOutputTokens + x.usefulOutputTokensAccuracyByCharPercDelta).toString(),
+        this.calcDeltaPercentage(outputTokens, x.outputTokensTotalDelta, 2),
+        this.printRounded(usefulOutputTokens, 0),
+        this.printRounded(usefulOutputTokens + x.usefulOutputTokensAccuracyByCharPercDelta, 0),
         this.displayDelta(x.usefulOutputTokensAccuracyByCharPercDelta, 0),
-        this.calcDeltaPercentage(usefulOutputTokens, x.usefulOutputTokensAccuracyByCharPercDelta),
-        wastedOutputTokens.toString(),
-        Math.round(wastedOutputTokens + x.wastedOutputTokensAccuracyByCharPercDelta).toString(),
+        this.calcDeltaPercentage(usefulOutputTokens, x.usefulOutputTokensAccuracyByCharPercDelta, 2),
+        this.printRounded(wastedOutputTokens, 0),
+        this.printRounded(wastedOutputTokens + x.wastedOutputTokensAccuracyByCharPercDelta, 0),
         this.displayDelta(x.wastedOutputTokensAccuracyByCharPercDelta, 0),
-        this.calcDeltaPercentage(wastedOutputTokens, x.wastedOutputTokensAccuracyByCharPercDelta),
-        x.accuracyByCharPerc.toFixed(2),
-        (x.accuracyByCharPerc + x.accuracyByCharPercDelta).toFixed(2),
-        this.displayDelta(x.accuracyByCharPercDelta),
-        this.calcDeltaPercentage(x.accuracyByCharPerc, x.accuracyByCharPercDelta),
-        x.efficiencyScoreOutputAccuracyByCharPerc.toFixed(2),
-        (x.efficiencyScoreOutputAccuracyByCharPerc + x.efficiencyScoreOutputAccuracyByCharPercDelta).toFixed(2),
+        this.calcDeltaPercentage(wastedOutputTokens, x.wastedOutputTokensAccuracyByCharPercDelta, 2),
+        this.printRounded(x.accuracyByCharPerc, 2),
+        this.printRounded(x.accuracyByCharPerc + x.accuracyByCharPercDelta, 2),
+        this.displayDelta(x.accuracyByCharPercDelta, 2),
+        this.printRounded(x.efficiencyScoreOutputAccuracyByCharPerc, 2),
+        this.printRounded(x.efficiencyScoreOutputAccuracyByCharPerc + x.efficiencyScoreOutputAccuracyByCharPercDelta, 2),
         this.displayDelta(x.efficiencyScoreOutputAccuracyByCharPercDelta, 2),
-        this.calcDeltaPercentage(x.efficiencyScoreOutputAccuracyByCharPerc, x.efficiencyScoreOutputAccuracyByCharPercDelta),
-        x.weightedAccuracyByCharPerc.toFixed(2),
-        (x.weightedAccuracyByCharPerc + x.weightedAccuracyByCharPercDelta).toFixed(2),
-        this.displayDelta(x.weightedAccuracyByCharPercDelta),
-        this.calcDeltaPercentage(x.weightedAccuracyByCharPerc, x.weightedAccuracyByCharPercDelta),
-        x.weightedEfficiencyScoreOutputAccuracyByCharPerc.toFixed(2),
-        (x.weightedEfficiencyScoreOutputAccuracyByCharPerc + x.weightedEfficiencyScoreOutputAccuracyByCharPercDelta).toFixed(2),
+        this.calcDeltaPercentage(x.efficiencyScoreOutputAccuracyByCharPerc, x.efficiencyScoreOutputAccuracyByCharPercDelta, 2),
+        this.printRounded(x.weightedAccuracyByCharPerc, 2),
+        this.printRounded(x.weightedAccuracyByCharPerc + x.weightedAccuracyByCharPercDelta, 2),
+        this.displayDelta(x.weightedAccuracyByCharPercDelta, 2),
+        this.printRounded(x.weightedEfficiencyScoreOutputAccuracyByCharPerc, 2),
+        this.printRounded(x.weightedEfficiencyScoreOutputAccuracyByCharPerc + x.weightedEfficiencyScoreOutputAccuracyByCharPercDelta, 2),
         this.displayDelta(x.weightedEfficiencyScoreOutputAccuracyByCharPercDelta, 2),
-        this.calcDeltaPercentage(x.weightedEfficiencyScoreOutputAccuracyByCharPerc, x.weightedEfficiencyScoreOutputAccuracyByCharPercDelta),
+        this.calcDeltaPercentage(x.weightedEfficiencyScoreOutputAccuracyByCharPerc, x.weightedEfficiencyScoreOutputAccuracyByCharPercDelta, 2),
       ];
     });
     
@@ -1120,34 +1110,32 @@ class ReportGenerator {
       const wastedTotalTokens = Math.round(x.wastedTotalTokensAccuracyByCharPerc);
       return [
         x.format,
-        totalTokens.toString(),
-        Math.round(totalTokens + x.totalTokensDelta).toString(),
+        this.printRounded(totalTokens, 0),
+        this.printRounded(totalTokens + x.totalTokensDelta, 0),
         this.displayDelta(x.totalTokensDelta, 0),
-        this.calcDeltaPercentage(totalTokens, x.totalTokensDelta),
-        usefulTotalTokens.toString(),
-        Math.round(usefulTotalTokens + x.usefulTotalTokensAccuracyByCharPercDelta).toString(),
+        this.calcDeltaPercentage(totalTokens, x.totalTokensDelta, 2),
+        this.printRounded(usefulTotalTokens, 0),
+        this.printRounded(usefulTotalTokens + x.usefulTotalTokensAccuracyByCharPercDelta, 0),
         this.displayDelta(x.usefulTotalTokensAccuracyByCharPercDelta, 0),
-        this.calcDeltaPercentage(usefulTotalTokens, x.usefulTotalTokensAccuracyByCharPercDelta),
-        wastedTotalTokens.toString(),
-        Math.round(wastedTotalTokens + x.wastedTotalTokensAccuracyByCharPercDelta).toString(),
+        this.calcDeltaPercentage(usefulTotalTokens, x.usefulTotalTokensAccuracyByCharPercDelta, 2),
+        this.printRounded(wastedTotalTokens, 0),
+        this.printRounded(wastedTotalTokens + x.wastedTotalTokensAccuracyByCharPercDelta, 0),
         this.displayDelta(x.wastedTotalTokensAccuracyByCharPercDelta, 0),
-        this.calcDeltaPercentage(wastedTotalTokens, x.wastedTotalTokensAccuracyByCharPercDelta),
-        x.accuracyByCharPerc.toFixed(2),
-        (x.accuracyByCharPerc + x.accuracyByCharPercDelta).toFixed(2),
-        this.displayDelta(x.accuracyByCharPercDelta),
-        this.calcDeltaPercentage(x.accuracyByCharPerc, x.accuracyByCharPercDelta),
-        x.efficiencyScoreTotalAccuracyByCharPerc.toFixed(2),
-        (x.efficiencyScoreTotalAccuracyByCharPerc + x.efficiencyScoreTotalAccuracyByCharPercDelta).toFixed(2),
+        this.calcDeltaPercentage(wastedTotalTokens, x.wastedTotalTokensAccuracyByCharPercDelta, 2),
+        this.printRounded(x.accuracyByCharPerc, 2),
+        this.printRounded(x.accuracyByCharPerc + x.accuracyByCharPercDelta, 2),
+        this.displayDelta(x.accuracyByCharPercDelta, 2),
+        this.printRounded(x.efficiencyScoreTotalAccuracyByCharPerc, 2),
+        this.printRounded(x.efficiencyScoreTotalAccuracyByCharPerc + x.efficiencyScoreTotalAccuracyByCharPercDelta, 2),
         this.displayDelta(x.efficiencyScoreTotalAccuracyByCharPercDelta, 2),
-        this.calcDeltaPercentage(x.efficiencyScoreTotalAccuracyByCharPerc, x.efficiencyScoreTotalAccuracyByCharPercDelta),
-        x.weightedAccuracyByCharPerc.toFixed(2),
-        (x.weightedAccuracyByCharPerc + x.weightedAccuracyByCharPercDelta).toFixed(2),
-        this.displayDelta(x.weightedAccuracyByCharPercDelta),
-        this.calcDeltaPercentage(x.weightedAccuracyByCharPerc, x.weightedAccuracyByCharPercDelta),
-        x.weightedEfficiencyScoreTotalAccuracyByCharPerc.toFixed(2),
-        (x.weightedEfficiencyScoreTotalAccuracyByCharPerc + x.weightedEfficiencyScoreTotalAccuracyByCharPercDelta).toFixed(2),
+        this.calcDeltaPercentage(x.efficiencyScoreTotalAccuracyByCharPerc, x.efficiencyScoreTotalAccuracyByCharPercDelta, 2),
+        this.printRounded(x.weightedAccuracyByCharPerc, 2),
+        this.printRounded(x.weightedAccuracyByCharPerc + x.weightedAccuracyByCharPercDelta, 2),
+        this.displayDelta(x.weightedAccuracyByCharPercDelta, 2),
+        this.printRounded(x.weightedEfficiencyScoreTotalAccuracyByCharPerc, 2),
+        this.printRounded(x.weightedEfficiencyScoreTotalAccuracyByCharPerc + x.weightedEfficiencyScoreTotalAccuracyByCharPercDelta, 2),
         this.displayDelta(x.weightedEfficiencyScoreTotalAccuracyByCharPercDelta, 2),
-        this.calcDeltaPercentage(x.weightedEfficiencyScoreTotalAccuracyByCharPerc, x.weightedEfficiencyScoreTotalAccuracyByCharPercDelta),
+        this.calcDeltaPercentage(x.weightedEfficiencyScoreTotalAccuracyByCharPerc, x.weightedEfficiencyScoreTotalAccuracyByCharPercDelta, 2),
       ];
     });
     
@@ -1166,15 +1154,15 @@ class ReportGenerator {
     const answerQualityRows = sortedAggregated.map(item => [
       item.format,
       item.variant.substring(0, 3),
-      item.correctAnswers.toFixed(2),
-      item.incorrectAnswers.toFixed(2),
-      item.noAnswers.toFixed(2),
-      item.accuracyPercent.toFixed(2),
-      item.expectedChars.toFixed(2),
-      item.totalChars.toFixed(2),
-      item.correctChars.toFixed(2),
-      item.incorrectChars.toFixed(2),
-      item.accuracyByCharPerc.toFixed(2),
+      this.printRounded(item.correctAnswers, 2),
+      this.printRounded(item.incorrectAnswers, 2),
+      this.printRounded(item.noAnswers, 2),
+      this.printRounded(item.accuracyPercent, 2),
+      this.printRounded(item.expectedChars, 2),
+      this.printRounded(item.totalChars, 2),
+      this.printRounded(item.correctChars, 2),
+      this.printRounded(item.incorrectChars, 2),
+      this.printRounded(item.accuracyByCharPerc, 2),
     ]);
     
     this.heading(3, '2.8 Answer Per Format Breakdown');
@@ -1188,21 +1176,21 @@ class ReportGenerator {
     const mandOptAnswerDeltaRows = mandatories.map(x =>{    
       return [
         x.format,
-        x.correctAnswers.toFixed(2),
-        (x.correctAnswers + x.correctAnswersDelta).toFixed(2),
-        this.displayDelta(x.correctAnswersDelta, 0),
-        this.calcDeltaPercentage(x.correctAnswers, x.correctAnswersDelta),
-        x.incorrectAnswers.toFixed(2),
-        (x.incorrectAnswers + x.incorrectAnswersDelta).toFixed(2),
-        this.displayDelta(x.incorrectAnswersDelta, 0),
-        this.calcDeltaPercentage(x.incorrectAnswers, x.incorrectAnswersDelta),
-        x.noAnswers.toFixed(2),
-        (x.noAnswers + x.noAnswersDelta).toFixed(2),
-        this.displayDelta(x.noAnswersDelta, 0),
-        this.calcDeltaPercentage(x.noAnswers, x.noAnswersDelta),
-        x.accuracyPercent.toFixed(2),
-        (x.accuracyPercent + x.accuracyDelta).toFixed(2),
-        this.displayDelta(x.accuracyDelta)
+        this.printRounded(x.correctAnswers, 2),
+        this.printRounded(x.correctAnswers + x.correctAnswersDelta, 2),
+        this.displayDelta(x.correctAnswersDelta, 2),
+        this.calcDeltaPercentage(x.correctAnswers, x.correctAnswersDelta, 2),
+        this.printRounded(x.incorrectAnswers, 2),
+        this.printRounded(x.incorrectAnswers + x.incorrectAnswersDelta, 2),
+        this.displayDelta(x.incorrectAnswersDelta, 2),
+        this.calcDeltaPercentage(x.incorrectAnswers, x.incorrectAnswersDelta, 2),
+        this.printRounded(x.noAnswers, 2),
+        this.printRounded(x.noAnswers + x.noAnswersDelta, 2),
+        this.displayDelta(x.noAnswersDelta, 2),
+        this.calcDeltaPercentage(x.noAnswers, x.noAnswersDelta, 2),
+        this.printRounded(x.accuracyPercent, 2),
+        this.printRounded(x.accuracyPercent + x.accuracyDelta, 2),
+        this.displayDelta(x.accuracyDelta, 2)
       ];
     });
     
@@ -1216,21 +1204,21 @@ class ReportGenerator {
     const mandOptAnswerDeltaRowsAccuracyByCharPerc = mandatories.map(x =>{    
       return [
         x.format,
-        x.totalChars.toFixed(2),
-        (x.totalChars + x.totalCharsDelta).toFixed(2),
-        this.displayDelta(x.totalCharsDelta, 0),
-        this.calcDeltaPercentage(x.totalChars, x.totalCharsDelta),
-        x.correctChars.toFixed(2),
-        (x.correctChars + x.correctCharsDelta).toFixed(2),
-        this.displayDelta(x.correctCharsDelta, 0),
-        this.calcDeltaPercentage(x.correctChars, x.correctCharsDelta),        
-        x.incorrectChars.toFixed(2),
-        (x.incorrectChars + x.incorrectCharsDelta).toFixed(2),
-        this.displayDelta(x.incorrectCharsDelta, 0),
-        this.calcDeltaPercentage(x.incorrectChars, x.incorrectCharsDelta),
-        x.accuracyByCharPerc.toFixed(2),
-        (x.accuracyByCharPerc + x.accuracyByCharPercDelta).toFixed(2),
-        this.displayDelta(x.accuracyByCharPercDelta)
+        this.printRounded(x.totalChars, 2),
+        this.printRounded(x.totalChars + x.totalCharsDelta, 2),
+        this.displayDelta(x.totalCharsDelta, 2),
+        this.calcDeltaPercentage(x.totalChars, x.totalCharsDelta, 2),
+        this.printRounded(x.correctChars, 2),
+        this.printRounded(x.correctChars + x.correctCharsDelta, 2),
+        this.displayDelta(x.correctCharsDelta, 2),
+        this.calcDeltaPercentage(x.correctChars, x.correctCharsDelta, 2),
+        this.printRounded(x.incorrectChars, 2),
+        this.printRounded(x.incorrectChars + x.incorrectCharsDelta, 2),
+        this.displayDelta(x.incorrectCharsDelta, 2),
+        this.calcDeltaPercentage(x.incorrectChars, x.incorrectCharsDelta, 2),
+        this.printRounded(x.accuracyByCharPerc, 2),
+        this.printRounded(x.accuracyByCharPerc + x.accuracyByCharPercDelta, 2),
+        this.printRounded(x.accuracyByCharPercDelta, 2)
       ];
     });
     
@@ -1255,16 +1243,16 @@ class ReportGenerator {
       return [
       item.format,
       item.variant.substring(0, 3),
-      item.accuracyPercent.toFixed(2),
-      retrieval?.accuracyPercent.toFixed(2) ?? '0',
-      structure?.accuracyPercent.toFixed(2) ?? '0',
-      filtering?.accuracyPercent.toFixed(2) ?? '0',
-      aggregation?.accuracyPercent.toFixed(2) ?? '0',
-      item.weightedAccuracyByCharPerc.toFixed(2),
-      retrieval?.weightedAccuracyPercent.toFixed(2) ?? '0',
-      structure?.weightedAccuracyPercent.toFixed(2) ?? '0',
-      filtering?.weightedAccuracyPercent.toFixed(2) ?? '0',
-      aggregation?.weightedAccuracyPercent.toFixed(2) ?? '0',
+      this.printRounded(item.accuracyPercent, 2),
+      this.printRounded(retrieval?.accuracyPercent, 2),
+      this.printRounded(structure?.accuracyPercent, 2),
+      this.printRounded(filtering?.accuracyPercent, 2),
+      this.printRounded(aggregation?.accuracyPercent, 2),
+      this.printRounded(item.weightedAccuracyByCharPerc, 2),
+      this.printRounded(retrieval?.weightedAccuracyPercent, 2),
+      this.printRounded(structure?.weightedAccuracyPercent, 2),
+      this.printRounded(filtering?.weightedAccuracyPercent, 2),
+      this.printRounded(aggregation?.weightedAccuracyPercent, 2),
     ]});
     
     this.heading(3, '2.9 Accuracy Per Question Category Analysis');
@@ -1290,16 +1278,16 @@ class ReportGenerator {
       return [
       item.format,
       item.variant.substring(0, 3),
-      item.accuracyByCharPerc.toFixed(2),
-      retrieval?.charactersOfAnswers.accuracyByCharPerc.toFixed(2) ?? '0',
-      structure?.charactersOfAnswers.accuracyByCharPerc.toFixed(2) ?? '0',
-      filtering?.charactersOfAnswers.accuracyByCharPerc.toFixed(2) ?? '0',
-      aggregation?.charactersOfAnswers.accuracyByCharPerc.toFixed(2) ?? '0',
-      item.weightedAccuracyByCharPerc.toFixed(2),
-      retrieval?.charactersOfAnswers.weightedAccuracyByCharPerc.toFixed(2) ?? '0',
-      structure?.charactersOfAnswers.weightedAccuracyByCharPerc.toFixed(2) ?? '0',
-      filtering?.charactersOfAnswers.weightedAccuracyByCharPerc.toFixed(2) ?? '0',
-      aggregation?.charactersOfAnswers.weightedAccuracyByCharPerc.toFixed(2) ?? '0',
+      this.printRounded(item.accuracyByCharPerc, 2),
+      this.printRounded(retrieval?.charactersOfAnswers.accuracyByCharPerc, 2),
+      this.printRounded(structure?.charactersOfAnswers.accuracyByCharPerc, 2),
+      this.printRounded(filtering?.charactersOfAnswers.accuracyByCharPerc, 2),
+      this.printRounded(aggregation?.charactersOfAnswers.accuracyByCharPerc, 2),
+      this.printRounded(item.weightedAccuracyByCharPerc, 2),
+      this.printRounded(retrieval?.charactersOfAnswers.weightedAccuracyByCharPerc, 2),
+      this.printRounded(structure?.charactersOfAnswers.weightedAccuracyByCharPerc, 2),
+      this.printRounded(filtering?.charactersOfAnswers.weightedAccuracyByCharPerc, 2),
+      this.printRounded(aggregation?.charactersOfAnswers.weightedAccuracyByCharPerc, 2),
     ]});
     
     this.heading(3, '2.10 Accuracy By Character Per Question Category Analysis');
@@ -1315,12 +1303,53 @@ class ReportGenerator {
     this.diffMandOptAccuracyByCharacterPerCategory('2.10.5', 'aggregation', mandatoriesVals, optionalsVals);
   }
 
-  private calcDeltaPercentage(manVal: number, optManDelta: number, fixed: number = 2): string {
-    return this.displayDelta(manVal > 0 ? (optManDelta / manVal) * 100 : 0, fixed);
+  private calcDeltaPercentage(manVal: number, optManDelta: number, decimalPlaces: number): string {  
+    return this.printRounded(manVal > 0 || optManDelta === 0 ? (optManDelta / manVal) * 100 : 0, decimalPlaces, true)
   }
   
-  private displayDelta(percentage: number, fixed: number = 2): string {
-    return (percentage > 0 ?' +' : '') + percentage.toFixed(fixed);
+  private displayDelta(percentage: number, decimalPlaces: number): string {
+    return this.printRounded(percentage, decimalPlaces, true);
+  }
+  
+  private printRounded(num: number | null | undefined, decimalPlaces: number, addSign: boolean = false): string {
+    if(!num){      
+      switch(decimalPlaces)
+      {
+        case 0:
+          return '0';
+        case 1:
+          return '0.0';
+        case 2:
+          return '0.00';
+        case 3:
+          return '0.000';
+      }
+      
+      return '0';
+    }
+
+    let factor = 1;
+    switch(decimalPlaces)
+    {
+      case 0:
+        factor = 1;
+        break;
+      case 1:
+        factor = 10;
+        break;
+      case 2:
+        factor = 100;
+        break;
+      case 3:
+        factor = 1000;
+        break;
+    }
+
+    const numRounded = Math.round(num * factor) / factor;
+    if(numRounded === 0)
+      return Math.abs(numRounded).toFixed(decimalPlaces);
+
+    return (addSign && numRounded > 0 ? '+' : '') + numRounded.toFixed(decimalPlaces);
   }
 
   private diffMandOptAccuracyPerCategory(idx:string, category: QuestionCategory, mandatoriesVals: MappingType[], optionalsVals: MappingType[]): void { 
@@ -1352,12 +1381,12 @@ class ReportGenerator {
   private getAccuracyPerCategoryRow(fmt: string, man: number, opt: number, manWtd: number, optWtd: number){
     return [
       fmt,
-      man.toFixed(2),
-      opt.toFixed(2),
-      this.displayDelta(opt - man),
-      manWtd.toFixed(2),
-      optWtd.toFixed(2),
-      this.displayDelta(optWtd - manWtd),
+      this.printRounded(man, 2),
+      this.printRounded(opt, 2),
+      this.displayDelta(opt - man, 2),
+      this.printRounded(manWtd, 2),
+      this.printRounded(optWtd, 2),
+      this.displayDelta(optWtd - manWtd, 2),
     ];
   }
 
@@ -1385,7 +1414,7 @@ class ReportGenerator {
     this.heading(3, '3.2 Appendix B: Benchmark Configuration');
     this.metadata.questionDistribution.forEach((q: any) => {
       const weight = this.metadata.questionWeightDistribution.find((w: any) => w[0] === q[0]);
-      const weightPercent = weight ? (weight[1] * 100).toFixed(2) : '0.0';
+      const weightPercent = this.printRounded(weight ? weight[1] * 100 : 0, 2);
       this.line(`- **${this.getQuestionCategoryLabel(q[0])}**: ${q[1]} questions (${weightPercent}% weight)`);
     });
     this.line();
@@ -1394,7 +1423,7 @@ class ReportGenerator {
     this.line();
     this.line('- **Report Generated**: ' + new Date().toISOString().split('T')[0]);
     this.line('- **Written by**: [Thore Höltig](https://github.com/thoeltig)');
-    this.line('- **Test run in**: Claude Code < 2.1.86');
+    this.line('- **Test run in**: Claude Code 2.1.73');
     this.line('- **Data Source**: `analytics_results.json`');
     this.line('- **Publication**: Open source research in [GitHub repository](https://github.com/thoeltig/file-format-token-accuracy-benchmark-results)');
     this.line('- **Licensed under**: [CC BY 4.0](https://github.com/thoeltig/file-format-token-accuracy-benchmark-results/LICENSE)');
