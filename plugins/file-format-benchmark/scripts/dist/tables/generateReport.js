@@ -106,11 +106,18 @@ class ReportGenerator {
     metadata;
     constructor(aggregated, validations, metadata) {
         this.aggregated = aggregated;
-        this.aggregated.forEach(x => x.format = x.format.toUpperCase());
+        this.aggregated.forEach(x => {
+            x.format = x.format.toUpperCase();
+            x.variant = x.variant.substring(0, 3);
+        });
         this.validations = validations;
-        this.validations.forEach(x => x.format = x.format.toUpperCase());
+        this.validations.forEach(x => {
+            x.format = x.format.toUpperCase();
+            x.variant = x.variant.substring(0, 3);
+        });
         this.metadata = metadata;
         this.metadata.formats = [...this.metadata.formats.map(x => x.toUpperCase())];
+        this.metadata.variants = [...this.metadata.variants.map(x => x.substring(0, 3))];
         this.uniqueFormats = metadata.formats.sort();
         this.recordCounts = metadata.recordCounts.sort((a, b) => b - a);
     }
@@ -212,13 +219,13 @@ class ReportGenerator {
                     filteringAndAggregation += weightPerc;
                     break;
             }
-            this.line(`   - **${this.getQuestionCategoryLabel(q[0])} (${q[1]} questions, ${this.printRounded(weightPerc, 2)}% weight):** ${questionCategoryDescription}`);
+            this.line(`   - **${this.getQuestionCategoryLabel(q[0])} (${q[1]} questions, ${this.printRounded(weightPerc)}% weight):** ${questionCategoryDescription}`);
         });
         this.line();
         this.heading(4, '1.2.3 Weighting Rationale');
-        this.line(`- **Field retrieval + structure awareness** = ${this.printRounded(fieledretrievalAndStructureAwareness, 2)}%`);
+        this.line(`- **Field retrieval + structure awareness** = ${this.printRounded(fieledretrievalAndStructureAwareness)}%`);
         this.line(`   - These represent the file format itself. Understanding "what data exists and how it's organized" which is fundamental to avoiding context confusion.`);
-        this.line(`- **Filtering + aggregation** = ${this.printRounded(filteringAndAggregation, 2)}%`);
+        this.line(`- **Filtering + aggregation** = ${this.printRounded(filteringAndAggregation)}%`);
         this.line(`   - These represent more the "intellectual" aspect of the model and will differ greatly depending on the model. Also if done deterministic the model still needs to do field retrieval and structure awareness on the result.`);
         this.line();
         this.heading(3, '1.3 Metrics Definition');
@@ -238,7 +245,7 @@ class ReportGenerator {
         const efficiencyScoreTokenPortion = this.metadata.efficiencyScoreWeight.find(x => x[0] === "tokens")?.[1] ?? 0;
         this.heading(4, '1.3.3 Efficiency Score');
         this.line('Composite metric balancing accuracy with normalized token count (favour towards accuracy). Each efficieny score has an indicator which token count was used in the calculation.');
-        this.line(`- **Accuracy To Token Ratio** = ${this.printRounded(efficiencyScoreAccuracyPortion * 100, 2)} % to ${this.printRounded(efficiencyScoreTokenPortion * 100, 2)} %`);
+        this.line(`- **Accuracy To Token Ratio** = ${this.printRounded(efficiencyScoreAccuracyPortion * 100)} % to ${this.printRounded(efficiencyScoreTokenPortion * 100)} %`);
         this.line('- **Normalized Tokens** = (((**Max Tokens** + 10) - **Current Tokens**) / ((**Max Tokens** + 10) - (**Min Tokens** - 10))) * 100');
         this.line('- **Normalized Tokens** = (((**Max Tokens** + 10) - **Current Tokens**) / ((**Max Tokens** + 10) - (**Min Tokens** - 10))) * 100');
         this.line(`- **Efficiency Score**: (**Accuracy** % * ${efficiencyScoreAccuracyPortion}) + (**Normalized Tokens** * ${efficiencyScoreTokenPortion})`);
@@ -260,8 +267,8 @@ class ReportGenerator {
         this.line();
     }
     generateSummaryTLDRFormatRanking(sortedAggregated, mandatoriesVals, optionalsVals) {
-        const optionals = sortedAggregated.filter(x => x.variant == 'optional');
-        const mandatories = sortedAggregated.filter(x => x.variant == 'mandatory');
+        const optionals = sortedAggregated.filter(x => x.variant == 'opt');
+        const mandatories = sortedAggregated.filter(x => x.variant == 'man');
         this.heading(3, '2.1 TLDR: Token Efficiency Analysis');
         this.line();
         this.line('*Note: All columns ranked best-to-worst. ↑ = lower value is better (ascending). ↓ = higher value is better (descending).*');
@@ -421,7 +428,7 @@ class ReportGenerator {
         return format + (idx > 0 ? ` (${this.printRounded(current / first * 100 - 100, 2, true)}%)` : ` ≈ ${this.printRounded(current, 0)}${suffix}`);
     }
     getRankingOfPercentageDisplay(format, idx, current, first) {
-        return format + (idx > 0 ? ` (${this.printRounded(current - first, 2, true)}%)` : ` ≈ ${this.printRounded(current, 2)}%`);
+        return format + (idx > 0 ? ` (${this.printRounded(current - first, 2, true)}%)` : ` ≈ ${this.printRounded(current)}%`);
     }
     generateResults() {
         this.heading(2, '2. Results');
@@ -444,36 +451,36 @@ class ReportGenerator {
                 return 0;
             }
         });
-        const mandatories = sortedAggregated.filter(x => x.variant == 'mandatory');
-        const mandatoriesVals = this.validations.filter(x => x.variant === 'mandatory').flatMap(v => mapValidation(v));
-        const optionalsVals = this.validations.filter(x => x.variant === 'optional').flatMap(v => mapValidation(v));
+        const mandatories = sortedAggregated.filter(x => x.variant == 'man');
+        const mandatoriesVals = this.validations.filter(x => x.variant === 'man').flatMap(v => mapValidation(v));
+        const optionalsVals = this.validations.filter(x => x.variant === 'opt').flatMap(v => mapValidation(v));
         // 2.1 Token Efficiency Analysis
         this.generateSummaryTLDRFormatRanking(sortedAggregated, mandatoriesVals, optionalsVals);
         // 2.2 Comprehensive Benchmark Metrics
         const rows = sortedAggregated.map(item => [
             item.format,
-            item.variant.substring(0, 3),
-            Math.round(item.readTokens).toString(),
-            Math.round(item.outputTokensTotal).toString(),
-            Math.round(item.totalTokens).toString(),
-            this.printRounded(item.charsPerReadToken, 3),
-            this.printRounded(item.outputTokensWritePerAnswer, 3),
-            this.printRounded(item.accuracyPercent, 2),
-            this.printRounded(item.usefulReadTokens, 3),
-            this.printRounded(item.wastedReadTokens, 3),
-            this.printRounded(item.usefulOutputTokens, 3),
-            this.printRounded(item.wastedOutputTokens, 3),
-            this.printRounded(item.efficiencyScoreRead, 2),
-            this.printRounded(item.efficiencyScoreOutput, 2),
-            this.printRounded(item.efficiencyScoreTotal, 2),
-            this.printRounded(item.accuracyByCharPerc, 2),
-            this.printRounded(item.usefulReadTokensAccuracyByCharPerc, 3),
-            this.printRounded(item.wastedReadTokensAccuracyByCharPerc, 3),
-            this.printRounded(item.usefulOutputTokensAccuracyByCharPerc, 3),
-            this.printRounded(item.wastedOutputTokensAccuracyByCharPerc, 3),
-            this.printRounded(item.efficiencyScoreReadAccuracyByCharPerc, 2),
-            this.printRounded(item.efficiencyScoreOutputAccuracyByCharPerc, 2),
-            this.printRounded(item.efficiencyScoreTotalAccuracyByCharPerc, 2),
+            item.variant,
+            this.printRounded(item.readTokens, 0),
+            this.printRounded(item.outputTokensTotal, 0),
+            this.printRounded(item.totalTokens, 0),
+            this.printRounded(item.charsPerReadToken),
+            this.printRounded(item.outputTokensWritePerAnswer),
+            this.printRounded(item.accuracyPercent),
+            this.printRounded(item.usefulReadTokens, 0),
+            this.printRounded(item.wastedReadTokens, 0),
+            this.printRounded(item.usefulOutputTokens, 0),
+            this.printRounded(item.wastedOutputTokens, 0),
+            this.printRounded(item.efficiencyScoreRead),
+            this.printRounded(item.efficiencyScoreOutput),
+            this.printRounded(item.efficiencyScoreTotal),
+            this.printRounded(item.accuracyByCharPerc),
+            this.printRounded(item.usefulReadTokensAccuracyByCharPerc, 0),
+            this.printRounded(item.wastedReadTokensAccuracyByCharPerc, 0),
+            this.printRounded(item.usefulOutputTokensAccuracyByCharPerc, 0),
+            this.printRounded(item.wastedOutputTokensAccuracyByCharPerc, 0),
+            this.printRounded(item.efficiencyScoreReadAccuracyByCharPerc),
+            this.printRounded(item.efficiencyScoreOutputAccuracyByCharPerc),
+            this.printRounded(item.efficiencyScoreTotalAccuracyByCharPerc),
         ]);
         this.heading(3, '2.2 Comprehensive Benchmark Metrics');
         this.table(['Format', 'Variant', 'Read Tokens', 'Output Tokens', 'Total Tokens', 'Char / Read Token', 'Output Write Tokens / Answer',
@@ -501,23 +508,23 @@ class ReportGenerator {
                 this.printRounded(mandReadTokensUsed, 0),
                 this.printRounded(optReadTokensUsed, 0),
                 this.displayDelta(readTokenDiff, 0),
-                this.calcDeltaPercentage(mandReadTokensUsed, readTokenDiff, 2),
+                this.calcDeltaPercentage(mandReadTokensUsed, readTokenDiff),
                 this.printRounded(mandOutputTokensBeforeWrite, 0),
                 this.printRounded(optOutputTokensBeforeWrite, 0),
                 this.displayDelta(outputTokensBeforeWriteDiff, 0),
-                this.calcDeltaPercentage(mandOutputTokensBeforeWrite, outputTokensBeforeWriteDiff, 2),
+                this.calcDeltaPercentage(mandOutputTokensBeforeWrite, outputTokensBeforeWriteDiff),
                 this.printRounded(mandOutputTokensWrite, 0),
                 this.printRounded(optOutputTokensWrite, 0),
                 this.displayDelta(outputTokensWriteDiff, 0),
-                this.calcDeltaPercentage(mandOutputTokensWrite, outputTokensWriteDiff, 2),
+                this.calcDeltaPercentage(mandOutputTokensWrite, outputTokensWriteDiff),
                 this.printRounded(mandOutputTokensTotal, 0),
                 this.printRounded(optOutputTokensTotal, 0),
                 this.displayDelta(outputTokensTotalDiff, 0),
-                this.calcDeltaPercentage(mandOutputTokensTotal, outputTokensTotalDiff, 2),
+                this.calcDeltaPercentage(mandOutputTokensTotal, outputTokensTotalDiff),
                 this.printRounded(mandtotalTokens, 0),
                 this.printRounded(optTotalTokensUsed, 0),
                 this.displayDelta(totalTokenDiff, 0),
-                this.calcDeltaPercentage(mandtotalTokens, totalTokenDiff, 2),
+                this.calcDeltaPercentage(mandtotalTokens, totalTokenDiff),
             ];
         });
         this.heading(3, '2.3 Format Robustness: Mandatory vs Optional');
@@ -530,21 +537,23 @@ class ReportGenerator {
         // 2.4 Performance
         // 2.4.1 Duration & Speed
         const readPerfRows = sortedAggregated.map(item => {
-            const totalDurationInMs = item.readDurationInMs + item.outputDurationWriteInMs;
+            const readDuration = Math.round(item.readDurationInMs);
+            const outputDurationWrite = Math.round(item.outputDurationWriteInMs);
+            const totalDurationInMs = readDuration + outputDurationWrite;
             const totalTokensPerMs = item.readTokensPerMs + item.outputTokensWritePerMs;
             return [
                 item.format,
-                item.variant.substring(0, 3),
-                this.printRounded(item.readDurationInMs, 0),
-                this.printRounded(item.readTokensPerMs, 3),
-                this.printRounded(item.readDurationInMs / item.recordCount, 2),
+                item.variant,
+                this.printRounded(readDuration, 0),
+                this.printRounded(item.readTokensPerMs),
+                this.printRounded(readDuration / item.recordCount),
                 this.printRounded(item.outputDurationBeforeWriteInMs, 0),
-                this.printRounded(item.outputDurationWriteInMs, 0),
-                this.printRounded(item.outputTokensWritePerMs, 3),
-                this.printRounded(item.outputDurationWriteInMs / item.totalQuestions, 2),
+                this.printRounded(outputDurationWrite, 0),
+                this.printRounded(item.outputTokensWritePerMs),
+                this.printRounded(outputDurationWrite / item.totalQuestions),
                 this.printRounded(totalDurationInMs, 0),
-                this.printRounded(totalTokensPerMs, 3),
-                this.printRounded(totalDurationInMs / (item.recordCount + item.totalQuestions), 2),
+                this.printRounded(totalTokensPerMs),
+                this.printRounded(totalDurationInMs / (item.recordCount + item.totalQuestions)),
                 this.printRounded(item.outputDurationTotalInMs, 0),
             ];
         });
@@ -553,8 +562,8 @@ class ReportGenerator {
         this.table(['Format', 'Variant', 'Read (ms)', 'Read (tokens/ms)', 'Rate (ms/record)', 'Output Before Write (ms)', 'Output Write (ms)', 'Output Write (tokens/ms)', 'Rate (ms/question)', 'Read + Output Write (ms)', 'Read + Output Write (tokens/ms)', 'Rate (ms/record+question)', 'Output (ms)'], readPerfRows);
         // 2.4.2 Performance: Mandatory vs Optional Data
         const mandOptSpeedDeltaRows = mandatories.map(x => {
-            const manReadDuration = x.readDurationInMs;
-            const readDurationDelta = x.readDurationInMsDelta;
+            const manReadDuration = Math.round(x.readDurationInMs);
+            const readDurationDelta = Math.round(x.readDurationInMsDelta);
             const manOutputDurationBeforeWrite = x.outputDurationBeforeWriteInMs / 1000;
             const outputDurationBeforeWriteDelta = x.outputDurationBeforeWriteInMsDelta / 1000;
             const manOutputDurationWrite = x.outputDurationWriteInMs / 1000;
@@ -568,23 +577,23 @@ class ReportGenerator {
                 this.printRounded(manReadDuration, 0),
                 this.printRounded(manReadDuration + readDurationDelta, 0),
                 this.displayDelta(readDurationDelta, 0),
-                this.calcDeltaPercentage(manReadDuration, readDurationDelta, 2),
-                this.printRounded(manOutputDurationBeforeWrite, 2),
-                this.printRounded(manOutputDurationBeforeWrite + outputDurationBeforeWriteDelta, 2),
-                this.displayDelta(outputDurationBeforeWriteDelta, 2),
-                this.calcDeltaPercentage(manOutputDurationBeforeWrite, outputDurationBeforeWriteDelta, 2),
-                this.printRounded(manOutputDurationWrite, 2),
-                this.printRounded(manOutputDurationWrite + outputDurationWriteDelta, 2),
-                this.displayDelta(outputDurationWriteDelta, 2),
-                this.calcDeltaPercentage(manOutputDurationWrite, outputDurationWriteDelta, 2),
-                this.printRounded(manTotalDuration, 2),
-                this.printRounded(manTotalDuration + totalDurationDelta, 2),
-                this.displayDelta(totalDurationDelta, 2),
-                this.calcDeltaPercentage(manTotalDuration, totalDurationDelta, 2),
-                this.printRounded(manOutputDurationTotal, 2),
-                this.printRounded(manOutputDurationTotal + outputDurationTotalDelta, 2),
-                this.displayDelta(outputDurationTotalDelta, 2),
-                this.calcDeltaPercentage(manOutputDurationTotal, outputDurationTotalDelta, 2),
+                this.calcDeltaPercentage(manReadDuration, readDurationDelta),
+                this.printRounded(manOutputDurationBeforeWrite),
+                this.printRounded(manOutputDurationBeforeWrite + outputDurationBeforeWriteDelta),
+                this.displayDelta(outputDurationBeforeWriteDelta),
+                this.calcDeltaPercentage(manOutputDurationBeforeWrite, outputDurationBeforeWriteDelta),
+                this.printRounded(manOutputDurationWrite),
+                this.printRounded(manOutputDurationWrite + outputDurationWriteDelta),
+                this.displayDelta(outputDurationWriteDelta),
+                this.calcDeltaPercentage(manOutputDurationWrite, outputDurationWriteDelta),
+                this.printRounded(manTotalDuration),
+                this.printRounded(manTotalDuration + totalDurationDelta),
+                this.displayDelta(totalDurationDelta),
+                this.calcDeltaPercentage(manTotalDuration, totalDurationDelta),
+                this.printRounded(manOutputDurationTotal),
+                this.printRounded(manOutputDurationTotal + outputDurationTotalDelta),
+                this.displayDelta(outputDurationTotalDelta),
+                this.calcDeltaPercentage(manOutputDurationTotal, outputDurationTotalDelta),
             ];
         });
         this.heading(4, '2.4.2 Mandatory vs Optional');
@@ -597,16 +606,16 @@ class ReportGenerator {
         // 2.5.1 Structural Efficiency Metrics
         const structRows = sortedAggregated.map(item => [
             item.format,
-            item.variant.substring(0, 3),
-            this.printRounded(item.charsPerReadToken, 3),
-            this.printRounded(item.readTokensPerValue, 3),
-            this.printRounded(item.readTokensPerObject, 3),
-            this.printRounded(item.informationValuePerReadTokens, 3),
-            this.printRounded(item.informationValuePerOutputTokens, 3),
-            this.printRounded(item.informationValuePerTotalTokens, 3),
-            this.printRounded(item.informationValuePerReadTokensAccuracyByCharPerc, 3),
-            this.printRounded(item.informationValuePerOutputTokensAccuracyByCharPerc, 3),
-            this.printRounded(item.informationValuePerTotalTokensAccuracyByCharPerc, 3)
+            item.variant,
+            this.printRounded(item.charsPerReadToken),
+            this.printRounded(item.readTokensPerValue),
+            this.printRounded(item.readTokensPerObject),
+            this.printRounded(item.informationValuePerReadTokens),
+            this.printRounded(item.informationValuePerOutputTokens),
+            this.printRounded(item.informationValuePerTotalTokens),
+            this.printRounded(item.informationValuePerReadTokensAccuracyByCharPerc),
+            this.printRounded(item.informationValuePerOutputTokensAccuracyByCharPerc),
+            this.printRounded(item.informationValuePerTotalTokensAccuracyByCharPerc)
         ]);
         this.heading(3, '2.5 Structural Efficiency');
         this.heading(4, '2.5.1 Metrics');
@@ -615,18 +624,18 @@ class ReportGenerator {
         const mandOptStructuralDeltaRows = mandatories.map(x => {
             return [
                 x.format,
-                this.printRounded(x.charsPerReadToken, 3),
-                this.printRounded(x.charsPerReadToken + x.charsPerReadTokenDelta, 3),
-                this.displayDelta(x.charsPerReadTokenDelta, 3),
-                this.calcDeltaPercentage(x.charsPerReadToken, x.charsPerReadTokenDelta, 2),
-                this.printRounded(x.readTokensPerValue, 3),
-                this.printRounded(x.readTokensPerValue + x.readTokensPerValueDelta, 3),
-                this.displayDelta(x.readTokensPerValueDelta, 3),
-                this.calcDeltaPercentage(x.readTokensPerValue, x.readTokensPerValueDelta, 2),
-                this.printRounded(x.readTokensPerObject, 3),
-                this.printRounded(x.readTokensPerObject + x.readTokensPerObjectDelta, 3),
-                this.displayDelta(x.readTokensPerObjectDelta, 3),
-                this.calcDeltaPercentage(x.readTokensPerObject, x.readTokensPerObjectDelta, 2),
+                this.printRounded(x.charsPerReadToken),
+                this.printRounded(x.charsPerReadToken + x.charsPerReadTokenDelta),
+                this.displayDelta(x.charsPerReadTokenDelta),
+                this.calcDeltaPercentage(x.charsPerReadToken, x.charsPerReadTokenDelta),
+                this.printRounded(x.readTokensPerValue),
+                this.printRounded(x.readTokensPerValue + x.readTokensPerValueDelta),
+                this.displayDelta(x.readTokensPerValueDelta),
+                this.calcDeltaPercentage(x.readTokensPerValue, x.readTokensPerValueDelta),
+                this.printRounded(x.readTokensPerObject),
+                this.printRounded(x.readTokensPerObject + x.readTokensPerObjectDelta),
+                this.displayDelta(x.readTokensPerObjectDelta),
+                this.calcDeltaPercentage(x.readTokensPerObject, x.readTokensPerObjectDelta),
             ];
         });
         this.heading(4, '2.5.2 Characters And Values: Mandatory vs Optional');
@@ -635,18 +644,18 @@ class ReportGenerator {
         const mandOptStructuralInformationDeltaRows = mandatories.map(x => {
             return [
                 x.format,
-                this.printRounded(x.informationValuePerReadTokens, 3),
-                this.printRounded(x.informationValuePerReadTokens + x.informationValuePerReadTokensDelta, 3),
-                this.displayDelta(x.informationValuePerReadTokensDelta, 3),
-                this.calcDeltaPercentage(x.informationValuePerReadTokens, x.informationValuePerReadTokensDelta, 2),
-                this.printRounded(x.informationValuePerOutputTokens, 3),
-                this.printRounded(x.informationValuePerOutputTokens + x.informationValuePerOutputTokensDelta, 3),
-                this.displayDelta(x.informationValuePerOutputTokensDelta, 3),
-                this.calcDeltaPercentage(x.informationValuePerOutputTokens, x.informationValuePerOutputTokensDelta, 2),
-                this.printRounded(x.informationValuePerTotalTokens, 3),
-                this.printRounded(x.informationValuePerTotalTokens + x.informationValuePerTotalTokensDelta, 3),
-                this.displayDelta(x.informationValuePerTotalTokensDelta, 3),
-                this.calcDeltaPercentage(x.informationValuePerTotalTokens, x.informationValuePerTotalTokensDelta, 2),
+                this.printRounded(x.informationValuePerReadTokens),
+                this.printRounded(x.informationValuePerReadTokens + x.informationValuePerReadTokensDelta),
+                this.displayDelta(x.informationValuePerReadTokensDelta),
+                this.calcDeltaPercentage(x.informationValuePerReadTokens, x.informationValuePerReadTokensDelta),
+                this.printRounded(x.informationValuePerOutputTokens),
+                this.printRounded(x.informationValuePerOutputTokens + x.informationValuePerOutputTokensDelta),
+                this.displayDelta(x.informationValuePerOutputTokensDelta),
+                this.calcDeltaPercentage(x.informationValuePerOutputTokens, x.informationValuePerOutputTokensDelta),
+                this.printRounded(x.informationValuePerTotalTokens),
+                this.printRounded(x.informationValuePerTotalTokens + x.informationValuePerTotalTokensDelta),
+                this.displayDelta(x.informationValuePerTotalTokensDelta),
+                this.calcDeltaPercentage(x.informationValuePerTotalTokens, x.informationValuePerTotalTokensDelta),
             ];
         });
         this.heading(4, '2.5.3 Information: Mandatory vs Optional');
@@ -655,18 +664,18 @@ class ReportGenerator {
         const mandOptStructuralInformationByCharacterDeltaRows = mandatories.map(x => {
             return [
                 x.format,
-                this.printRounded(x.informationValuePerReadTokensAccuracyByCharPerc, 3),
-                this.printRounded(x.informationValuePerReadTokensAccuracyByCharPerc + x.informationValuePerReadTokensAccuracyByCharPercDelta, 3),
-                this.displayDelta(x.informationValuePerReadTokensAccuracyByCharPercDelta, 3),
-                this.calcDeltaPercentage(x.informationValuePerReadTokensAccuracyByCharPerc, x.informationValuePerReadTokensAccuracyByCharPercDelta, 2),
-                this.printRounded(x.informationValuePerOutputTokensAccuracyByCharPerc, 3),
-                this.printRounded(x.informationValuePerOutputTokensAccuracyByCharPerc + x.informationValuePerOutputTokensAccuracyByCharPercDelta, 3),
-                this.displayDelta(x.informationValuePerOutputTokensAccuracyByCharPercDelta, 3),
-                this.calcDeltaPercentage(x.informationValuePerOutputTokensAccuracyByCharPerc, x.informationValuePerOutputTokensAccuracyByCharPercDelta, 2),
-                this.printRounded(x.informationValuePerTotalTokensAccuracyByCharPerc, 3),
-                this.printRounded(x.informationValuePerTotalTokensAccuracyByCharPerc + x.informationValuePerTotalTokensAccuracyByCharPercDelta, 3),
-                this.displayDelta(x.informationValuePerTotalTokensAccuracyByCharPercDelta, 3),
-                this.calcDeltaPercentage(x.informationValuePerTotalTokensAccuracyByCharPerc, x.informationValuePerTotalTokensAccuracyByCharPercDelta, 2),
+                this.printRounded(x.informationValuePerReadTokensAccuracyByCharPerc),
+                this.printRounded(x.informationValuePerReadTokensAccuracyByCharPerc + x.informationValuePerReadTokensAccuracyByCharPercDelta),
+                this.displayDelta(x.informationValuePerReadTokensAccuracyByCharPercDelta),
+                this.calcDeltaPercentage(x.informationValuePerReadTokensAccuracyByCharPerc, x.informationValuePerReadTokensAccuracyByCharPercDelta),
+                this.printRounded(x.informationValuePerOutputTokensAccuracyByCharPerc),
+                this.printRounded(x.informationValuePerOutputTokensAccuracyByCharPerc + x.informationValuePerOutputTokensAccuracyByCharPercDelta),
+                this.displayDelta(x.informationValuePerOutputTokensAccuracyByCharPercDelta),
+                this.calcDeltaPercentage(x.informationValuePerOutputTokensAccuracyByCharPerc, x.informationValuePerOutputTokensAccuracyByCharPercDelta),
+                this.printRounded(x.informationValuePerTotalTokensAccuracyByCharPerc),
+                this.printRounded(x.informationValuePerTotalTokensAccuracyByCharPerc + x.informationValuePerTotalTokensAccuracyByCharPercDelta),
+                this.displayDelta(x.informationValuePerTotalTokensAccuracyByCharPercDelta),
+                this.calcDeltaPercentage(x.informationValuePerTotalTokensAccuracyByCharPerc, x.informationValuePerTotalTokensAccuracyByCharPercDelta),
             ];
         });
         this.heading(4, '2.5.4 Information (Accuracy By Character): Mandatory vs Optional');
@@ -674,7 +683,7 @@ class ReportGenerator {
         // 2.6.1 Token Utilization Efficiency: Metrics
         const effTokenRows = sortedAggregated.map(item => [
             item.format,
-            item.variant.substring(0, 3),
+            item.variant,
             this.printRounded(item.readTokens, 0),
             this.printRounded(item.usefulReadTokens, 0),
             this.printRounded(item.wastedReadTokens, 0),
@@ -684,14 +693,14 @@ class ReportGenerator {
             this.printRounded(item.totalTokens, 0),
             this.printRounded(item.usefulTotalTokens, 0),
             this.printRounded(item.wastedTotalTokens, 0),
-            this.printRounded(item.accuracyPercent, 2),
-            this.printRounded(item.efficiencyScoreRead, 2),
-            this.printRounded(item.efficiencyScoreOutput, 2),
-            this.printRounded(item.efficiencyScoreTotal, 2),
-            this.printRounded(item.weightedAccuracyPercent, 2),
-            this.printRounded(item.weightedEfficiencyScoreRead, 2),
-            this.printRounded(item.weightedEfficiencyScoreOutput, 2),
-            this.printRounded(item.weightedEfficiencyScoreTotal, 2),
+            this.printRounded(item.accuracyPercent),
+            this.printRounded(item.efficiencyScoreRead),
+            this.printRounded(item.efficiencyScoreOutput),
+            this.printRounded(item.efficiencyScoreTotal),
+            this.printRounded(item.weightedAccuracyPercent),
+            this.printRounded(item.weightedEfficiencyScoreRead),
+            this.printRounded(item.weightedEfficiencyScoreOutput),
+            this.printRounded(item.weightedEfficiencyScoreTotal),
         ]);
         this.heading(3, '2.6 Token Utilization Efficiency');
         this.heading(4, '2.6.1 Metrics');
@@ -713,29 +722,29 @@ class ReportGenerator {
                 this.printRounded(readTokens, 0),
                 this.printRounded(readTokens + x.readTokensDelta, 0),
                 this.displayDelta(x.readTokensDelta, 0),
-                this.calcDeltaPercentage(readTokens, x.readTokensDelta, 2),
+                this.calcDeltaPercentage(readTokens, x.readTokensDelta),
                 this.printRounded(usefulReadTokens, 0),
                 this.printRounded(usefulReadTokens + x.usefulReadTokensDelta, 0),
                 this.displayDelta(x.usefulReadTokensDelta, 0),
-                this.calcDeltaPercentage(usefulReadTokens, x.usefulReadTokensDelta, 2),
+                this.calcDeltaPercentage(usefulReadTokens, x.usefulReadTokensDelta),
                 this.printRounded(wastedReadTokens, 0),
                 this.printRounded(wastedReadTokens + x.wastedReadTokensDelta, 0),
                 this.displayDelta(x.wastedReadTokensDelta, 0),
-                this.calcDeltaPercentage(wastedReadTokens, x.wastedReadTokensDelta, 2),
-                this.printRounded(x.accuracyPercent, 2),
-                this.printRounded(x.accuracyPercent + x.accuracyDelta, 2),
-                this.displayDelta(x.accuracyDelta, 2),
-                this.printRounded(x.efficiencyScoreRead, 2),
-                this.printRounded(x.efficiencyScoreRead + x.efficiencyScoreReadDelta, 2),
-                this.displayDelta(x.efficiencyScoreReadDelta, 2),
-                this.calcDeltaPercentage(x.efficiencyScoreRead, x.efficiencyScoreReadDelta, 2),
-                this.printRounded(x.weightedAccuracyPercent, 2),
-                this.printRounded(x.weightedAccuracyPercent + x.weightedAccuracyDelta, 2),
-                this.displayDelta(x.weightedAccuracyDelta, 2),
-                this.printRounded(x.weightedEfficiencyScoreRead, 2),
-                this.printRounded(x.weightedEfficiencyScoreRead + x.weightedEfficiencyScoreReadDelta, 2),
-                this.displayDelta(x.weightedEfficiencyScoreReadDelta, 2),
-                this.calcDeltaPercentage(x.weightedEfficiencyScoreRead, x.weightedEfficiencyScoreReadDelta, 2)
+                this.calcDeltaPercentage(wastedReadTokens, x.wastedReadTokensDelta),
+                this.printRounded(x.accuracyPercent),
+                this.printRounded(x.accuracyPercent + x.accuracyDelta),
+                this.displayDelta(x.accuracyDelta),
+                this.printRounded(x.efficiencyScoreRead),
+                this.printRounded(x.efficiencyScoreRead + x.efficiencyScoreReadDelta),
+                this.displayDelta(x.efficiencyScoreReadDelta),
+                this.calcDeltaPercentage(x.efficiencyScoreRead, x.efficiencyScoreReadDelta),
+                this.printRounded(x.weightedAccuracyPercent),
+                this.printRounded(x.weightedAccuracyPercent + x.weightedAccuracyDelta),
+                this.displayDelta(x.weightedAccuracyDelta),
+                this.printRounded(x.weightedEfficiencyScoreRead),
+                this.printRounded(x.weightedEfficiencyScoreRead + x.weightedEfficiencyScoreReadDelta),
+                this.displayDelta(x.weightedEfficiencyScoreReadDelta),
+                this.calcDeltaPercentage(x.weightedEfficiencyScoreRead, x.weightedEfficiencyScoreReadDelta)
             ];
         });
         this.heading(4, '2.6.2 Read Tokens: Mandatory vs Optional Data');
@@ -755,29 +764,29 @@ class ReportGenerator {
                 this.printRounded(outputTokens, 0),
                 this.printRounded(outputTokens + x.outputTokensTotalDelta, 0),
                 this.displayDelta(x.outputTokensTotalDelta, 0),
-                this.calcDeltaPercentage(outputTokens, x.outputTokensTotalDelta, 2),
+                this.calcDeltaPercentage(outputTokens, x.outputTokensTotalDelta),
                 this.printRounded(usefulOutputTokens, 0),
                 this.printRounded(usefulOutputTokens + x.usefulOutputTokensDelta, 0),
                 this.displayDelta(x.usefulOutputTokensDelta, 0),
-                this.calcDeltaPercentage(usefulOutputTokens, x.usefulOutputTokensDelta, 2),
+                this.calcDeltaPercentage(usefulOutputTokens, x.usefulOutputTokensDelta),
                 this.printRounded(wastedOutputTokens, 0),
                 this.printRounded(wastedOutputTokens + x.wastedOutputTokensDelta, 0),
                 this.displayDelta(x.wastedOutputTokensDelta, 0),
-                this.calcDeltaPercentage(wastedOutputTokens, x.wastedOutputTokensDelta, 2),
-                this.printRounded(x.accuracyPercent, 2),
-                this.printRounded(x.accuracyPercent + x.accuracyDelta, 2),
-                this.displayDelta(x.accuracyDelta, 2),
-                this.printRounded(x.efficiencyScoreOutput, 2),
-                this.printRounded(x.efficiencyScoreOutput + x.efficiencyScoreOutputDelta, 2),
-                this.displayDelta(x.efficiencyScoreOutputDelta, 2),
-                this.calcDeltaPercentage(x.efficiencyScoreOutput, x.efficiencyScoreOutputDelta, 2),
-                this.printRounded(x.weightedAccuracyPercent, 2),
-                this.printRounded(x.weightedAccuracyPercent + x.weightedAccuracyDelta, 2),
-                this.displayDelta(x.weightedAccuracyDelta, 2),
-                this.printRounded(x.weightedEfficiencyScoreOutput, 2),
-                this.printRounded(x.weightedEfficiencyScoreOutput + x.weightedEfficiencyScoreOutputDelta, 2),
-                this.displayDelta(x.weightedEfficiencyScoreOutputDelta, 2),
-                this.calcDeltaPercentage(x.weightedEfficiencyScoreOutput, x.weightedEfficiencyScoreOutputDelta, 2),
+                this.calcDeltaPercentage(wastedOutputTokens, x.wastedOutputTokensDelta),
+                this.printRounded(x.accuracyPercent),
+                this.printRounded(x.accuracyPercent + x.accuracyDelta),
+                this.displayDelta(x.accuracyDelta),
+                this.printRounded(x.efficiencyScoreOutput),
+                this.printRounded(x.efficiencyScoreOutput + x.efficiencyScoreOutputDelta),
+                this.displayDelta(x.efficiencyScoreOutputDelta),
+                this.calcDeltaPercentage(x.efficiencyScoreOutput, x.efficiencyScoreOutputDelta),
+                this.printRounded(x.weightedAccuracyPercent),
+                this.printRounded(x.weightedAccuracyPercent + x.weightedAccuracyDelta),
+                this.displayDelta(x.weightedAccuracyDelta),
+                this.printRounded(x.weightedEfficiencyScoreOutput),
+                this.printRounded(x.weightedEfficiencyScoreOutput + x.weightedEfficiencyScoreOutputDelta),
+                this.displayDelta(x.weightedEfficiencyScoreOutputDelta),
+                this.calcDeltaPercentage(x.weightedEfficiencyScoreOutput, x.weightedEfficiencyScoreOutputDelta),
             ];
         });
         this.heading(4, '2.6.3 Output Tokens: Mandatory vs Optional Data');
@@ -797,29 +806,29 @@ class ReportGenerator {
                 this.printRounded(totalTokens, 0),
                 this.printRounded(totalTokens + x.totalTokensDelta, 0),
                 this.displayDelta(x.totalTokensDelta, 0),
-                this.calcDeltaPercentage(totalTokens, x.totalTokensDelta, 2),
+                this.calcDeltaPercentage(totalTokens, x.totalTokensDelta),
                 this.printRounded(usefulTotalTokens, 0),
                 this.printRounded(usefulTotalTokens + x.usefulTotalTokensDelta, 0),
                 this.displayDelta(x.usefulTotalTokensDelta, 0),
-                this.calcDeltaPercentage(usefulTotalTokens, x.usefulTotalTokensDelta, 2),
+                this.calcDeltaPercentage(usefulTotalTokens, x.usefulTotalTokensDelta),
                 this.printRounded(wastedTotalTokens, 0),
                 this.printRounded(wastedTotalTokens + x.wastedTotalTokensDelta, 0),
                 this.displayDelta(x.wastedTotalTokensDelta, 0),
-                this.calcDeltaPercentage(wastedTotalTokens, x.wastedTotalTokensDelta, 2),
-                this.printRounded(x.accuracyPercent, 2),
-                this.printRounded(x.accuracyPercent + x.accuracyDelta, 2),
-                this.displayDelta(x.accuracyDelta, 2),
-                this.printRounded(x.efficiencyScoreTotal, 2),
-                this.printRounded(x.efficiencyScoreTotal + x.efficiencyScoreTotalDelta, 2),
-                this.displayDelta(x.efficiencyScoreTotalDelta, 2),
-                this.calcDeltaPercentage(x.efficiencyScoreTotal, x.efficiencyScoreTotalDelta, 2),
-                this.printRounded(x.weightedAccuracyPercent, 2),
-                this.printRounded(x.weightedAccuracyPercent + x.weightedAccuracyDelta, 2),
-                this.displayDelta(x.weightedAccuracyDelta, 2),
-                this.printRounded(x.weightedEfficiencyScoreTotal, 2),
-                this.printRounded(x.weightedEfficiencyScoreTotal + x.weightedEfficiencyScoreTotalDelta, 2),
-                this.displayDelta(x.weightedEfficiencyScoreTotalDelta, 2),
-                this.calcDeltaPercentage(x.weightedEfficiencyScoreTotal, x.weightedEfficiencyScoreTotalDelta, 2),
+                this.calcDeltaPercentage(wastedTotalTokens, x.wastedTotalTokensDelta),
+                this.printRounded(x.accuracyPercent),
+                this.printRounded(x.accuracyPercent + x.accuracyDelta),
+                this.displayDelta(x.accuracyDelta),
+                this.printRounded(x.efficiencyScoreTotal),
+                this.printRounded(x.efficiencyScoreTotal + x.efficiencyScoreTotalDelta),
+                this.displayDelta(x.efficiencyScoreTotalDelta),
+                this.calcDeltaPercentage(x.efficiencyScoreTotal, x.efficiencyScoreTotalDelta),
+                this.printRounded(x.weightedAccuracyPercent),
+                this.printRounded(x.weightedAccuracyPercent + x.weightedAccuracyDelta),
+                this.displayDelta(x.weightedAccuracyDelta),
+                this.printRounded(x.weightedEfficiencyScoreTotal),
+                this.printRounded(x.weightedEfficiencyScoreTotal + x.weightedEfficiencyScoreTotalDelta),
+                this.displayDelta(x.weightedEfficiencyScoreTotalDelta),
+                this.calcDeltaPercentage(x.weightedEfficiencyScoreTotal, x.weightedEfficiencyScoreTotalDelta),
             ];
         });
         this.heading(4, '2.6.4 Total Tokens: Mandatory vs Optional Data');
@@ -832,7 +841,7 @@ class ReportGenerator {
         // 2.7.1 Token Utilization Efficiency: Metrics
         const effTokenRowsAccuracyByCharPerc = sortedAggregated.map(item => [
             item.format,
-            item.variant.substring(0, 3),
+            item.variant,
             this.printRounded(item.readTokens, 0),
             this.printRounded(item.usefulReadTokensAccuracyByCharPerc, 0),
             this.printRounded(item.wastedReadTokensAccuracyByCharPerc, 0),
@@ -842,14 +851,14 @@ class ReportGenerator {
             this.printRounded(item.totalTokens, 0),
             this.printRounded(item.usefulTotalTokensAccuracyByCharPerc, 0),
             this.printRounded(item.wastedTotalTokensAccuracyByCharPerc, 0),
-            this.printRounded(item.accuracyByCharPerc, 2),
-            this.printRounded(item.efficiencyScoreReadAccuracyByCharPerc, 2),
-            this.printRounded(item.efficiencyScoreOutputAccuracyByCharPerc, 2),
-            this.printRounded(item.efficiencyScoreTotalAccuracyByCharPerc, 2),
-            this.printRounded(item.weightedAccuracyByCharPerc, 2),
-            this.printRounded(item.weightedEfficiencyScoreReadAccuracyByCharPerc, 2),
-            this.printRounded(item.weightedEfficiencyScoreOutputAccuracyByCharPerc, 2),
-            this.printRounded(item.weightedEfficiencyScoreTotalAccuracyByCharPerc, 2),
+            this.printRounded(item.accuracyByCharPerc),
+            this.printRounded(item.efficiencyScoreReadAccuracyByCharPerc),
+            this.printRounded(item.efficiencyScoreOutputAccuracyByCharPerc),
+            this.printRounded(item.efficiencyScoreTotalAccuracyByCharPerc),
+            this.printRounded(item.weightedAccuracyByCharPerc),
+            this.printRounded(item.weightedEfficiencyScoreReadAccuracyByCharPerc),
+            this.printRounded(item.weightedEfficiencyScoreOutputAccuracyByCharPerc),
+            this.printRounded(item.weightedEfficiencyScoreTotalAccuracyByCharPerc),
         ]);
         this.heading(3, '2.7 Token Utilization Efficiency (Accuracy by Character)');
         this.heading(4, '2.7.1 Metrics');
@@ -871,29 +880,29 @@ class ReportGenerator {
                 this.printRounded(readTokens, 0),
                 this.printRounded(readTokens + x.readTokensDelta, 0),
                 this.displayDelta(x.readTokensDelta, 0),
-                this.calcDeltaPercentage(readTokens, x.readTokensDelta, 2),
+                this.calcDeltaPercentage(readTokens, x.readTokensDelta),
                 this.printRounded(usefulReadTokens, 0),
                 this.printRounded(usefulReadTokens + x.usefulReadTokensAccuracyByCharPercDelta, 0),
                 this.displayDelta(x.usefulReadTokensAccuracyByCharPercDelta, 0),
-                this.calcDeltaPercentage(usefulReadTokens, x.usefulReadTokensAccuracyByCharPercDelta, 2),
+                this.calcDeltaPercentage(usefulReadTokens, x.usefulReadTokensAccuracyByCharPercDelta),
                 this.printRounded(wastedReadTokens, 0),
                 this.printRounded(wastedReadTokens + x.wastedReadTokensAccuracyByCharPercDelta, 0),
                 this.displayDelta(x.wastedReadTokensAccuracyByCharPercDelta, 0),
-                this.calcDeltaPercentage(wastedReadTokens, x.wastedReadTokensAccuracyByCharPercDelta, 2),
-                this.printRounded(x.accuracyByCharPerc, 2),
-                this.printRounded(x.accuracyByCharPerc + x.accuracyByCharPercDelta, 2),
-                this.displayDelta(x.accuracyByCharPercDelta, 2),
-                this.printRounded(x.efficiencyScoreReadAccuracyByCharPerc, 2),
-                this.printRounded(x.efficiencyScoreReadAccuracyByCharPerc + x.efficiencyScoreReadAccuracyByCharPercDelta, 2),
-                this.displayDelta(x.efficiencyScoreReadAccuracyByCharPercDelta, 2),
-                this.calcDeltaPercentage(x.efficiencyScoreReadAccuracyByCharPerc, x.efficiencyScoreReadAccuracyByCharPercDelta, 2),
-                this.printRounded(x.weightedAccuracyByCharPerc, 2),
-                this.printRounded(x.weightedAccuracyByCharPerc + x.weightedAccuracyByCharPercDelta, 2),
-                this.displayDelta(x.weightedAccuracyByCharPercDelta, 2),
-                this.printRounded(x.weightedEfficiencyScoreReadAccuracyByCharPerc, 2),
-                this.printRounded(x.weightedEfficiencyScoreReadAccuracyByCharPerc + x.weightedEfficiencyScoreReadAccuracyByCharPercDelta, 2),
-                this.displayDelta(x.weightedEfficiencyScoreReadAccuracyByCharPercDelta, 2),
-                this.calcDeltaPercentage(x.weightedEfficiencyScoreReadAccuracyByCharPerc, x.weightedEfficiencyScoreReadAccuracyByCharPercDelta, 2)
+                this.calcDeltaPercentage(wastedReadTokens, x.wastedReadTokensAccuracyByCharPercDelta),
+                this.printRounded(x.accuracyByCharPerc),
+                this.printRounded(x.accuracyByCharPerc + x.accuracyByCharPercDelta),
+                this.displayDelta(x.accuracyByCharPercDelta),
+                this.printRounded(x.efficiencyScoreReadAccuracyByCharPerc),
+                this.printRounded(x.efficiencyScoreReadAccuracyByCharPerc + x.efficiencyScoreReadAccuracyByCharPercDelta),
+                this.displayDelta(x.efficiencyScoreReadAccuracyByCharPercDelta),
+                this.calcDeltaPercentage(x.efficiencyScoreReadAccuracyByCharPerc, x.efficiencyScoreReadAccuracyByCharPercDelta),
+                this.printRounded(x.weightedAccuracyByCharPerc),
+                this.printRounded(x.weightedAccuracyByCharPerc + x.weightedAccuracyByCharPercDelta),
+                this.displayDelta(x.weightedAccuracyByCharPercDelta),
+                this.printRounded(x.weightedEfficiencyScoreReadAccuracyByCharPerc),
+                this.printRounded(x.weightedEfficiencyScoreReadAccuracyByCharPerc + x.weightedEfficiencyScoreReadAccuracyByCharPercDelta),
+                this.displayDelta(x.weightedEfficiencyScoreReadAccuracyByCharPercDelta),
+                this.calcDeltaPercentage(x.weightedEfficiencyScoreReadAccuracyByCharPerc, x.weightedEfficiencyScoreReadAccuracyByCharPercDelta)
             ];
         });
         this.heading(4, '2.7.2 Read Tokens (Accuracy by Character): Mandatory vs Optional Data');
@@ -913,29 +922,29 @@ class ReportGenerator {
                 this.printRounded(outputTokens, 0),
                 this.printRounded(outputTokens + x.outputTokensTotalDelta, 0),
                 this.displayDelta(x.outputTokensTotalDelta, 0),
-                this.calcDeltaPercentage(outputTokens, x.outputTokensTotalDelta, 2),
+                this.calcDeltaPercentage(outputTokens, x.outputTokensTotalDelta),
                 this.printRounded(usefulOutputTokens, 0),
                 this.printRounded(usefulOutputTokens + x.usefulOutputTokensAccuracyByCharPercDelta, 0),
                 this.displayDelta(x.usefulOutputTokensAccuracyByCharPercDelta, 0),
-                this.calcDeltaPercentage(usefulOutputTokens, x.usefulOutputTokensAccuracyByCharPercDelta, 2),
+                this.calcDeltaPercentage(usefulOutputTokens, x.usefulOutputTokensAccuracyByCharPercDelta),
                 this.printRounded(wastedOutputTokens, 0),
                 this.printRounded(wastedOutputTokens + x.wastedOutputTokensAccuracyByCharPercDelta, 0),
                 this.displayDelta(x.wastedOutputTokensAccuracyByCharPercDelta, 0),
-                this.calcDeltaPercentage(wastedOutputTokens, x.wastedOutputTokensAccuracyByCharPercDelta, 2),
-                this.printRounded(x.accuracyByCharPerc, 2),
-                this.printRounded(x.accuracyByCharPerc + x.accuracyByCharPercDelta, 2),
-                this.displayDelta(x.accuracyByCharPercDelta, 2),
-                this.printRounded(x.efficiencyScoreOutputAccuracyByCharPerc, 2),
-                this.printRounded(x.efficiencyScoreOutputAccuracyByCharPerc + x.efficiencyScoreOutputAccuracyByCharPercDelta, 2),
-                this.displayDelta(x.efficiencyScoreOutputAccuracyByCharPercDelta, 2),
-                this.calcDeltaPercentage(x.efficiencyScoreOutputAccuracyByCharPerc, x.efficiencyScoreOutputAccuracyByCharPercDelta, 2),
-                this.printRounded(x.weightedAccuracyByCharPerc, 2),
-                this.printRounded(x.weightedAccuracyByCharPerc + x.weightedAccuracyByCharPercDelta, 2),
-                this.displayDelta(x.weightedAccuracyByCharPercDelta, 2),
-                this.printRounded(x.weightedEfficiencyScoreOutputAccuracyByCharPerc, 2),
-                this.printRounded(x.weightedEfficiencyScoreOutputAccuracyByCharPerc + x.weightedEfficiencyScoreOutputAccuracyByCharPercDelta, 2),
-                this.displayDelta(x.weightedEfficiencyScoreOutputAccuracyByCharPercDelta, 2),
-                this.calcDeltaPercentage(x.weightedEfficiencyScoreOutputAccuracyByCharPerc, x.weightedEfficiencyScoreOutputAccuracyByCharPercDelta, 2),
+                this.calcDeltaPercentage(wastedOutputTokens, x.wastedOutputTokensAccuracyByCharPercDelta),
+                this.printRounded(x.accuracyByCharPerc),
+                this.printRounded(x.accuracyByCharPerc + x.accuracyByCharPercDelta),
+                this.displayDelta(x.accuracyByCharPercDelta),
+                this.printRounded(x.efficiencyScoreOutputAccuracyByCharPerc),
+                this.printRounded(x.efficiencyScoreOutputAccuracyByCharPerc + x.efficiencyScoreOutputAccuracyByCharPercDelta),
+                this.displayDelta(x.efficiencyScoreOutputAccuracyByCharPercDelta),
+                this.calcDeltaPercentage(x.efficiencyScoreOutputAccuracyByCharPerc, x.efficiencyScoreOutputAccuracyByCharPercDelta),
+                this.printRounded(x.weightedAccuracyByCharPerc),
+                this.printRounded(x.weightedAccuracyByCharPerc + x.weightedAccuracyByCharPercDelta),
+                this.displayDelta(x.weightedAccuracyByCharPercDelta),
+                this.printRounded(x.weightedEfficiencyScoreOutputAccuracyByCharPerc),
+                this.printRounded(x.weightedEfficiencyScoreOutputAccuracyByCharPerc + x.weightedEfficiencyScoreOutputAccuracyByCharPercDelta),
+                this.displayDelta(x.weightedEfficiencyScoreOutputAccuracyByCharPercDelta),
+                this.calcDeltaPercentage(x.weightedEfficiencyScoreOutputAccuracyByCharPerc, x.weightedEfficiencyScoreOutputAccuracyByCharPercDelta),
             ];
         });
         this.heading(4, '2.7.3 Output Tokens (Accuracy by Character): Mandatory vs Optional Data');
@@ -955,29 +964,29 @@ class ReportGenerator {
                 this.printRounded(totalTokens, 0),
                 this.printRounded(totalTokens + x.totalTokensDelta, 0),
                 this.displayDelta(x.totalTokensDelta, 0),
-                this.calcDeltaPercentage(totalTokens, x.totalTokensDelta, 2),
+                this.calcDeltaPercentage(totalTokens, x.totalTokensDelta),
                 this.printRounded(usefulTotalTokens, 0),
                 this.printRounded(usefulTotalTokens + x.usefulTotalTokensAccuracyByCharPercDelta, 0),
                 this.displayDelta(x.usefulTotalTokensAccuracyByCharPercDelta, 0),
-                this.calcDeltaPercentage(usefulTotalTokens, x.usefulTotalTokensAccuracyByCharPercDelta, 2),
+                this.calcDeltaPercentage(usefulTotalTokens, x.usefulTotalTokensAccuracyByCharPercDelta),
                 this.printRounded(wastedTotalTokens, 0),
                 this.printRounded(wastedTotalTokens + x.wastedTotalTokensAccuracyByCharPercDelta, 0),
                 this.displayDelta(x.wastedTotalTokensAccuracyByCharPercDelta, 0),
-                this.calcDeltaPercentage(wastedTotalTokens, x.wastedTotalTokensAccuracyByCharPercDelta, 2),
-                this.printRounded(x.accuracyByCharPerc, 2),
-                this.printRounded(x.accuracyByCharPerc + x.accuracyByCharPercDelta, 2),
-                this.displayDelta(x.accuracyByCharPercDelta, 2),
-                this.printRounded(x.efficiencyScoreTotalAccuracyByCharPerc, 2),
-                this.printRounded(x.efficiencyScoreTotalAccuracyByCharPerc + x.efficiencyScoreTotalAccuracyByCharPercDelta, 2),
-                this.displayDelta(x.efficiencyScoreTotalAccuracyByCharPercDelta, 2),
-                this.calcDeltaPercentage(x.efficiencyScoreTotalAccuracyByCharPerc, x.efficiencyScoreTotalAccuracyByCharPercDelta, 2),
-                this.printRounded(x.weightedAccuracyByCharPerc, 2),
-                this.printRounded(x.weightedAccuracyByCharPerc + x.weightedAccuracyByCharPercDelta, 2),
-                this.displayDelta(x.weightedAccuracyByCharPercDelta, 2),
-                this.printRounded(x.weightedEfficiencyScoreTotalAccuracyByCharPerc, 2),
-                this.printRounded(x.weightedEfficiencyScoreTotalAccuracyByCharPerc + x.weightedEfficiencyScoreTotalAccuracyByCharPercDelta, 2),
-                this.displayDelta(x.weightedEfficiencyScoreTotalAccuracyByCharPercDelta, 2),
-                this.calcDeltaPercentage(x.weightedEfficiencyScoreTotalAccuracyByCharPerc, x.weightedEfficiencyScoreTotalAccuracyByCharPercDelta, 2),
+                this.calcDeltaPercentage(wastedTotalTokens, x.wastedTotalTokensAccuracyByCharPercDelta),
+                this.printRounded(x.accuracyByCharPerc),
+                this.printRounded(x.accuracyByCharPerc + x.accuracyByCharPercDelta),
+                this.displayDelta(x.accuracyByCharPercDelta),
+                this.printRounded(x.efficiencyScoreTotalAccuracyByCharPerc),
+                this.printRounded(x.efficiencyScoreTotalAccuracyByCharPerc + x.efficiencyScoreTotalAccuracyByCharPercDelta),
+                this.displayDelta(x.efficiencyScoreTotalAccuracyByCharPercDelta),
+                this.calcDeltaPercentage(x.efficiencyScoreTotalAccuracyByCharPerc, x.efficiencyScoreTotalAccuracyByCharPercDelta),
+                this.printRounded(x.weightedAccuracyByCharPerc),
+                this.printRounded(x.weightedAccuracyByCharPerc + x.weightedAccuracyByCharPercDelta),
+                this.displayDelta(x.weightedAccuracyByCharPercDelta),
+                this.printRounded(x.weightedEfficiencyScoreTotalAccuracyByCharPerc),
+                this.printRounded(x.weightedEfficiencyScoreTotalAccuracyByCharPerc + x.weightedEfficiencyScoreTotalAccuracyByCharPercDelta),
+                this.displayDelta(x.weightedEfficiencyScoreTotalAccuracyByCharPercDelta),
+                this.calcDeltaPercentage(x.weightedEfficiencyScoreTotalAccuracyByCharPerc, x.weightedEfficiencyScoreTotalAccuracyByCharPercDelta),
             ];
         });
         this.heading(4, '2.7.4 Total Tokens (Accuracy by Character): Mandatory vs Optional Data');
@@ -990,62 +999,68 @@ class ReportGenerator {
         // 2.8.1 Answer Quality Breakdown: Metrics
         const answerQualityRows = sortedAggregated.map(item => [
             item.format,
-            item.variant.substring(0, 3),
-            this.printRounded(item.correctAnswers, 2),
-            this.printRounded(item.incorrectAnswers, 2),
-            this.printRounded(item.noAnswers, 2),
-            this.printRounded(item.accuracyPercent, 2),
-            this.printRounded(item.expectedChars, 2),
-            this.printRounded(item.totalChars, 2),
-            this.printRounded(item.correctChars, 2),
-            this.printRounded(item.incorrectChars, 2),
-            this.printRounded(item.accuracyByCharPerc, 2),
+            item.variant,
+            this.printRounded(item.correctAnswers, 0),
+            this.printRounded(item.incorrectAnswers, 0),
+            this.printRounded(item.noAnswers, 0),
+            this.printRounded(item.accuracyPercent),
+            this.printRounded(item.expectedChars, 0),
+            this.printRounded(item.totalChars, 0),
+            this.printRounded(item.correctChars, 0),
+            this.printRounded(item.incorrectChars, 0),
+            this.printRounded(item.accuracyByCharPerc),
         ]);
         this.heading(3, '2.8 Answer Per Format Breakdown');
         this.heading(4, '2.8.1 Metrics');
         this.table(['Format', 'Variant', 'Correct Answers', 'Incorrect Answers', 'No Answers', 'Accuracy (%)', 'Expected Characters', 'Output Characters', 'Correct Characters', 'Incorrect Characters', 'Accuracy by Character (%)'], answerQualityRows);
         // 2.8.2 Answer Per Format Breakdown: Mandatory vs Optional Data
         const mandOptAnswerDeltaRows = mandatories.map(x => {
+            const correctAnswers = Math.round(x.correctAnswers);
+            const incorrectAnswers = Math.round(x.incorrectAnswers);
+            const noAnswers = Math.round(x.noAnswers);
             return [
                 x.format,
-                this.printRounded(x.correctAnswers, 2),
-                this.printRounded(x.correctAnswers + x.correctAnswersDelta, 2),
-                this.displayDelta(x.correctAnswersDelta, 2),
-                this.calcDeltaPercentage(x.correctAnswers, x.correctAnswersDelta, 2),
-                this.printRounded(x.incorrectAnswers, 2),
-                this.printRounded(x.incorrectAnswers + x.incorrectAnswersDelta, 2),
-                this.displayDelta(x.incorrectAnswersDelta, 2),
-                this.calcDeltaPercentage(x.incorrectAnswers, x.incorrectAnswersDelta, 2),
-                this.printRounded(x.noAnswers, 2),
-                this.printRounded(x.noAnswers + x.noAnswersDelta, 2),
-                this.displayDelta(x.noAnswersDelta, 2),
-                this.calcDeltaPercentage(x.noAnswers, x.noAnswersDelta, 2),
-                this.printRounded(x.accuracyPercent, 2),
-                this.printRounded(x.accuracyPercent + x.accuracyDelta, 2),
-                this.displayDelta(x.accuracyDelta, 2)
+                this.printRounded(correctAnswers, 0),
+                this.printRounded(correctAnswers + x.correctAnswersDelta, 0),
+                this.displayDelta(x.correctAnswersDelta, 0),
+                this.calcDeltaPercentage(correctAnswers, x.correctAnswersDelta),
+                this.printRounded(incorrectAnswers, 0),
+                this.printRounded(incorrectAnswers + x.incorrectAnswersDelta, 0),
+                this.displayDelta(x.incorrectAnswersDelta, 0),
+                this.calcDeltaPercentage(incorrectAnswers, x.incorrectAnswersDelta),
+                this.printRounded(noAnswers, 0),
+                this.printRounded(noAnswers + x.noAnswersDelta, 0),
+                this.displayDelta(x.noAnswersDelta, 0),
+                this.calcDeltaPercentage(noAnswers, x.noAnswersDelta),
+                this.printRounded(x.accuracyPercent),
+                this.printRounded(x.accuracyPercent + x.accuracyDelta),
+                this.displayDelta(x.accuracyDelta)
             ];
         });
         this.heading(4, '2.8.2 Answers: Mandatory vs Optional Data');
         this.table(['Format', 'Correct Man', 'Correct Opt', 'Diff', 'Diff (%)', 'Incorrect Man', 'Incorrect Opt', 'Diff', 'Diff (%)', 'No Answers Man', 'No Answers Opt', 'Diff', 'Diff (%)', 'Accuracy (%) Man', 'Accuracy (%) Opt', 'Diff (%)'], mandOptAnswerDeltaRows);
         // 2.8.3 Answer Per Format Breakdown: Characters: Mandatory vs Optional Data
         const mandOptAnswerDeltaRowsAccuracyByCharPerc = mandatories.map(x => {
+            const totalChars = Math.round(x.totalChars);
+            const correctChars = Math.round(x.correctChars);
+            const incorrectChars = Math.round(x.incorrectChars);
             return [
                 x.format,
-                this.printRounded(x.totalChars, 2),
-                this.printRounded(x.totalChars + x.totalCharsDelta, 2),
-                this.displayDelta(x.totalCharsDelta, 2),
-                this.calcDeltaPercentage(x.totalChars, x.totalCharsDelta, 2),
-                this.printRounded(x.correctChars, 2),
-                this.printRounded(x.correctChars + x.correctCharsDelta, 2),
-                this.displayDelta(x.correctCharsDelta, 2),
-                this.calcDeltaPercentage(x.correctChars, x.correctCharsDelta, 2),
-                this.printRounded(x.incorrectChars, 2),
-                this.printRounded(x.incorrectChars + x.incorrectCharsDelta, 2),
-                this.displayDelta(x.incorrectCharsDelta, 2),
-                this.calcDeltaPercentage(x.incorrectChars, x.incorrectCharsDelta, 2),
-                this.printRounded(x.accuracyByCharPerc, 2),
-                this.printRounded(x.accuracyByCharPerc + x.accuracyByCharPercDelta, 2),
-                this.printRounded(x.accuracyByCharPercDelta, 2)
+                this.printRounded(totalChars, 0),
+                this.printRounded(totalChars + x.totalCharsDelta, 0),
+                this.displayDelta(x.totalCharsDelta, 0),
+                this.calcDeltaPercentage(totalChars, x.totalCharsDelta),
+                this.printRounded(correctChars, 0),
+                this.printRounded(correctChars + x.correctCharsDelta, 0),
+                this.displayDelta(x.correctCharsDelta, 0),
+                this.calcDeltaPercentage(correctChars, x.correctCharsDelta),
+                this.printRounded(incorrectChars, 0),
+                this.printRounded(incorrectChars + x.incorrectCharsDelta, 0),
+                this.displayDelta(x.incorrectCharsDelta, 0),
+                this.calcDeltaPercentage(incorrectChars, x.incorrectCharsDelta),
+                this.printRounded(x.accuracyByCharPerc),
+                this.printRounded(x.accuracyByCharPerc + x.accuracyByCharPercDelta),
+                this.printRounded(x.accuracyByCharPercDelta)
             ];
         });
         this.heading(4, '2.8.3 Characters: Mandatory vs Optional Data');
@@ -1063,17 +1078,17 @@ class ReportGenerator {
             const aggregation = validation?.accuracy.find(x => x.category === 'aggregation');
             return [
                 item.format,
-                item.variant.substring(0, 3),
-                this.printRounded(item.accuracyPercent, 2),
-                this.printRounded(retrieval?.accuracyPercent, 2),
-                this.printRounded(structure?.accuracyPercent, 2),
-                this.printRounded(filtering?.accuracyPercent, 2),
-                this.printRounded(aggregation?.accuracyPercent, 2),
-                this.printRounded(item.weightedAccuracyByCharPerc, 2),
-                this.printRounded(retrieval?.weightedAccuracyPercent, 2),
-                this.printRounded(structure?.weightedAccuracyPercent, 2),
-                this.printRounded(filtering?.weightedAccuracyPercent, 2),
-                this.printRounded(aggregation?.weightedAccuracyPercent, 2),
+                item.variant,
+                this.printRounded(item.accuracyPercent),
+                this.printRounded(retrieval?.accuracyPercent),
+                this.printRounded(structure?.accuracyPercent),
+                this.printRounded(filtering?.accuracyPercent),
+                this.printRounded(aggregation?.accuracyPercent),
+                this.printRounded(item.weightedAccuracyByCharPerc),
+                this.printRounded(retrieval?.weightedAccuracyPercent),
+                this.printRounded(structure?.weightedAccuracyPercent),
+                this.printRounded(filtering?.weightedAccuracyPercent),
+                this.printRounded(aggregation?.weightedAccuracyPercent),
             ];
         });
         this.heading(3, '2.9 Accuracy Per Question Category Analysis');
@@ -1092,17 +1107,17 @@ class ReportGenerator {
             const aggregation = validation?.accuracy.find(x => x.category === 'aggregation');
             return [
                 item.format,
-                item.variant.substring(0, 3),
-                this.printRounded(item.accuracyByCharPerc, 2),
-                this.printRounded(retrieval?.charactersOfAnswers.accuracyByCharPerc, 2),
-                this.printRounded(structure?.charactersOfAnswers.accuracyByCharPerc, 2),
-                this.printRounded(filtering?.charactersOfAnswers.accuracyByCharPerc, 2),
-                this.printRounded(aggregation?.charactersOfAnswers.accuracyByCharPerc, 2),
-                this.printRounded(item.weightedAccuracyByCharPerc, 2),
-                this.printRounded(retrieval?.charactersOfAnswers.weightedAccuracyByCharPerc, 2),
-                this.printRounded(structure?.charactersOfAnswers.weightedAccuracyByCharPerc, 2),
-                this.printRounded(filtering?.charactersOfAnswers.weightedAccuracyByCharPerc, 2),
-                this.printRounded(aggregation?.charactersOfAnswers.weightedAccuracyByCharPerc, 2),
+                item.variant,
+                this.printRounded(item.accuracyByCharPerc),
+                this.printRounded(retrieval?.charactersOfAnswers.accuracyByCharPerc),
+                this.printRounded(structure?.charactersOfAnswers.accuracyByCharPerc),
+                this.printRounded(filtering?.charactersOfAnswers.accuracyByCharPerc),
+                this.printRounded(aggregation?.charactersOfAnswers.accuracyByCharPerc),
+                this.printRounded(item.weightedAccuracyByCharPerc),
+                this.printRounded(retrieval?.charactersOfAnswers.weightedAccuracyByCharPerc),
+                this.printRounded(structure?.charactersOfAnswers.weightedAccuracyByCharPerc),
+                this.printRounded(filtering?.charactersOfAnswers.weightedAccuracyByCharPerc),
+                this.printRounded(aggregation?.charactersOfAnswers.weightedAccuracyByCharPerc),
             ];
         });
         this.heading(3, '2.10 Accuracy By Character Per Question Category Analysis');
@@ -1113,14 +1128,16 @@ class ReportGenerator {
         this.diffMandOptAccuracyByCharacterPerCategory('2.10.4', 'filtering', mandatoriesVals, optionalsVals);
         this.diffMandOptAccuracyByCharacterPerCategory('2.10.5', 'aggregation', mandatoriesVals, optionalsVals);
     }
-    calcDeltaPercentage(manVal, optManDelta, decimalPlaces) {
-        return this.printRounded(manVal > 0 || optManDelta === 0 ? (optManDelta / manVal) * 100 : 0, decimalPlaces, true);
+    calcDeltaPercentage(manVal, optManDelta, decimalPlaces = 2) {
+        const manRounded = this.round(manVal, decimalPlaces);
+        const optRounded = this.round(optManDelta, decimalPlaces);
+        return this.printRounded(manRounded !== 0 && optRounded !== 0 ? (optManDelta / manVal) * 100 : 0, decimalPlaces, true);
     }
-    displayDelta(percentage, decimalPlaces) {
+    displayDelta(percentage, decimalPlaces = 2) {
         return this.printRounded(percentage, decimalPlaces, true);
     }
-    printRounded(num, decimalPlaces, addSign = false) {
-        if (!num) {
+    printRounded(num, decimalPlaces = 2, addSign = false) {
+        if (!num || num === 0) {
             switch (decimalPlaces) {
                 case 0:
                     return '0';
@@ -1133,6 +1150,10 @@ class ReportGenerator {
             }
             return '0';
         }
+        const numRounded = this.round(num, decimalPlaces);
+        return (addSign && numRounded > 0 ? '+' : '') + numRounded.toFixed(decimalPlaces);
+    }
+    round(num, decimalPlaces = 2) {
         let factor = 1;
         switch (decimalPlaces) {
             case 0:
@@ -1148,10 +1169,7 @@ class ReportGenerator {
                 factor = 1000;
                 break;
         }
-        const numRounded = Math.round(num * factor) / factor;
-        if (numRounded === 0)
-            return Math.abs(numRounded).toFixed(decimalPlaces);
-        return (addSign && numRounded > 0 ? '+' : '') + numRounded.toFixed(decimalPlaces);
+        return Math.round(num * factor) / factor;
     }
     diffMandOptAccuracyPerCategory(idx, category, mandatoriesVals, optionalsVals) {
         this.heading(4, `${idx} ${this.getQuestionCategoryLabel(category)}: Mandatory vs Optional`);
@@ -1176,12 +1194,12 @@ class ReportGenerator {
     getAccuracyPerCategoryRow(fmt, man, opt, manWtd, optWtd) {
         return [
             fmt,
-            this.printRounded(man, 2),
-            this.printRounded(opt, 2),
-            this.displayDelta(opt - man, 2),
-            this.printRounded(manWtd, 2),
-            this.printRounded(optWtd, 2),
-            this.displayDelta(optWtd - manWtd, 2),
+            this.printRounded(man),
+            this.printRounded(opt),
+            this.displayDelta(opt - man),
+            this.printRounded(manWtd),
+            this.printRounded(optWtd),
+            this.displayDelta(optWtd - manWtd),
         ];
     }
     printAccuracyPerCategoryTable(categoryMandOptRows) {
@@ -1202,7 +1220,7 @@ class ReportGenerator {
         this.heading(3, '3.2 Appendix B: Benchmark Configuration');
         this.metadata.questionDistribution.forEach((q) => {
             const weight = this.metadata.questionWeightDistribution.find((w) => w[0] === q[0]);
-            const weightPercent = this.printRounded(weight ? weight[1] * 100 : 0, 2);
+            const weightPercent = this.printRounded(weight ? weight[1] * 100 : 0);
             this.line(`- **${this.getQuestionCategoryLabel(q[0])}**: ${q[1]} questions (${weightPercent}% weight)`);
         });
         this.line();
