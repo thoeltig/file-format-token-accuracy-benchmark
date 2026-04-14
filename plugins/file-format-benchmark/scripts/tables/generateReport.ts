@@ -532,9 +532,9 @@ class ReportGenerator {
     const rows = sortedAggregated.map(item => [
       item.format,
       item.variant.substring(0, 3),
-      Math.round(item.readTokens).toString(),
-      Math.round(item.outputTokensTotal).toString(),
-      Math.round(item.totalTokens).toString(),
+      this.printRounded(item.readTokens, 0),
+      this.printRounded(item.outputTokensTotal, 0),
+      this.printRounded(item.totalTokens, 0),
       this.printRounded(item.charsPerReadToken, 3),
       this.printRounded(item.outputTokensWritePerAnswer, 3),
       this.printRounded(item.accuracyPercent, 2),
