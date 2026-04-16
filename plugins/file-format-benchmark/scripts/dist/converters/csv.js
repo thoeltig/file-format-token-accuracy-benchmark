@@ -19,7 +19,7 @@ function convertToCsv(data) {
         Object.keys(record).forEach((key) => allFields.add(key));
     });
     // Sort fields for consistency
-    const headers = Array.from(allFields).sort();
+    const headers = Array.from(allFields);
     // Create CSV header
     const csvLines = [headers.map(escapeCsvField).join(",")];
     // Create CSV rows

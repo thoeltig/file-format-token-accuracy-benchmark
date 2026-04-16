@@ -10,6 +10,7 @@
 export type Format = "csv" | "json_pretty" | "json_compact" | "toon_default" | "toon_keyfold" | "xml_pretty" | "xml_compact" | "yaml";
 export type Directory = "data" | "answers_validation" | "questions" | "answers_template" | "subagent_outputs" | "results";
 export type QuestionCategory = "field_retrieval" | "aggregation" | "filtering" | "structure_awareness";
+export type EfficiencyScoreCategory = "accuracy" | "tokens";
 
 export interface MetadataFlatArray {
   generatedAt: string,
@@ -214,9 +215,18 @@ export interface ValidationResult {
   question: string;
   givenAnswer: string | number | string[] | boolean;
   expectedAnswer: string | number | string[] | boolean;
-  correct: boolean;
+  stats: ValidationStats;
   category: QuestionCategory;
   method: AnswerValidationMethod;
+}
+
+export interface ValidationStats {
+  correct: boolean;
+  expectedChars: number;
+  correctChars: number;
+  incorrectChars: number;
+  totalChars: number;
+  accuracyByChar: number;
 }
 
 export interface ValidationReport {
@@ -229,6 +239,7 @@ export interface ValidationReport {
     accuracyPercent: number;
     weightedAccuracyPercent: number;  
   };
+  charactersOfAnswers: CharactersOfAnswers;
   accuracyPerCategory: CategoryAnswerAccuracy[];
 }
 
@@ -249,6 +260,7 @@ export interface AvgAnswerAccuracy extends AnswerAccuracy{
   accuracyDriftPercMax: number;
   weightedAccuracyDriftPercMin: number;
   weightedAccuracyDriftPercMax: number;
+  charactersOfAnswers: ExtendedCharactersOfAnswers;
 }
 
 export interface AnswerAccuracy {
@@ -260,12 +272,35 @@ export interface AnswerAccuracy {
 
 export interface CategoryAnswerAccuracy extends AnswerAccuracy {
   category: QuestionCategory;
-  unanswered: number; 
+  unanswered: number;  
+  charactersOfAnswers: CharactersOfAnswers;
 }
 
 export interface PerTestRunAnswerAccuracy extends AnswerAccuracy {
   run: number;
-  accuracyPerCategory: CategoryAnswerAccuracy[];
+  accuracyPerCategory: CategoryAnswerAccuracy[];    
+  charactersOfAnswers: CharactersOfAnswers;
+}
+
+export interface ExtendedCharactersOfAnswers extends CharactersOfAnswers{
+    accuracyByCharPercDriftMin: number;
+    accuracyByCharPercDriftMax: number;
+    weightedAccuracyByCharPercDriftMin: number;
+    weightedAccuracyByCharPercDriftMax: number;
+}
+
+export interface CharactersOfAnswers {
+  // The count of characters in the original answers
+  expected: number;
+  // The count of correct characters in the given answers
+  correct: number;
+  // The count of incorrect and missing characters in the given answers
+  incorrect: number;
+  // The sum of correct, incorrect and missing characters in the given answers
+  total: number;  
+  // The by char accuracy is calculated 'correct / total' because
+  accuracyByCharPerc: number;
+  weightedAccuracyByCharPerc: number;
 }
 
 export interface QuestionsAndProvidedAnswers {
@@ -388,14 +423,30 @@ export interface UserMetrics {
   variant: string;
   recordCount: number;
   hasOptionalData: boolean;
-  readDurationInMilliseconds: number;
+  readDurationInMs: number;
   readTokens: number;
-  reasoningDurationInMilliseconds: number;
-  reasoningDurationDriftPercMin: number;
-  reasoningDurationDriftPercMax: number;
-  outputTokens: number;
-  outputTokensDriftPercMin: number;
-  outputTokensDriftPercMax: number;
+  outputDurationBeforeWriteInMs: number;
+  outputDurationBeforeWriteDriftPercMin: number;
+  outputDurationBeforeWriteDriftPercMax: number;
+  outputDurationWriteInMs: number;
+  outputDurationWriteDriftPercMin: number;
+  outputDurationWriteDriftPercMax: number;
+  outputDurationTotalInMs: number;
+  outputDurationTotalDriftPercMin: number;
+  outputDurationTotalDriftPercMax: number;
+  outputTokensBeforeWrite: number;
+  outputTokensBeforeWriteDriftPercMin: number;
+  outputTokensBeforeWriteDriftPercMax: number;
+  outputTokensWrite: number;
+  outputTokensWriteDriftPercMin: number;
+  outputTokensWriteDriftPercMax: number;
+  outputTokensTotal: number;
+  outputTokensTotalDriftPercMin: number;
+  outputTokensTotalDriftPercMax: number;  
+  // The total sum of read and output tokens
+  totalTokens: number;
+  totalTokensDriftPercMin: number;
+  totalTokensDriftPercMax: number;
 }
 
 // ============================================================================
@@ -442,59 +493,133 @@ export interface Metrics {
 
   // Read-Only extraction script result
   readTokens: number;
-  readDurationInMilliseconds: number;
-  readTokensPerMillisecond: number;
+  readDurationInMs: number;
+  readTokensPerMs: number;
   
   // Full test extraction script result
-  avgOutputTokens: number;
-  minOutputTokensDriftPerc: number;
-  maxOutputTokensDriftPerc: number;
-  avgReasoningDurationInMilliseconds: number;
-  minReasoningDurationDriftPerc: number;
-  maxReasoningDurationDriftPerc: number;
-  avgReasoningTokensPerMillisecond: number;
+  outputTokensBeforeWrite: number;
+  outputTokensBeforeWriteDriftPercMin: number;
+  outputTokensBeforeWriteDriftPercMax: number;
+  outputTokensWrite: number;
+  outputTokensWriteDriftPercMin: number;
+  outputTokensWriteDriftPercMax: number;
+  outputTokensTotal: number;
+  outputTokensTotalDriftPercMin: number;
+  outputTokensTotalDriftPercMax: number;
+
+  outputDurationBeforeWriteInMs: number;
+  outputDurationBeforeWriteDriftPercMin: number;
+  outputDurationBeforeWriteDriftPercMax: number;
+  outputDurationWriteInMs: number;
+  outputDurationWriteDriftPercMin: number;
+  outputDurationWriteDriftPercMax: number;
+  outputDurationTotalInMs: number;
+  outputDurationTotalDriftPercMin: number;
+  outputDurationTotalDriftPercMax: number;
+  
+  outputTokensBeforeWritePerMs: number;
+  outputTokensWritePerMs: number;
+  outputTokensTotalPerMs: number;
 
   // Validation script result
   totalQuestions: number;
-  avgNoAnswers: number;
-  avgIncorrectAnswers: number;
-  avgCorrectAnswers: number;
-  avgAccuracyPercent: number;
-  minAccuracyDriftPercent: number;
-  maxAccuracyDriftPercent: number;
-  avgWeightedAccuracyPercent: number;
-  minWeightedAccuracyDriftPercent: number;
-  maxWeightedAccuracyDriftPercent: number;
+  noAnswers: number;
+  incorrectAnswers: number;
+  correctAnswers: number;
+  accuracyPercent: number;
+  accuracyDriftPercentMin: number;
+  accuracyDriftPercentMax: number;
+  weightedAccuracyPercent: number;
+  weightedAccuracyDriftPercentMin: number;
+  weightedAccuracyDriftPercentMax: number;
 
   // Calculated metrics section
 
   // This is only interesting to see how the conversion rate from characters to tokens is.
-  charsPerToken: number;
+  charsPerReadToken: number;
   // Information efficiency: tokens needed per data value. Lower is better - represents how densely packed the format is.
-  tokensPerValue: number;  
+  readTokensPerValue: number;  
   // Information efficiency: tokens needed per object. Lower is better - accounts for structural overhead.
-  tokensPerObject: number; 
+  readTokensPerObject: number; 
   // Reasoning cost per question answered. Indicates how complex the reasoning task is for this format
-  avgOutputTokensPerAnswer: number;
+  outputTokensWritePerAnswer: number;
   // Represents information density: how much accuracy per token consumed. Higher values indicate more information delivered per token.
-  informationValuePerToken: number;
-  // Tokens wasted on inaccurate output that increases context pollution. Higher values indicate format reliability risk.
-  costOfInaccuracy: number;
-  // Reading + reasoning tokens
-  totalTokensUsed: number;
+  informationValuePerReadTokens: number;
+  informationValuePerOutputTokens: number;
+  informationValuePerTotalTokens: number;
+
+  // Reading + output tokens
+  totalTokens: number;
+  totalTokensDriftPercMin: number;
+  totalTokensDriftPercMax: number;
 
   // Results
 
+  // Tokens wasted on inaccurate output that increases context pollution. Higher values indicate format reliability risk.
+  wastedReadTokens: number;
+  wastedOutputTokens: number;
+  wastedTotalTokens: number;
   // Effective tokens: assumes lower accuracy wastes tokens. Accounts for format quality via accuracy percentage.
-  efficientlyUsedTokens: number;
+  usefulReadTokens: number;
+  usefulOutputTokens: number;
+  usefulTotalTokens: number;
+  
   // Same as above but weighted by question importance: field retrieval and structure awareness questions weighted higher than aggregation and filtering.
-  weightedEfficientlyUsedTokens: number;
+  weightedWastedReadTokens: number;
+  weightedWastedOutputTokens: number;
+  weightedWastedTotalTokens: number;
+  weightedUsefulReadTokens: number;
+  weightedUsefulOutputTokens: number;
+  weightedUsefulTotalTokens: number;
+
   // Combined score (0-100): accuracy weighted 70% + token efficiency weighted 30%.
   // Prioritizes correctness over token usage - a format that is accurate is preferred because inaccuracy will lead to multiple reads and more reasoning.
   // normalizedAmountScore: lower token usage = higher score (max tokens used = 0, min tokens used = 100).
-  efficiencyScore: number;
+  efficiencyScoreRead: number;
+  efficiencyScoreOutput: number;
+  efficiencyScoreTotal: number;
   // Same scoring as efficiencyScore but uses weighted accuracy: field retrieval and structure awareness answers count more than aggregation and filtering
-  weightedEfficiencyScore: number;
+  weightedEfficiencyScoreRead: number;
+  weightedEfficiencyScoreOutput: number;
+  weightedEfficiencyScoreTotal: number;
+  
+  // Accuracy by per character correctness in the output. Same logic as the above values but calculated with the different accuracy value.
+  expectedChars: number;
+  correctChars: number;
+  incorrectChars: number;
+  totalChars: number;
+  
+  accuracyByCharPerc: number;
+  accuracyByCharPercDriftMin: number;
+  accuracyByCharPercDriftMax: number;
+  weightedAccuracyByCharPerc: number;
+  weightedAccuracyByCharPercDriftMin: number;
+  weightedAccuracyByCharPercDriftMax: number;
+
+  informationValuePerReadTokensAccuracyByCharPerc: number;
+  informationValuePerOutputTokensAccuracyByCharPerc: number;
+  informationValuePerTotalTokensAccuracyByCharPerc: number;
+
+  wastedReadTokensAccuracyByCharPerc: number;
+  wastedOutputTokensAccuracyByCharPerc: number;
+  wastedTotalTokensAccuracyByCharPerc: number;
+  usefulReadTokensAccuracyByCharPerc: number;
+  usefulOutputTokensAccuracyByCharPerc: number;
+  usefulTotalTokensAccuracyByCharPerc: number;
+  
+  weightedWastedReadTokensAccuracyByCharPerc: number;
+  weightedWastedOutputTokensAccuracyByCharPerc: number;
+  weightedWastedTotalTokensAccuracyByCharPerc: number;
+  weightedUsefulReadTokensAccuracyByCharPerc: number;
+  weightedUsefulOutputTokensAccuracyByCharPerc: number;
+  weightedUsefulTotalTokensAccuracyByCharPerc: number;
+
+  efficiencyScoreReadAccuracyByCharPerc: number;
+  efficiencyScoreOutputAccuracyByCharPerc: number;
+  efficiencyScoreTotalAccuracyByCharPerc: number;
+  weightedEfficiencyScoreReadAccuracyByCharPerc: number;
+  weightedEfficiencyScoreOutputAccuracyByCharPerc: number;
+  weightedEfficiencyScoreTotalAccuracyByCharPerc: number;
 }
 
 export interface TestMetrics extends Metrics {
@@ -506,48 +631,21 @@ export interface TestMetrics extends Metrics {
 
 export interface AnalyticsOutput {
   timestamp: string;
-  testConfigurations: {
-    metadataFile: string;
-    agentIdsFile: string;
-    metricsFile: string;
-    model: string;
-    thinking: string;
-    structure: string;
-    formats: string[];
-    variants: string[];
-    recordCounts: number[];
-    questionDistribution: [QuestionCategory, number][];
-    questionWeightDistribution: [QuestionCategory, number][];
-  };
+  testConfigurations: TestMetadata;
   metrics: TestMetrics[];
-  rankings: Record<number, Ranking>;
 }
 
-export interface Ranking { 
-  avgCharsPerToken: number; 
-  avgTokensPerValue: number; 
-  avgTokensPerObject: number; 
-  avgAccuracy: number;
-  mostTokenEfficient: RankingEntry[];
-  leastTokenUsage: RankingEntry[];
-  mostAccurate: RankingEntry[];
-  mostAccurateWeighted: RankingEntry[];
-  mostEfficiencyScore: RankingEntry[];
-  mostWeightedEfficiencyScore: RankingEntry[];
-}
-
-export interface RankingEntry { 
-  format: string; 
-  hasOptionalData: boolean; 
-  recordCount: number; 
-  charsPerToken: number; 
-  tokensUsed: number; 
-  tokensPerValue: number; 
-  tokensPerObject: number; 
-  accuracyPercent: number; 
-  efficientlyUsedTokens: number; 
-  efficiencyScore: number;
-  weightedAccuracyPercent: number; 
-  weightedEfficientlyUsedTokens: number; 
-  weightedEfficiencyScore: number;
+export interface TestMetadata {
+  metadataFile: string;
+  agentIdsFile: string;
+  metricsFile: string;
+  model: string;
+  thinking: string;
+  structure: string;
+  formats: string[];
+  variants: string[];
+  recordCounts: number[];
+  efficiencyScoreWeight: [EfficiencyScoreCategory, number][];
+  questionDistribution: [QuestionCategory, number][];
+  questionWeightDistribution: [QuestionCategory, number][];
 }
