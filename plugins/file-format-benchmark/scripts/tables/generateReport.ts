@@ -1442,7 +1442,7 @@ class ReportGenerator {
     this.line();
     this.line('- **Report Generated**: ' + new Date().toISOString().split('T')[0]);
     this.line('- **Written by**: [Thore Höltig](https://github.com/thoeltig)');
-    this.line('- **Test run in**: Claude Code 2.1.73');
+    this.line('- **Test run in**: Claude Code 2.X.X');
     this.line('- **Data Source**: `analytics_results.json`');
     this.line('- **Publication**: Open source research in [GitHub repository](https://github.com/thoeltig/file-format-token-accuracy-benchmark-results)');
     this.line('- **Licensed under**: [CC BY 4.0](https://github.com/thoeltig/file-format-token-accuracy-benchmark-results/LICENSE)');
