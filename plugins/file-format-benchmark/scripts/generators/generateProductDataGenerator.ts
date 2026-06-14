@@ -21,7 +21,7 @@ export class ProductDataGenerator {
 
     while (recordIndex < recordCount) {
       const product = this.data.getRandomProduct(recordIndex, allFieldsManadatory);
-      totalValues+=20;
+      totalValues+=19;
 
       if (product.description !== undefined && product.description !== null) {
         totalValues+=1;
