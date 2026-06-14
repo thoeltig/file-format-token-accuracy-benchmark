@@ -15,7 +15,7 @@ export const FILE_METADATA:string = "metadata.json";
 export const FILE_ANALYTICS_RESULT:string  = "analytics_results.json";
 export const FILE_METRICS:string = "metrics.json";
 
-export const RECORD_COUNT = 31;
+export const RECORD_COUNT = 32;
 export const VARIANTS: boolean[] = [true, false];
 export const EFFICIENCY_SCORE_WEIGHT = {
     accuracy: 0.66666,

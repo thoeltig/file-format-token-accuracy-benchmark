@@ -82,15 +82,18 @@ export class ProductRecordRandomizer{
     const product: ProductRecord = {
         productId: `PROD-${String(index + 1).padStart(6, "0")}`,
         productName: this.generateProductName(),
+        description: this.rand.getRandomItem(ProductRecordRandomizer.descriptions),
         category: this.rand.getRandomItem(ProductRecordRandomizer.categories),
+        avgRating: this.rand.randomFloat(1, 5, 1),
         price: this.rand.randomFloat(10, 5000, 2),
         costPrice: this.rand.randomFloat(5, 2500, 2),
+        discontinuedDate: this.rand.generateDate(180),
         stockQuantity: this.rand.randomInt(0, 10000),
         reorderPoint: this.rand.randomInt(10, 500),
         lastRestocked: this.rand.generateDate(90),
+        shelfLife: this.rand.randomInt(30, 3650),
         supplierName: this.rand.getRandomItem(ProductRecordRandomizer.suppliers),
         supplierLocation: this.rand.getRandomItem(ProductRecordRandomizer.locations),
-        description: this.rand.getRandomItem(ProductRecordRandomizer.descriptions),
         sku: this.generateSKU(index),
         manufacturerCode: `MFR-${this.rand.randomInt(100000, 999999)}`,
         warehouseLocation: `${String.fromCharCode(65 + this.rand.randomInt(0, 9))}-${this.rand.randomInt(1, 99)}-${this.rand.randomInt(1, 50)}`,
@@ -99,20 +102,26 @@ export class ProductRecordRandomizer{
         hazardous: this.rand.getRandomNumber() > 0.8,
         fragile: this.rand.getRandomNumber() > 0.7,
         unitsShipped: this.rand.randomInt(0, 100000),
+        isDeleted: false
     };
 
-    // Add optional fields based on probability
-    if (allFieldsManadatory || this.rand.getRandomNumber() > 0.3) {
-        product.avgRating = this.rand.randomFloat(1, 5, 1);
-    }
-    if (allFieldsManadatory || this.rand.getRandomNumber() > 0.6) {
-        product.shelfLife = this.rand.randomInt(30, 3650);
-    }
-    if (allFieldsManadatory || this.rand.getRandomNumber() > 0.9) {
-        product.discontinuedDate = this.rand.generateDate(180);
+    if(allFieldsManadatory === false){
+      // Add optional fields based on probability
+      product.description = this.getOptionalValue(product.description);
+      product.avgRating = this.getOptionalValue(product.avgRating);
+      product.shelfLife = this.getOptionalValue(product.shelfLife);
+      product.discontinuedDate = this.getOptionalValue(product.discontinuedDate);
     }
 
     return product;
+  }
+
+  private getOptionalValue<T>(value: T): T | null | undefined {
+    let randomNumber = this.rand.getRandomNumber();
+    if (randomNumber > 0.3 && randomNumber < 0.6) {
+        return this.rand.getRandomNumber() > 0.5 ? undefined : null;
+    }
+    return value;
   }
 
   private generateSKU(index: number): string {

@@ -39,15 +39,18 @@ export interface CharacterMetadata {
 export interface ProductRecord extends DataRecord {
   productId: string;
   productName: string;
+  description: string | null | undefined;
   category: string;
+  avgRating: number | null | undefined;
   price: number;
   costPrice: number;
+  discontinuedDate: string | null | undefined;
   stockQuantity: number;
   reorderPoint: number;
   lastRestocked: string;
+  shelfLife: number | null | undefined;
   supplierName: string;
   supplierLocation: string;
-  description: string;
   sku: string;
   manufacturerCode: string;
   warehouseLocation: string;
@@ -56,9 +59,7 @@ export interface ProductRecord extends DataRecord {
   hazardous: boolean;
   fragile: boolean;
   unitsShipped: number;
-  avgRating?:number;
-  shelfLife?:number;
-  discontinuedDate?:string;
+  isDeleted: boolean;
 }
 
 export interface SearchMetadata extends DataRecord{
@@ -69,7 +70,7 @@ export interface SearchMetadata extends DataRecord{
 export interface UserRanking extends DataRecord{
   // This object with two fields (one optional) exists only to comare TOON default and kefolding
   category: string;
-  avgRating?: number;
+  avgRating: number | null | undefined;
 }
 
 export interface ProductIdentity extends NestedSecondLevelDataRecord {
@@ -78,8 +79,8 @@ export interface ProductIdentity extends NestedSecondLevelDataRecord {
 }
 
 export interface ProductAdditionalInfo extends DataRecord {
-  // This object with two fields (one optional) exists only to comare TOON default and kefolding
-  description: string;
+  // This object with a single field (one optional) exists only to comare TOON default and kefolding
+  description: string | null | undefined;
 }
 
 export interface Pricing extends DataRecord {
@@ -107,14 +108,14 @@ export interface Supplier extends DataRecord {
 export interface PhysicalCharacteristics extends DataRecord {
   weight: number;
   dimensions: string;
+  shelfLife: number | null | undefined;
   hazardous: boolean;
   fragile: boolean;
-  shelfLife?: number;
 }
 
 export interface NestedProductRecord extends NestedFirstLevelDataRecord {
   productId: string;
-  discontinuedDate?: string;
+  discontinuedDate: string | null | undefined;
   identity: ProductIdentity;
   additionalInfo: ProductAdditionalInfo;
   userRanking: UserRanking;

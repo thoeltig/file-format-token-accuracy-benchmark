@@ -21,17 +21,21 @@ export class ProductDataGenerator {
 
     while (recordIndex < recordCount) {
       const product = this.data.getRandomProduct(recordIndex, allFieldsManadatory);
-      totalValues+=19;
+      totalValues+=20;
 
-      if (product.avgRating) {
-        totalValues+=1;
-      }
-
-      if (product.shelfLife) {
+      if (product.description !== undefined && product.description !== null) {
         totalValues+=1;
       }
       
-      if (product.discontinuedDate) {
+      if (product.avgRating !== undefined && product.avgRating !== null) {
+        totalValues+=1;
+      }
+
+      if (product.shelfLife !== undefined && product.shelfLife !== null) {
+        totalValues+=1;
+      }
+      
+      if (product.discontinuedDate !== undefined && product.discontinuedDate !== null) {
         totalValues+=1;
       }
 
