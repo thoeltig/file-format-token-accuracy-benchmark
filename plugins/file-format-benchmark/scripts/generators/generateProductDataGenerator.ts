@@ -104,6 +104,7 @@ export class ProductDataGenerator {
             fragile: r.fragile,
             shelfLife: r.shelfLife
           },
+          isDeleted: r.isDeleted
       });
     });
     return { metadata, records };

@@ -123,6 +123,7 @@ export interface NestedProductRecord extends NestedFirstLevelDataRecord {
   inventory: Inventory;
   supplier: Supplier;
   physical: PhysicalCharacteristics;
+  isDeleted: boolean;
 }
 
 export interface DataRecord {
@@ -134,7 +135,7 @@ export interface NestedSecondLevelDataRecord {
 }
 
 export interface NestedFirstLevelDataRecord {
-  [key: string]: ProductIdentity | Pricing | Inventory | Supplier | PhysicalCharacteristics | UserRanking | ProductAdditionalInfo | string | null | undefined;
+  [key: string]: ProductIdentity | Pricing | Inventory | Supplier | PhysicalCharacteristics | UserRanking | ProductAdditionalInfo | string | boolean | null | undefined;
 }
 
 export interface FlatArrayDataSet {
