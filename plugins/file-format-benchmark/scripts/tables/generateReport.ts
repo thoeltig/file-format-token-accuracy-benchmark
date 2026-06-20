@@ -31,8 +31,9 @@
  *   - 2.7 Token Utilization Efficiency (Accuracy By Char)
  *   - 2.8 Answer Per Format Breakdown
  *   - 2.9 Accuracy Per Question Category Analysis
- *   - 2.10 Accuracy By Character Per Question Category Analysis
- *   - 4. Appendices
+  *   - 2.10 Accuracy By Character Per Question Category Analysis
+  *   - 2.11 Run Stability: Drift Analysis
+  *   - 4. Appendices
  *   - 4.1 Appendix A: Test Infrastructure
  *   - 4.2 Appendix B: Benchmark Configuration
  */
@@ -1316,6 +1317,59 @@ class ReportGenerator {
     this.diffMandOptAccuracyByCharacterPerCategory('2.10.3', 'structure_awareness', mandatoriesVals, optionalsVals);
     this.diffMandOptAccuracyByCharacterPerCategory('2.10.4', 'filtering', mandatoriesVals, optionalsVals);
     this.diffMandOptAccuracyByCharacterPerCategory('2.10.5', 'aggregation', mandatoriesVals, optionalsVals);
+
+    this.generateDriftStabilityTable(sortedAggregated);
+  }
+
+  private generateDriftStabilityTable(sortedAggregated: AggregatedMetric[]): void {
+    const mandatories = sortedAggregated.filter(x => x.variant === 'man');
+
+    const driftRows = sortedAggregated.map(item => [
+      item.format,
+      item.variant,
+      this.printRounded(item.accuracyDriftPercentMax - item.accuracyDriftPercentMin),
+      this.printRounded(item.accuracyByCharPercDriftMax - item.accuracyByCharPercDriftMin),
+      this.printRounded(item.outputTokensTotalDriftPercMax - item.outputTokensTotalDriftPercMin),
+      this.printRounded(item.totalTokensDriftPercMax - item.totalTokensDriftPercMin),
+    ]);
+
+    this.heading(3, '2.11 Run Stability: Drift Analysis');
+    this.line();
+    this.line('*Drift spread = max drift % minus min drift % vs the run average. Larger spread = less predictable results across runs.*');
+    this.line();
+    this.heading(4, '2.11.1 Drift Spread per Format and Variant');
+    this.table(
+      ['Format', 'Variant', 'Accuracy Spread (pp)', 'Accuracy By Char Spread (pp)', 'Output Tokens Spread (%)', 'Total Tokens Spread (%)'],
+      driftRows
+    );
+
+    const mandOptDriftRows = mandatories.map(x => {
+      const opt = sortedAggregated.find(a => a.format === x.format && a.variant === 'opt');
+      const manAccSpread = x.accuracyDriftPercentMax - x.accuracyDriftPercentMin;
+      const optAccSpread = opt ? (opt.accuracyDriftPercentMax - opt.accuracyDriftPercentMin) : 0;
+      const manAccByCharSpread = x.accuracyByCharPercDriftMax - x.accuracyByCharPercDriftMin;
+      const optAccByCharSpread = opt ? (opt.accuracyByCharPercDriftMax - opt.accuracyByCharPercDriftMin) : 0;
+      const manTotalTokensSpread = x.totalTokensDriftPercMax - x.totalTokensDriftPercMin;
+      const optTotalTokensSpread = opt ? (opt.totalTokensDriftPercMax - opt.totalTokensDriftPercMin) : 0;
+      return [
+        x.format,
+        this.printRounded(manAccSpread),
+        this.printRounded(optAccSpread),
+        this.displayDelta(optAccSpread - manAccSpread),
+        this.printRounded(manAccByCharSpread),
+        this.printRounded(optAccByCharSpread),
+        this.displayDelta(optAccByCharSpread - manAccByCharSpread),
+        this.printRounded(manTotalTokensSpread),
+        this.printRounded(optTotalTokensSpread),
+        this.displayDelta(optTotalTokensSpread - manTotalTokensSpread),
+      ];
+    });
+
+    this.heading(4, '2.11.2 Drift Spread: Mandatory vs Optional');
+    this.table(
+      ['Format', 'Acc Drift Man (pp)', 'Acc Drift Opt (pp)', 'Diff (pp)', 'Acc By Char Drift Man (pp)', 'Acc By Char Drift Opt (pp)', 'Diff (pp)', 'Total Tokens Drift Man (%)', 'Total Tokens Drift Opt (%)', 'Diff (%)'],
+      mandOptDriftRows
+    );
   }
 
   private calcDeltaPercentage(manVal: number, optManDelta: number, decimalPlaces: number = 2): string {  
