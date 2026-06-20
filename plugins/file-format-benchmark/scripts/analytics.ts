@@ -221,8 +221,8 @@ class BenchmarkAnalytics {
         accuracyDriftPercentMin: validation.accuracy.accuracyDriftPercMin,
         accuracyDriftPercentMax: validation.accuracy.accuracyDriftPercMax,
         weightedAccuracyPercent: validation.accuracy.weightedAccuracyPercent,
-        weightedAccuracyDriftPercentMax: validation.accuracy.weightedAccuracyDriftPercMin,
-        weightedAccuracyDriftPercentMin: validation.accuracy.weightedAccuracyDriftPercMax,
+        weightedAccuracyDriftPercentMax: validation.accuracy.weightedAccuracyDriftPercMax,
+        weightedAccuracyDriftPercentMin: validation.accuracy.weightedAccuracyDriftPercMin,
 
         charsPerReadToken: roundTo3Digits(datasetInfo.characterCount / userMetric.readTokens),
         readTokensPerValue: roundTo3Digits(userMetric.readTokens / datasetInfo.totalValues),
@@ -266,8 +266,8 @@ class BenchmarkAnalytics {
         accuracyByCharPercDriftMin: validation.accuracy.charactersOfAnswers.accuracyByCharPercDriftMin,
         accuracyByCharPercDriftMax: validation.accuracy.charactersOfAnswers.accuracyByCharPercDriftMax,
         weightedAccuracyByCharPerc: validation.accuracy.charactersOfAnswers.weightedAccuracyByCharPerc,
-        weightedAccuracyByCharPercDriftMax: validation.accuracy.charactersOfAnswers.weightedAccuracyByCharPercDriftMin,
-        weightedAccuracyByCharPercDriftMin: validation.accuracy.charactersOfAnswers.weightedAccuracyByCharPercDriftMax,
+        weightedAccuracyByCharPercDriftMax: validation.accuracy.charactersOfAnswers.weightedAccuracyByCharPercDriftMax,
+        weightedAccuracyByCharPercDriftMin: validation.accuracy.charactersOfAnswers.weightedAccuracyByCharPercDriftMin,
         
         informationValuePerReadTokensAccuracyByCharPerc: roundTo3Digits((validation.accuracy.charactersOfAnswers.accuracyByCharPerc / userMetric.readTokens) * 100),
         informationValuePerOutputTokensAccuracyByCharPerc: roundTo3Digits((validation.accuracy.charactersOfAnswers.accuracyByCharPerc / userMetric.outputTokensTotal) * 100),
