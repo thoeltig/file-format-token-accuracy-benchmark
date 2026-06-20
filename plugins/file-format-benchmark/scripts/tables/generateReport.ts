@@ -25,15 +25,15 @@
  *   - 2.1 TLDR: Token Efficiency Analysis
  *   - 2.2 Comprehensive Benchmark Metrics
  *   - 2.3 Format Robustness: Mandatory vs Optional
- *   - 2.4 Performance
- *   - 2.5 Structural Efficiency
- *   - 2.6 Token Utilization Efficiency
- *   - 2.7 Token Utilization Efficiency (Accuracy By Char)
- *   - 2.8 Answer Per Format Breakdown
- *   - 2.9 Accuracy Per Question Category Analysis
-  *   - 2.10 Accuracy By Character Per Question Category Analysis
-  *   - 2.11 Run Stability: Drift Analysis
-  *   - 4. Appendices
+ *   - 2.4 Drift over multiple runs
+ *   - 2.5 Performance
+ *   - 2.6 Structural Efficiency
+ *   - 2.7 Token Utilization Efficiency
+ *   - 2.8 Token Utilization Efficiency (Accuracy By Char)
+ *   - 2.9 Answer Per Format Breakdown
+ *   - 2.10 Accuracy Per Question Category Analysis
+ *   - 2.11 Accuracy By Character Per Question Category Analysis
+ *   - 4. Appendices
  *   - 4.1 Appendix A: Test Infrastructure
  *   - 4.2 Appendix B: Benchmark Configuration
  */
@@ -626,9 +626,12 @@ class ReportGenerator {
         'Total Tokens Man', 'Total Tokens Opt', 'Diff', 'Diff (%)'],
       mandOptFormatDeltaRows
     );
+    
+    // 2.4 Drift over multiple runs
+    this.generateDriftStabilityTable('2.4', sortedAggregated);
 
-    // 2.4 Performance
-    // 2.4.1 Duration & Speed
+    // 2.5 Performance
+    // 2.5.1 Duration & Speed
     const readPerfRows = sortedAggregated.map(item => {
       const readDuration = Math.round(item.readDurationInMs);
       const outputDurationWrite = Math.round(item.outputDurationWriteInMs);
@@ -652,14 +655,14 @@ class ReportGenerator {
       ];
     });
     
-    this.heading(3, '2.4 Performance');
-    this.heading(4, '2.4.1 Metrics');
+    this.heading(3, '2.5 Performance');
+    this.heading(4, '2.5.1 Metrics');
     this.table(
       ['Format', 'Variant', 'Read (ms)', 'Read (tokens/ms)', 'Rate (ms/record)', 'Output Before Write (ms)', 'Output Write (ms)', 'Output Write (tokens/ms)', 'Rate (ms/question)', 'Read + Output Write (ms)', 'Read + Output Write (tokens/ms)', 'Rate (ms/record+question)', 'Output (ms)'],
       readPerfRows
     );
     
-    // 2.4.2 Performance: Mandatory vs Optional Data
+    // 2.5.2 Performance: Mandatory vs Optional Data
     const mandOptSpeedDeltaRows = mandatories.map(x =>{    
       const manReadDuration = Math.round(x.readDurationInMs);
       const readDurationDelta = Math.round(x.readDurationInMsDelta);
@@ -696,7 +699,7 @@ class ReportGenerator {
       ];
     });
     
-    this.heading(4, '2.4.2 Mandatory vs Optional');
+    this.heading(4, '2.5.2 Mandatory vs Optional');
     this.table(
       ['Format', 
         'Read Man (ms)', 'Read Opt (ms)', 'Diff (ms)', 'Diff (%)', 
@@ -707,7 +710,7 @@ class ReportGenerator {
       mandOptSpeedDeltaRows
     );
 
-    // 2.5.1 Structural Efficiency Metrics
+    // 2.6.1 Structural Efficiency Metrics
     const structRows = sortedAggregated.map(item => [
       item.format,
       item.variant,
@@ -722,14 +725,14 @@ class ReportGenerator {
       this.printRounded(item.informationValuePerTotalTokensAccuracyByCharPerc)
     ]);
     
-    this.heading(3, '2.5 Structural Efficiency');
-    this.heading(4, '2.5.1 Metrics');
+    this.heading(3, '2.6 Structural Efficiency');
+    this.heading(4, '2.6.1 Metrics');
     this.table(
       ['Format', 'Variant', 'Chars / Read Token', 'Read Tokens / Value', 'Read Tokens / Object', 'Info / Read Token', 'Info / Output Token', 'Info / Total Token', 'Info / Read Token (Acc By Char)', 'Info / Output Token (Acc By Char)', 'Info / Total Token (Acc By Char)'],
       structRows
     );
 
-    // 2.5.2 Structural Efficiency: Mandatory vs Optional Data
+    // 2.6.2 Structural Efficiency: Mandatory vs Optional Data
     const mandOptStructuralDeltaRows = mandatories.map(x =>{    
       return [
         x.format,
@@ -748,14 +751,14 @@ class ReportGenerator {
       ];
     });
     
-    this.heading(4, '2.5.2 Characters And Values: Mandatory vs Optional');
+    this.heading(4, '2.6.2 Characters And Values: Mandatory vs Optional');
     this.table(
       ['Format', 'Chars / Read Token Man', 'Chars / Read Token Opt', 'Diff', 'Diff (%)', 'Read Tokens / Value Man', 'Read Tokens / Value Opt', 'Diff', 'Diff (%)', 'Read Tokens / Object Man', 'Read Tokens / Object Opt', 'Diff', 'Diff (%)'],
       mandOptStructuralDeltaRows
     );
     
-    // 2.5.3 Structural Efficiency: Information: Mandatory vs Optional Data
-    const mandOptStructuralInformationDeltaRows = mandatories.map(x =>{    
+    // 2.6.3 Structural Efficiency: Information: Mandatory vs Optional Data
+    const mandOptStructuralInformationDeltaRows = mandatories.map(x =>{
       return [
         x.format,
         this.printRounded(x.informationValuePerReadTokens),
@@ -773,13 +776,13 @@ class ReportGenerator {
       ];
     });
     
-    this.heading(4, '2.5.3 Information: Mandatory vs Optional');
+    this.heading(4, '2.6.3 Information: Mandatory vs Optional');
     this.table(
       ['Format', 'Info / Read Token Man', 'Info / Read Token Opt', 'Diff', 'Diff (%)', 'Info / Output Token Man', 'Info / Output Token Opt', 'Diff', 'Diff (%)', 'Info / Total Token Man', 'Info / Total Token Opt', 'Diff', 'Diff (%)'],
       mandOptStructuralInformationDeltaRows
     );
         
-    // 2.5.4 Structural Efficiency: Information (Accuracy By Character):  Mandatory vs Optional Data
+    // 2.6.4 Structural Efficiency: Information (Accuracy By Character):  Mandatory vs Optional Data
     const mandOptStructuralInformationByCharacterDeltaRows = mandatories.map(x =>{    
       return [
         x.format,
@@ -798,13 +801,13 @@ class ReportGenerator {
       ];
     });
     
-    this.heading(4, '2.5.4 Information (Accuracy By Character): Mandatory vs Optional');
+    this.heading(4, '2.6.4 Information (Accuracy By Character): Mandatory vs Optional');
     this.table(
       ['Format', 'Info / Read Token (Acc By Char) Man', 'Info / Read Token (Acc By Char) Opt', 'Diff', 'Diff (%)', 'Info / Output Token (Acc By Char) Man', 'Info / Output Token (Acc By Char)  Opt', 'Diff', 'Diff (%)', 'Info / Total Token (Acc By Char) Man', 'Info / Total Token (Acc By Char) Opt', 'Diff', 'Diff (%)'],
       mandOptStructuralInformationByCharacterDeltaRows
     );
 
-    // 2.6.1 Token Utilization Efficiency: Metrics
+    // 2.7.1 Token Utilization Efficiency: Metrics
     const effTokenRows = sortedAggregated.map(item => [
       item.format,
       item.variant,
@@ -827,8 +830,8 @@ class ReportGenerator {
       this.printRounded(item.weightedEfficiencyScoreTotal),
     ]);
     
-    this.heading(3, '2.6 Token Utilization Efficiency');
-    this.heading(4, '2.6.1 Metrics'); 
+    this.heading(3, '2.7 Token Utilization Efficiency');
+    this.heading(4, '2.7.1 Metrics'); 
     this.table(
       ['Format', 'Variant', 
         'Read Tokens', 'Useful Read Tokens', 'Wasted Read Tokens', 
@@ -841,7 +844,7 @@ class ReportGenerator {
       effTokenRows
     );
 
-    // 2.6.2 Read Token Utilization Efficiency: Mandatory vs Optional Data
+    // 2.7.2 Read Token Utilization Efficiency: Mandatory vs Optional Data
     const mandOptEffReadTokenDeltaRows = mandatories.map(x =>{
       const readTokens = Math.round(x.readTokens);
       const usefulReadTokens = Math.round(x.usefulReadTokens);
@@ -877,7 +880,7 @@ class ReportGenerator {
       ];
     });
     
-    this.heading(4, '2.6.2 Read Tokens: Mandatory vs Optional Data');
+    this.heading(4, '2.7.2 Read Tokens: Mandatory vs Optional Data');
     this.table(
       ['Format', 
         'Read Tokens Man', 'Read Tokens Opt', 'Diff', 'Diff (%)', 'Useful Read Tokens Man', 'Useful Read Tokens Opt', 'Diff', 'Diff (%)', 'Wasted Read Tokens Man', 'Wasted Read Tokens Opt', 'Diff', 'Diff (%)',
@@ -888,7 +891,7 @@ class ReportGenerator {
       mandOptEffReadTokenDeltaRows
     );
     
-    // 2.6.3 Output Token Utilization Efficiency: Mandatory vs Optional Data
+    // 2.7.3 Output Token Utilization Efficiency: Mandatory vs Optional Data
     const mandOptEffOutputTokenDeltaRows = mandatories.map(x =>{
       const outputTokens = Math.round(x.outputTokensTotal);
       const usefulOutputTokens = Math.round(x.usefulOutputTokens);
@@ -924,7 +927,7 @@ class ReportGenerator {
       ];
     });
     
-    this.heading(4, '2.6.3 Output Tokens: Mandatory vs Optional Data');
+    this.heading(4, '2.7.3 Output Tokens: Mandatory vs Optional Data');
     this.table(
       ['Format',
         'Output Tokens Man', 'Output Tokens Opt', 'Diff', 'Diff (%)', 'Useful Output Tokens Man', 'Useful Output Tokens Opt', 'Diff', 'Diff (%)', 'Wasted Output Tokens Man', 'Wasted Output Tokens Opt', 'Diff', 'Diff (%)',
@@ -935,7 +938,7 @@ class ReportGenerator {
       mandOptEffOutputTokenDeltaRows
     );
     
-    // 2.6.4 Total Token Utilization Efficiency: Mandatory vs Optional Data
+    // 2.7.4 Total Token Utilization Efficiency: Mandatory vs Optional Data
     const mandOptEffTotalTokenDeltaRows = mandatories.map(x =>{
       const totalTokens = Math.round(x.totalTokens);
       const usefulTotalTokens = Math.round(x.usefulTotalTokens);
@@ -971,7 +974,7 @@ class ReportGenerator {
       ];
     });
     
-    this.heading(4, '2.6.4 Total Tokens: Mandatory vs Optional Data');
+    this.heading(4, '2.7.4 Total Tokens: Mandatory vs Optional Data');
     this.table(
       ['Format', 
         'Total Tokens Man', 'Total Tokens Opt', 'Diff', 'Diff (%)', 'Useful Total Tokens Man', 'Useful Total Tokens Opt', 'Diff', 'Diff (%)', 'Wasted Total Tokens Man', 'Wasted Total Tokens Opt', 'Diff', 'Diff (%)', 
@@ -982,7 +985,7 @@ class ReportGenerator {
       mandOptEffTotalTokenDeltaRows
     );
 
-    // 2.7.1 Token Utilization Efficiency: Metrics
+    // 2.8.1 Token Utilization Efficiency: Metrics
     const effTokenRowsAccuracyByCharPerc = sortedAggregated.map(item => [
       item.format,
       item.variant,
@@ -1005,8 +1008,8 @@ class ReportGenerator {
       this.printRounded(item.weightedEfficiencyScoreTotalAccuracyByCharPerc),
     ]);
     
-    this.heading(3, '2.7 Token Utilization Efficiency (Accuracy by Character)');
-    this.heading(4, '2.7.1 Metrics'); 
+    this.heading(3, '2.8 Token Utilization Efficiency (Accuracy by Character)');
+    this.heading(4, '2.8.1 Metrics'); 
     this.table(
       ['Format', 'Variant', 
         'Read Tokens', 'Useful Read Tokens', 'Wasted Read Tokens', 
@@ -1019,7 +1022,7 @@ class ReportGenerator {
       effTokenRowsAccuracyByCharPerc
     );
 
-    // 2.7.2 Read Token Utilization Efficiency (Accuracy by Character): Mandatory vs Optional Data
+    // 2.8.2 Read Token Utilization Efficiency (Accuracy by Character): Mandatory vs Optional Data
     const mandOptEffReadTokenDeltaRowsAccuracyByCharPerc = mandatories.map(x =>{
       const readTokens = Math.round(x.readTokens);
       const usefulReadTokens = Math.round(x.usefulReadTokensAccuracyByCharPerc);
@@ -1055,7 +1058,7 @@ class ReportGenerator {
       ];
     });
     
-    this.heading(4, '2.7.2 Read Tokens (Accuracy by Character): Mandatory vs Optional Data');
+    this.heading(4, '2.8.2 Read Tokens (Accuracy by Character): Mandatory vs Optional Data');
     this.table(
       ['Format', 
         'Read Tokens Man', 'Read Tokens Opt', 'Diff', 'Diff (%)', 'Useful Read Tokens Man', 'Useful Read Tokens Opt', 'Diff', 'Diff (%)', 'Wasted Read Tokens Man', 'Wasted Read Tokens Opt', 'Diff', 'Diff (%)',
@@ -1066,7 +1069,7 @@ class ReportGenerator {
       mandOptEffReadTokenDeltaRowsAccuracyByCharPerc
     );
     
-    // 2.7.3 Output Token Utilization Efficiency (Accuracy by Character): Mandatory vs Optional Data
+    // 2.8.3 Output Token Utilization Efficiency (Accuracy by Character): Mandatory vs Optional Data
     const mandOptEffOutputTokenDeltaRowsAccuracyByCharPerc = mandatories.map(x =>{
       const outputTokens = Math.round(x.outputTokensTotal);
       const usefulOutputTokens = Math.round(x.usefulOutputTokensAccuracyByCharPerc);
@@ -1102,7 +1105,7 @@ class ReportGenerator {
       ];
     });
     
-    this.heading(4, '2.7.3 Output Tokens (Accuracy by Character): Mandatory vs Optional Data');
+    this.heading(4, '2.8.3 Output Tokens (Accuracy by Character): Mandatory vs Optional Data');
     this.table(
       ['Format',
         'Output Tokens Man', 'Output Tokens Opt', 'Diff', 'Diff (%)', 'Useful Output Tokens Man', 'Useful Output Tokens Opt', 'Diff', 'Diff (%)', 'Wasted Output Tokens Man', 'Wasted Output Tokens Opt', 'Diff', 'Diff (%)',
@@ -1113,7 +1116,7 @@ class ReportGenerator {
       mandOptEffOutputTokenDeltaRowsAccuracyByCharPerc
     );
     
-    // 2.7.4 Total Token Utilization Efficiency (Accuracy by Character): Mandatory vs Optional Data
+    // 2.8.4 Total Token Utilization Efficiency (Accuracy by Character): Mandatory vs Optional Data
     const mandOptEffTotalTokenDeltaRowsAccuracyByCharPerc = mandatories.map(x =>{
       const totalTokens = Math.round(x.totalTokens);
       const usefulTotalTokens = Math.round(x.usefulTotalTokensAccuracyByCharPerc);
@@ -1149,7 +1152,7 @@ class ReportGenerator {
       ];
     });
     
-    this.heading(4, '2.7.4 Total Tokens (Accuracy by Character): Mandatory vs Optional Data');
+    this.heading(4, '2.8.4 Total Tokens (Accuracy by Character): Mandatory vs Optional Data');
     this.table(
       ['Format', 
         'Total Tokens Man', 'Total Tokens Opt', 'Diff', 'Diff (%)', 'Useful Total Tokens Man', 'Useful Total Tokens Opt', 'Diff', 'Diff (%)', 'Wasted Total Tokens Man', 'Wasted Total Tokens Opt', 'Diff', 'Diff (%)', 
@@ -1160,7 +1163,7 @@ class ReportGenerator {
       mandOptEffTotalTokenDeltaRowsAccuracyByCharPerc
     );
 
-    // 2.8.1 Answer Quality Breakdown: Metrics
+    // 2.9.1 Answer Quality Breakdown: Metrics
     const answerQualityRows = sortedAggregated.map(item => [
       item.format,
       item.variant,
@@ -1175,14 +1178,14 @@ class ReportGenerator {
       this.printRounded(item.accuracyByCharPerc),
     ]);
     
-    this.heading(3, '2.8 Answer Per Format Breakdown');
-    this.heading(4, '2.8.1 Metrics'); 
+    this.heading(3, '2.9 Answer Per Format Breakdown');
+    this.heading(4, '2.9.1 Metrics'); 
     this.table(
       ['Format', 'Variant', 'Correct Answers', 'Incorrect Answers', 'No Answers',  'Accuracy (%)', 'Expected Characters', 'Output Characters', 'Correct Characters', 'Incorrect Characters',  'Accuracy by Character (%)'],
       answerQualityRows
     );
     
-    // 2.8.2 Answer Per Format Breakdown: Mandatory vs Optional Data
+    // 2.9.2 Answer Per Format Breakdown: Mandatory vs Optional Data
     const mandOptAnswerDeltaRows = mandatories.map(x =>{
       const correctAnswers = Math.round(x.correctAnswers);
       const incorrectAnswers = Math.round(x.incorrectAnswers);
@@ -1207,13 +1210,13 @@ class ReportGenerator {
       ];
     });
     
-    this.heading(4, '2.8.2 Answers: Mandatory vs Optional Data');
+    this.heading(4, '2.9.2 Answers: Mandatory vs Optional Data');
     this.table(
       ['Format', 'Correct Man', 'Correct Opt', 'Diff', 'Diff (%)', 'Incorrect Man', 'Incorrect Opt', 'Diff', 'Diff (%)', 'No Answers Man', 'No Answers Opt', 'Diff', 'Diff (%)', 'Accuracy (%) Man', 'Accuracy (%) Opt', 'Diff (%)'],
       mandOptAnswerDeltaRows
     );
     
-    // 2.8.3 Answer Per Format Breakdown: Characters: Mandatory vs Optional Data
+    // 2.9.3 Answer Per Format Breakdown: Characters: Mandatory vs Optional Data
     const mandOptAnswerDeltaRowsAccuracyByCharPerc = mandatories.map(x =>{    
       const totalChars = Math.round(x.totalChars);
       const correctChars = Math.round(x.correctChars);
@@ -1238,7 +1241,7 @@ class ReportGenerator {
       ];
     });
     
-    this.heading(4, '2.8.3 Characters: Mandatory vs Optional Data');
+    this.heading(4, '2.9.3 Characters: Mandatory vs Optional Data');
     this.table(
       ['Format', 
         'Output Characters Man', 'Output Characters Opt', 'Diff', 'Diff (%)', 
@@ -1248,7 +1251,7 @@ class ReportGenerator {
       mandOptAnswerDeltaRowsAccuracyByCharPerc
     );
 
-    // 2.9 Accuracy Per Question Category Analysis
+    // 2.10 Accuracy Per Question Category Analysis
     const categoryRows = sortedAggregated.map(item => {
       const validation = this.validations.find(x => x.format === item.format && x.variant === item.variant && x.recordCount === item.recordCount);
       const retrieval = validation?.accuracy.find(x => x.category === 'field_retrieval');
@@ -1271,19 +1274,19 @@ class ReportGenerator {
       this.printRounded(aggregation?.weightedAccuracyPercent),
     ]});
     
-    this.heading(3, '2.9 Accuracy Per Question Category Analysis');
-    this.heading(4, '2.9.1 Metrics'); 
+    this.heading(3, '2.10 Accuracy Per Question Category Analysis');
+    this.heading(4, '2.10.1 Metrics'); 
     this.table(
       ['Format', 'Variant', 'Accuracy (%)', 'Field Retrieval (%)', 'Structure Awareness (%)', 'Filtering (%)', 'Aggregation (%)', 'Wtd Acc (%)', 'Wtd Field Retrieval (%)', 'Wtd Structure Awareness (%)', 'Wtd Filtering (%)', 'Wtd Aggregation (%)'],
       categoryRows
     );
 
-    this.diffMandOptAccuracyPerCategory('2.9.2', 'field_retrieval', mandatoriesVals, optionalsVals);
-    this.diffMandOptAccuracyPerCategory('2.9.3', 'structure_awareness', mandatoriesVals, optionalsVals);
-    this.diffMandOptAccuracyPerCategory('2.9.4', 'filtering', mandatoriesVals, optionalsVals);
-    this.diffMandOptAccuracyPerCategory('2.9.5', 'aggregation', mandatoriesVals, optionalsVals);
+    this.diffMandOptAccuracyPerCategory('2.10.2', 'field_retrieval', mandatoriesVals, optionalsVals);
+    this.diffMandOptAccuracyPerCategory('2.10.3', 'structure_awareness', mandatoriesVals, optionalsVals);
+    this.diffMandOptAccuracyPerCategory('2.10.4', 'filtering', mandatoriesVals, optionalsVals);
+    this.diffMandOptAccuracyPerCategory('2.10.5', 'aggregation', mandatoriesVals, optionalsVals);
     
-    // 2.10 Accuracy By Character Per Question Category Analysis
+    // 2.11 Accuracy By Character Per Question Category Analysis
     const categoryRowsAccuracyByCharPerc = sortedAggregated.map(item => {
       const validation = this.validations.find(x => x.format === item.format && x.variant === item.variant && x.recordCount === item.recordCount);
       const retrieval = validation?.accuracy.find(x => x.category === 'field_retrieval');
@@ -1306,22 +1309,20 @@ class ReportGenerator {
       this.printRounded(aggregation?.charactersOfAnswers.weightedAccuracyByCharPerc),
     ]});
     
-    this.heading(3, '2.10 Accuracy By Character Per Question Category Analysis');
-    this.heading(4, '2.10.1 Metrics'); 
+    this.heading(3, '2.11 Accuracy By Character Per Question Category Analysis');
+    this.heading(4, '2.11.1 Metrics'); 
     this.table(
       ['Format', 'Variant', 'Accuracy By Character (%)', 'Field Retrieval (%)', 'Structure Awareness (%)', 'Filtering (%)', 'Aggregation (%)', 'Wtd Acc By Char (%)', 'Wtd Field Retrieval (%)', 'Wtd Structure Awareness (%)', 'Wtd Filtering (%)', 'Wtd Aggregation (%)'],
       categoryRowsAccuracyByCharPerc
     );
 
-    this.diffMandOptAccuracyByCharacterPerCategory('2.10.2', 'field_retrieval', mandatoriesVals, optionalsVals);
-    this.diffMandOptAccuracyByCharacterPerCategory('2.10.3', 'structure_awareness', mandatoriesVals, optionalsVals);
-    this.diffMandOptAccuracyByCharacterPerCategory('2.10.4', 'filtering', mandatoriesVals, optionalsVals);
-    this.diffMandOptAccuracyByCharacterPerCategory('2.10.5', 'aggregation', mandatoriesVals, optionalsVals);
-
-    this.generateDriftStabilityTable(sortedAggregated);
+    this.diffMandOptAccuracyByCharacterPerCategory('2.11.2', 'field_retrieval', mandatoriesVals, optionalsVals);
+    this.diffMandOptAccuracyByCharacterPerCategory('2.11.3', 'structure_awareness', mandatoriesVals, optionalsVals);
+    this.diffMandOptAccuracyByCharacterPerCategory('2.11.4', 'filtering', mandatoriesVals, optionalsVals);
+    this.diffMandOptAccuracyByCharacterPerCategory('2.11.5', 'aggregation', mandatoriesVals, optionalsVals);
   }
 
-  private generateDriftStabilityTable(sortedAggregated: AggregatedMetric[]): void {
+  private generateDriftStabilityTable(idx:string, sortedAggregated: AggregatedMetric[]): void {
     const mandatories = sortedAggregated.filter(x => x.variant === 'man');
 
     const driftRows = sortedAggregated.map(item => [
@@ -1333,11 +1334,11 @@ class ReportGenerator {
       this.printRounded(item.totalTokensDriftPercMax - item.totalTokensDriftPercMin),
     ]);
 
-    this.heading(3, '2.11 Run Stability: Drift Analysis');
+    this.heading(3, `${idx} Drift over multiple runs`);
     this.line();
     this.line('*Drift spread = max drift % minus min drift % vs the run average. Larger spread = less predictable results across runs.*');
     this.line();
-    this.heading(4, '2.11.1 Drift Spread per Format and Variant');
+    this.heading(4, `${idx}.1 Spread per Format and Variant`);
     this.table(
       ['Format', 'Variant', 'Accuracy Spread (pp)', 'Accuracy By Char Spread (pp)', 'Output Tokens Spread (%)', 'Total Tokens Spread (%)'],
       driftRows
@@ -1365,7 +1366,7 @@ class ReportGenerator {
       ];
     });
 
-    this.heading(4, '2.11.2 Drift Spread: Mandatory vs Optional');
+    this.heading(4, `${idx}.2 Drift Spread: Mandatory vs Optional`);
     this.table(
       ['Format', 'Acc Drift Man (pp)', 'Acc Drift Opt (pp)', 'Diff (pp)', 'Acc By Char Drift Man (pp)', 'Acc By Char Drift Opt (pp)', 'Diff (pp)', 'Total Tokens Drift Man (%)', 'Total Tokens Drift Opt (%)', 'Diff (%)'],
       mandOptDriftRows
