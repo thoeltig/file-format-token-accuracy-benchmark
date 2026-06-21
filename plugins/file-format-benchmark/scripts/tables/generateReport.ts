@@ -1506,7 +1506,7 @@ class ReportGenerator {
 
   private printAccuracyPerCategoryTable(categoryMandOptRows: string[][]): void {
     this.table(
-      ['Format', 'Man (%)', 'Opt (%)', 'Diff (%)', 'Wdt Man (%)', 'Wdt Opt (%)', 'Diff (%)'],
+      ['Format', 'Man (%)', 'Opt (%)', 'Diff (%)', 'Wtd Man (%)', 'Wtd Opt (%)', 'Diff (%)'],
       categoryMandOptRows
     );
   }
