@@ -180,6 +180,7 @@ class BenchmarkAnalytics {
         testCase: userMetric.testCase,
         format: userMetric.format,
         variant: userMetric.variant,
+        fullTestRuns: userMetric.testRuns,
         hasOptionalData: userMetric.hasOptionalData,
         recordCount: userMetric.recordCount,
         totalValues: datasetInfo.totalValues,

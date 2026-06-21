@@ -422,6 +422,7 @@ export interface UserMetrics {
   testCase: string;
   format: string;
   structure: string;
+  testRuns: number;
   variant: string;
   recordCount: number;
   hasOptionalData: boolean;
@@ -492,6 +493,7 @@ export interface Metrics {
   format: string;
   variant: string;
   recordCount: number;
+  fullTestRuns: number;
 
   // Read-Only extraction script result
   readTokens: number;
