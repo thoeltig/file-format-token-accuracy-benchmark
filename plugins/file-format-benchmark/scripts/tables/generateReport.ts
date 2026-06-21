@@ -1327,6 +1327,12 @@ class ReportGenerator {
       const outputTokensTotal = x.outputTokensTotal;
       const outputTokensTotalMin = outputTokensTotal * (x.outputTokensTotalDriftPercMin / 100); 
       const outputTokensTotalMax = outputTokensTotal * (x.outputTokensTotalDriftPercMax / 100);
+      const accuracyPercent = x.accuracyPercent;
+      const accuracyPercentMin = accuracyPercent * (x.accuracyDriftPercentMin / 100); 
+      const accuracyPercentMax = accuracyPercent * (x.accuracyDriftPercentMax / 100);
+      const accuracyByCharPerc = x.accuracyByCharPerc;
+      const accuracyByCharPercMin = accuracyByCharPerc * (x.accuracyByCharPercDriftMin / 100); 
+      const accuracyByCharPercMax = accuracyByCharPerc * (x.accuracyByCharPercDriftMax / 100);
 
       return [
       x.format,
@@ -1335,17 +1341,17 @@ class ReportGenerator {
       this.printRounded(outputTokensTotal, 0),
       `${this.printRounded(outputTokensTotalMin, 0)}/${this.printRounded(outputTokensTotalMax, 0, true)}`,
       this.printRounded(outputTokensTotalMax - outputTokensTotalMin, 0),
-      this.printRounded(x.accuracyPercent, 2),
-      `${this.printRounded(x.accuracyDriftPercentMin, 2)}/${this.printRounded(x.accuracyDriftPercentMax, 2, true)}`, 
-      this.printRounded(x.accuracyDriftPercentMax - x.accuracyDriftPercentMin, 2),
-      this.printRounded(x.accuracyByCharPerc, 2),
-      `${this.printRounded(x.accuracyByCharPercDriftMin, 2)}/${this.printRounded(x.accuracyByCharPercDriftMax, 2, true)}`,
-      this.printRounded(x.accuracyByCharPercDriftMax - x.accuracyByCharPercDriftMin, 2),
+      this.printRounded(accuracyPercent, 2),
+      `${this.printRounded(accuracyPercentMin, 2)}/${this.printRounded(accuracyPercentMax, 2, true)}`, 
+      this.printRounded(accuracyPercentMax - accuracyPercentMin, 2),
+      this.printRounded(accuracyByCharPerc, 2),
+      `${this.printRounded(accuracyByCharPercMin, 2)}/${this.printRounded(accuracyByCharPercMax, 2, true)}`,
+      this.printRounded(accuracyByCharPercMax - accuracyByCharPercMin, 2),
     ]});
 
     this.heading(3, `${idx} Drift over multiple runs`);
     this.line();
-    this.line('*Note: Drift = The distance from average to the lowest or highest value. Spread = Distance between lowest to highest value (larger = less predictable results across runs).*');
+    this.line('*Note: Drift = The distance from average to the lowest or highest value (absolute distance in tokens and perentage points). Spread = Distance between lowest to highest value (larger = less predictable results across runs).*');
     this.line();
     this.heading(4, `${idx}.1 Drift per Format and Variant`);
     this.table(
@@ -1358,19 +1364,33 @@ class ReportGenerator {
       const outputTokensTotal = x.outputTokensTotal;
       const outputTokensTotalMin = outputTokensTotal * (x.outputTokensTotalDriftPercMin / 100); 
       const outputTokensTotalMax = outputTokensTotal * (x.outputTokensTotalDriftPercMax / 100);
+      const accuracyPercent = x.accuracyPercent;
+      const accuracyPercentMin = accuracyPercent * (x.accuracyDriftPercentMin / 100); 
+      const accuracyPercentMax = accuracyPercent * (x.accuracyDriftPercentMax / 100);
+      const accuracyByCharPerc = x.accuracyByCharPerc;
+      const accuracyByCharPercMin = accuracyByCharPerc * (x.accuracyByCharPercDriftMin / 100); 
+      const accuracyByCharPercMax = accuracyByCharPerc * (x.accuracyByCharPercDriftMax / 100);
+
       const manOutputTokensTotalSpread = outputTokensTotalMax - outputTokensTotalMin;
-      const manAccSpread = x.accuracyDriftPercentMax - x.accuracyDriftPercentMin;
-      const manAccByCharSpread = x.accuracyByCharPercDriftMax - x.accuracyByCharPercDriftMin;
+      const manAccSpread = accuracyPercentMax - accuracyPercentMin;
+      const manAccByCharSpread = accuracyByCharPercMax - accuracyByCharPercMin;
 
       let optOutputTokensTotalSpread = 0, optAccSpread = 0, optAccByCharSpread = 0;
       const opt = opts.find(y => y.format === x.format);
       if(opt){
-        const outputTokensTotal = opt.outputTokensTotal;
-        const outputTokensTotalMin = outputTokensTotal * (opt.outputTokensTotalDriftPercMin / 100); 
-        const outputTokensTotalMax = outputTokensTotal * (opt.outputTokensTotalDriftPercMax / 100);
-        optOutputTokensTotalSpread = outputTokensTotalMax - outputTokensTotalMin;
-        optAccSpread = opt.accuracyDriftPercentMax - opt.accuracyDriftPercentMin;
-        optAccByCharSpread = opt.accuracyByCharPercDriftMax - opt.accuracyByCharPercDriftMin;
+        const optOutputTokensTotal = opt.outputTokensTotal;
+        const optOutputTokensTotalMin = optOutputTokensTotal * (opt.outputTokensTotalDriftPercMin / 100); 
+        const optOutputTokensTotalMax = optOutputTokensTotal * (opt.outputTokensTotalDriftPercMax / 100);
+        const optAccuracyPercent = opt.accuracyPercent;
+        const optAccuracyPercentMin = optAccuracyPercent * (opt.accuracyDriftPercentMin / 100); 
+        const optAccuracyPercentMax = optAccuracyPercent * (opt.accuracyDriftPercentMax / 100);
+        const optAccuracyByCharPerc = opt.accuracyByCharPerc;
+        const optAccuracyByCharPercMin = optAccuracyByCharPerc * (opt.accuracyByCharPercDriftMin / 100); 
+        const optAccuracyByCharPercMax = optAccuracyByCharPerc * (opt.accuracyByCharPercDriftMax / 100);
+
+        optOutputTokensTotalSpread = optOutputTokensTotalMax - optOutputTokensTotalMin;
+        optAccSpread = optAccuracyPercentMax - optAccuracyPercentMin;
+        optAccByCharSpread = optAccuracyByCharPercMax - optAccuracyByCharPercMin;
       }
 
       return [
