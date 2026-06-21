@@ -628,7 +628,7 @@ class ReportGenerator {
     );
     
     // 2.4 Drift over multiple runs
-    this.generateDriftStabilityTable('2.4', sortedAggregated);
+    this.generateDriftStabilityTable('2.4', sortedAggregated, mandatories);
 
     // 2.5 Performance
     // 2.5.1 Duration & Speed
@@ -1322,53 +1322,74 @@ class ReportGenerator {
     this.diffMandOptAccuracyByCharacterPerCategory('2.11.5', 'aggregation', mandatoriesVals, optionalsVals);
   }
 
-  private generateDriftStabilityTable(idx:string, sortedAggregated: AggregatedMetric[]): void {
-    const mandatories = sortedAggregated.filter(x => x.variant === 'man');
+  private generateDriftStabilityTable(idx:string, sortedAggregated: AggregatedMetric[], mandatories: AggregatedMetric[]): void {
+    const driftRows = sortedAggregated.map(x => {
+      const outputTokensTotal = x.outputTokensTotal;
+      const outputTokensTotalMin = outputTokensTotal * (x.outputTokensTotalDriftPercMin / 100); 
+      const outputTokensTotalMax = outputTokensTotal * (x.outputTokensTotalDriftPercMax / 100);
 
-    const driftRows = sortedAggregated.map(item => [
-      item.format,
-      item.variant,
-      this.printRounded(item.accuracyDriftPercentMax - item.accuracyDriftPercentMin),
-      this.printRounded(item.accuracyByCharPercDriftMax - item.accuracyByCharPercDriftMin),
-      this.printRounded(item.outputTokensTotalDriftPercMax - item.outputTokensTotalDriftPercMin),
-      this.printRounded(item.totalTokensDriftPercMax - item.totalTokensDriftPercMin),
-    ]);
+      return [
+      x.format,
+      x.variant,
+      this.printRounded(x.fullTestRuns, 0),
+      this.printRounded(outputTokensTotal, 0),
+      `${this.printRounded(outputTokensTotalMin, 0)}/${this.printRounded(outputTokensTotalMax, 0, true)}`,
+      this.printRounded(outputTokensTotalMax - outputTokensTotalMin, 0),
+      this.printRounded(x.accuracyPercent, 2),
+      `${this.printRounded(x.accuracyDriftPercentMin, 2)}/${this.printRounded(x.accuracyDriftPercentMax, 2, true)}`, 
+      this.printRounded(x.accuracyDriftPercentMax - x.accuracyDriftPercentMin, 2),
+      this.printRounded(x.accuracyByCharPerc, 2),
+      `${this.printRounded(x.accuracyByCharPercDriftMin, 2)}/${this.printRounded(x.accuracyByCharPercDriftMax, 2, true)}`,
+      this.printRounded(x.accuracyByCharPercDriftMax - x.accuracyByCharPercDriftMin, 2),
+    ]});
 
     this.heading(3, `${idx} Drift over multiple runs`);
     this.line();
-    this.line('*Drift spread = max drift % minus min drift % vs the run average. Larger spread = less predictable results across runs.*');
+    this.line('*Note: Drift = The distance from average to the lowest or highest value. Spread = Distance between lowest to highest value (larger = less predictable results across runs).*');
     this.line();
-    this.heading(4, `${idx}.1 Spread per Format and Variant`);
+    this.heading(4, `${idx}.1 Drift per Format and Variant`);
     this.table(
-      ['Format', 'Variant', 'Accuracy Spread (pp)', 'Accuracy By Char Spread (pp)', 'Output Tokens Spread (%)', 'Total Tokens Spread (%)'],
+      ['Format', 'Variant', 'Runs', 'Output Tokens Total', 'Drift', 'Spread', 'Accuracy (%)', 'Drift (pp)', 'Spread (pp)', 'Accuracy By Character (%)', 'Drift (pp)', 'Spread (pp)'],
       driftRows
     );
 
+    const opts = sortedAggregated.filter(x => x.variant === 'opt');
     const mandOptDriftRows = mandatories.map(x => {
-      const opt = sortedAggregated.find(a => a.format === x.format && a.variant === 'opt');
+      const outputTokensTotal = x.outputTokensTotal;
+      const outputTokensTotalMin = outputTokensTotal * (x.outputTokensTotalDriftPercMin / 100); 
+      const outputTokensTotalMax = outputTokensTotal * (x.outputTokensTotalDriftPercMax / 100);
+      const manOutputTokensTotalSpread = outputTokensTotalMax - outputTokensTotalMin;
       const manAccSpread = x.accuracyDriftPercentMax - x.accuracyDriftPercentMin;
-      const optAccSpread = opt ? (opt.accuracyDriftPercentMax - opt.accuracyDriftPercentMin) : 0;
       const manAccByCharSpread = x.accuracyByCharPercDriftMax - x.accuracyByCharPercDriftMin;
-      const optAccByCharSpread = opt ? (opt.accuracyByCharPercDriftMax - opt.accuracyByCharPercDriftMin) : 0;
-      const manTotalTokensSpread = x.totalTokensDriftPercMax - x.totalTokensDriftPercMin;
-      const optTotalTokensSpread = opt ? (opt.totalTokensDriftPercMax - opt.totalTokensDriftPercMin) : 0;
+
+      let optOutputTokensTotalSpread = 0, optAccSpread = 0, optAccByCharSpread = 0;
+      const opt = opts.find(y => y.format === x.format);
+      if(opt){
+        const outputTokensTotal = opt.outputTokensTotal;
+        const outputTokensTotalMin = outputTokensTotal * (opt.outputTokensTotalDriftPercMin / 100); 
+        const outputTokensTotalMax = outputTokensTotal * (opt.outputTokensTotalDriftPercMax / 100);
+        optOutputTokensTotalSpread = outputTokensTotalMax - outputTokensTotalMin;
+        optAccSpread = opt.accuracyDriftPercentMax - opt.accuracyDriftPercentMin;
+        optAccByCharSpread = opt.accuracyByCharPercDriftMax - opt.accuracyByCharPercDriftMin;
+      }
+
       return [
         x.format,
+        this.printRounded(manOutputTokensTotalSpread, 0),
+        this.printRounded(optOutputTokensTotalSpread, 0),
+        this.displayDelta(optOutputTokensTotalSpread - manOutputTokensTotalSpread, 0),
         this.printRounded(manAccSpread),
         this.printRounded(optAccSpread),
         this.displayDelta(optAccSpread - manAccSpread),
         this.printRounded(manAccByCharSpread),
         this.printRounded(optAccByCharSpread),
-        this.displayDelta(optAccByCharSpread - manAccByCharSpread),
-        this.printRounded(manTotalTokensSpread),
-        this.printRounded(optTotalTokensSpread),
-        this.displayDelta(optTotalTokensSpread - manTotalTokensSpread),
+        this.displayDelta(optAccByCharSpread - manAccByCharSpread)
       ];
     });
 
-    this.heading(4, `${idx}.2 Drift Spread: Mandatory vs Optional`);
+    this.heading(4, `${idx}.2 Spread: Mandatory vs Optional`);
     this.table(
-      ['Format', 'Acc Drift Man (pp)', 'Acc Drift Opt (pp)', 'Diff (pp)', 'Acc By Char Drift Man (pp)', 'Acc By Char Drift Opt (pp)', 'Diff (pp)', 'Total Tokens Drift Man (%)', 'Total Tokens Drift Opt (%)', 'Diff (%)'],
+      ['Format', 'Output Tokens Total Spread Man', 'Output Tokens Total Spread Opt', 'Diff', 'Acc Spread Man (pp)', 'Acc Spread Opt (pp)', 'Diff (pp)', 'Acc By Char Spread Man (pp)', 'Acc By Char Spread Opt (pp)', 'Diff (pp)'],
       mandOptDriftRows
     );
   }
