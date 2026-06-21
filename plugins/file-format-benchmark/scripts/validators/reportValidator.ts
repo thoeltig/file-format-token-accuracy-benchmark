@@ -168,8 +168,8 @@ class ReportValidator {
                 accuracyByCharPercDriftMin: calcDriftPerc(avgAccuracyByCharPercent, Math.min(...report.perRunAccuracy.map(x => x.charactersOfAnswers.accuracyByCharPerc))),
                 accuracyByCharPercDriftMax: calcDriftPerc(avgAccuracyByCharPercent, Math.max(...report.perRunAccuracy.map(x => x.charactersOfAnswers.accuracyByCharPerc))),
                 weightedAccuracyByCharPerc: avgWeightedAccuracyByCharPercent,
-                weightedAccuracyByCharPercDriftMin: calcDriftPerc(avgAccuracyByCharPercent, Math.min(...report.perRunAccuracy.map(x => x.charactersOfAnswers.weightedAccuracyByCharPerc))),
-                weightedAccuracyByCharPercDriftMax: calcDriftPerc(avgAccuracyByCharPercent, Math.max(...report.perRunAccuracy.map(x => x.charactersOfAnswers.weightedAccuracyByCharPerc)))
+                weightedAccuracyByCharPercDriftMin: calcDriftPerc(avgWeightedAccuracyByCharPercent, Math.min(...report.perRunAccuracy.map(x => x.charactersOfAnswers.weightedAccuracyByCharPerc))),
+                weightedAccuracyByCharPercDriftMax: calcDriftPerc(avgWeightedAccuracyByCharPercent, Math.max(...report.perRunAccuracy.map(x => x.charactersOfAnswers.weightedAccuracyByCharPerc)))
             };
             
             console.log(`${testCase.format.padEnd(15)} ${testCase.structure.padEnd(8)} ${testCase.variant.padEnd(10)} ${String(testCase.recordCount).padEnd(4)}`);
