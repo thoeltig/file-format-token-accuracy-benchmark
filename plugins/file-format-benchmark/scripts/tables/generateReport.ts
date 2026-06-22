@@ -1367,7 +1367,12 @@ class ReportGenerator {
     this.line();
     this.heading(4, `${idx}.1 Drift per Format and Variant`);
     this.table(
-      ['Format', 'Variant', 'Runs', 'Output Tokens Total', 'Drift', 'Spread', 'Accuracy (%)', 'Drift (pp)', 'Spread (pp)', 'Accuracy By Character (%)', 'Drift (pp)', 'Spread (pp)'],
+      ['Format', 'Variant', 'Runs',
+      'Output Tokens Total', 'Drift', 'Spread',
+      'Accuracy (%)', 'Drift (pp)', 'Spread (pp)',
+      'Accuracy By Character (%)', 'Drift (pp)', 'Spread (pp)',
+      'Weighted Accuracy (%)', 'Drift (pp)', 'Spread (pp)',
+      'Weighted Accuracy By Character (%)', 'Drift (pp)', 'Spread (pp)'],
       driftRows
     );
 
