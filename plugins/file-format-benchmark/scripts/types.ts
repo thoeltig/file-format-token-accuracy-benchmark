@@ -252,6 +252,7 @@ export interface MergedValidationReport {
   recordCount: number;
   testRuns: number;
   totalQuestions: number;
+  questionDistribution: [QuestionCategory, number][];
   accuracy: AvgAnswerAccuracy;
   perRunAccuracy: PerTestRunAnswerAccuracy[];
   questionsAndProvidedAnswers: QuestionsAndProvidedAnswers[];

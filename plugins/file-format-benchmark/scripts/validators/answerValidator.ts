@@ -101,7 +101,6 @@ export class AnswerValidator {
     }
 
     // Calculate accuracy
-    const totalResultCount = results.length;
     const stats: AggregatedStats = {
       totalCount: 0,
       correctCount: 0,
@@ -132,7 +131,7 @@ export class AnswerValidator {
     const weightedAccuracyByCharPercent = mapAsArray.reduce((sum, x) => sum + ToPercentage((x[1].correctChars / x[1].totalChars) * QUESTIONS_WEIGHT_DISTRIBUTION[x[0]]), 0);
     return {
       format: format,
-      totalQuestions: totalResultCount,
+      totalQuestions: stats.totalCount,
       results,
       accuracy: {
         correct: stats.correctCount,

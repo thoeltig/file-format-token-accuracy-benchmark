@@ -70,6 +70,12 @@ class ReportValidator {
                 recordCount: testCase.recordCount,
                 testRuns: testCase.answerFiles.length,
                 totalQuestions: validationData.metadata.totalQuestions,
+                questionDistribution: [
+                    ['field_retrieval', groundTruthQuestions.filter(x => x.category === 'field_retrieval').reduce((sum, _) => sum + 1, 0)],
+                    ['filtering', groundTruthQuestions.filter(x => x.category === 'filtering').reduce((sum, _) => sum + 1, 0)],
+                    ['aggregation', groundTruthQuestions.filter(x => x.category === 'aggregation').reduce((sum, _) => sum + 1, 0)],
+                    ['structure_awareness', groundTruthQuestions.filter(x => x.category === 'structure_awareness').reduce((sum, _) => sum + 1, 0)],
+                ],
                 accuracy: {
                     correct: 0,
                     incorrect: 0,

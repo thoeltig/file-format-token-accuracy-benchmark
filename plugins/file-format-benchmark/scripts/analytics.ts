@@ -7,9 +7,9 @@ import * as fs from "fs";
 import * as path from "path";
 import { discoverAgents } from "./analytics/agent-discovery";
 import MetricsExtraction from "./analytics/metrics-extraction";
-import { AnalyticsOutput, GeneratorResult, MergedValidationReport, TestMetrics, UserMetrics } from "./types";
+import { AnalyticsOutput, GeneratorResult, MergedValidationReport, QuestionCategory, TestMetrics, UserMetrics } from "./types";
 import ReportValidator from "./validators/reportValidator";
-import { DIRECTORY_ANSWERS_VALIDATION, EFFICIENCY_SCORE_WEIGHT, FILE_AGENT_ID, FILE_ANALYTICS_RESULT, FILE_METADATA, FILE_METRICS, QUESTIONS_DISTRIBUTION, QUESTIONS_WEIGHT_DISTRIBUTION } from "./consts";
+import { DIRECTORY_ANSWERS_VALIDATION, EFFICIENCY_SCORE_WEIGHT, FILE_AGENT_ID, FILE_ANALYTICS_RESULT, FILE_METADATA, FILE_METRICS, QUESTIONS_WEIGHT_DISTRIBUTION } from "./consts";
 import { roundTo3Digits } from "./shared";
 
 class BenchmarkAnalytics {
@@ -42,17 +42,22 @@ class BenchmarkAnalytics {
       return;
     }
 
+    const validationStats = [...validationResults.values()].at(0);
+    if(!validationStats){
+      return;
+    }
+
     console.log("Loading metadata...");
     const metadata = this.loadMetadata();
 
     console.log("Calculating metrics...");
-    const testMetrics = this.calculateMetrics(userMetrics, metadata, validationResults);
+    const testMetrics = this.calculateMetrics(userMetrics, metadata, validationResults, validationStats.totalQuestions);
     if(testMetrics.length === 0){
       return;
     }
 
     console.log("Orchestrate analytic file...");
-    const analytics = this.generateAnalytics(testMetrics);
+    const analytics = this.generateAnalytics(testMetrics, validationStats.questionDistribution);
 
     console.log(`Writing results to ${this.outputFile}...`);
     this.writeOutput(analytics);
@@ -100,7 +105,8 @@ class BenchmarkAnalytics {
   private calculateMetrics(
     userMetrics: UserMetrics[],
     metadata: GeneratorResult,
-    validationResults: Map<string, MergedValidationReport>
+    validationResults: Map<string, MergedValidationReport>,
+    totalQuestions: number
   ): TestMetrics[] {
     const metrics: TestMetrics[] = [];
 
@@ -117,7 +123,7 @@ class BenchmarkAnalytics {
             recordCount: file.recordCount,
             totalValues: file.totalValues,
             characterCount: dataAndOutput.metadata.characterCount,
-            questionCount: file.questionCount,
+            questionCount: totalQuestions,
           });
         }
       }
@@ -308,7 +314,7 @@ class BenchmarkAnalytics {
     return ((max-value)/(max-min))*100;
   }
 
-  private generateAnalytics(metrics: TestMetrics[]): AnalyticsOutput {
+  private generateAnalytics(metrics: TestMetrics[], questionDistribution: [QuestionCategory, number][]): AnalyticsOutput {
     if (metrics.length === 0) {
       throw new Error("No metrics to analyze");
     }
@@ -333,12 +339,7 @@ class BenchmarkAnalytics {
           ["accuracy",EFFICIENCY_SCORE_WEIGHT.accuracy],
           ["tokens",EFFICIENCY_SCORE_WEIGHT.tokens],
         ],
-        questionDistribution: [
-          ["field_retrieval", QUESTIONS_DISTRIBUTION["field_retrieval"]],
-          ["filtering", QUESTIONS_DISTRIBUTION["filtering"]],
-          ["aggregation", QUESTIONS_DISTRIBUTION["aggregation"]],
-          ["structure_awareness", QUESTIONS_DISTRIBUTION["structure_awareness"]]
-        ],
+        questionDistribution: questionDistribution,
         questionWeightDistribution: [
           ["field_retrieval", QUESTIONS_WEIGHT_DISTRIBUTION["field_retrieval"]],
           ["filtering", QUESTIONS_WEIGHT_DISTRIBUTION["filtering"]],
