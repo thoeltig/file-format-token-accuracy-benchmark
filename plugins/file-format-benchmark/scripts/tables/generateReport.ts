@@ -1267,7 +1267,7 @@ class ReportGenerator {
       this.printRounded(structure?.accuracyPercent),
       this.printRounded(filtering?.accuracyPercent),
       this.printRounded(aggregation?.accuracyPercent),
-      this.printRounded(item.weightedAccuracyByCharPerc),
+      this.printRounded(item.weightedAccuracyPercent),
       this.printRounded(retrieval?.weightedAccuracyPercent),
       this.printRounded(structure?.weightedAccuracyPercent),
       this.printRounded(filtering?.weightedAccuracyPercent),
