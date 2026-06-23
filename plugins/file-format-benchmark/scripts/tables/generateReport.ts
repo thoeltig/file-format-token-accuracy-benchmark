@@ -1188,22 +1188,25 @@ class ReportGenerator {
     // 2.9.2 Answer Per Format Breakdown: Mandatory vs Optional Data
     const mandOptAnswerDeltaRows = mandatories.map(x =>{
       const correctAnswers = Math.round(x.correctAnswers);
+      const correctAnswersDelta = Math.round(x.correctAnswersDelta);
       const incorrectAnswers = Math.round(x.incorrectAnswers);
+      const incorrectAnswersDelta = Math.round(x.incorrectAnswersDelta);
       const noAnswers = Math.round(x.noAnswers);
+      const noAnswersDelta = Math.round(x.noAnswersDelta);
       return [
         x.format,
         this.printRounded(correctAnswers, 0),
-        this.printRounded(correctAnswers + x.correctAnswersDelta, 0),
-        this.displayDelta(x.correctAnswersDelta, 0),
-        this.calcDeltaPercentage(correctAnswers, x.correctAnswersDelta),
+        this.printRounded(correctAnswers + correctAnswersDelta, 0),
+        this.displayDelta(correctAnswersDelta, 0),
+        this.calcDeltaPercentage(correctAnswers, correctAnswersDelta),
         this.printRounded(incorrectAnswers, 0),
-        this.printRounded(incorrectAnswers + x.incorrectAnswersDelta, 0),
-        this.displayDelta(x.incorrectAnswersDelta, 0),
-        this.calcDeltaPercentage(incorrectAnswers, x.incorrectAnswersDelta),
+        this.printRounded(incorrectAnswers + incorrectAnswersDelta, 0),
+        this.displayDelta(incorrectAnswersDelta, 0),
+        this.calcDeltaPercentage(incorrectAnswers, incorrectAnswersDelta),
         this.printRounded(noAnswers, 0),
-        this.printRounded(noAnswers + x.noAnswersDelta, 0),
-        this.displayDelta(x.noAnswersDelta, 0),
-        this.calcDeltaPercentage(noAnswers, x.noAnswersDelta),
+        this.printRounded(noAnswers + noAnswersDelta, 0),
+        this.displayDelta(noAnswersDelta, 0),
+        this.calcDeltaPercentage(noAnswers, noAnswersDelta),
         this.printRounded(x.accuracyPercent),
         this.printRounded(x.accuracyPercent + x.accuracyDelta),
         this.displayDelta(x.accuracyDelta)
@@ -1217,24 +1220,27 @@ class ReportGenerator {
     );
     
     // 2.9.3 Answer Per Format Breakdown: Characters: Mandatory vs Optional Data
-    const mandOptAnswerDeltaRowsAccuracyByCharPerc = mandatories.map(x =>{    
-      const totalChars = Math.round(x.totalChars);
+    const mandOptAnswerDeltaRowsAccuracyByCharPerc = mandatories.map(x =>{
+      const totalChars = Math.round(x.totalChars); 
+      const totalCharsDelta = Math.round(x.totalCharsDelta);
       const correctChars = Math.round(x.correctChars);
+      const correctCharsDelta = Math.round(x.correctCharsDelta);
       const incorrectChars = Math.round(x.incorrectChars);
+      const incorrectCharsDelta = Math.round(x.incorrectCharsDelta);
       return [
         x.format,
         this.printRounded(totalChars, 0),
-        this.printRounded(totalChars + x.totalCharsDelta, 0),
-        this.displayDelta(x.totalCharsDelta, 0),
-        this.calcDeltaPercentage(totalChars, x.totalCharsDelta),
+        this.printRounded(totalChars + totalCharsDelta, 0),
+        this.displayDelta(totalCharsDelta, 0),
+        this.calcDeltaPercentage(totalChars, totalCharsDelta),
         this.printRounded(correctChars, 0),
-        this.printRounded(correctChars + x.correctCharsDelta, 0),
-        this.displayDelta(x.correctCharsDelta, 0),
-        this.calcDeltaPercentage(correctChars, x.correctCharsDelta),
+        this.printRounded(correctChars + correctCharsDelta, 0),
+        this.displayDelta(correctCharsDelta, 0),
+        this.calcDeltaPercentage(correctChars, correctCharsDelta),
         this.printRounded(incorrectChars, 0),
-        this.printRounded(incorrectChars + x.incorrectCharsDelta, 0),
-        this.displayDelta(x.incorrectCharsDelta, 0),
-        this.calcDeltaPercentage(incorrectChars, x.incorrectCharsDelta),
+        this.printRounded(incorrectChars + incorrectCharsDelta, 0),
+        this.displayDelta(incorrectCharsDelta, 0),
+        this.calcDeltaPercentage(incorrectChars, incorrectCharsDelta),
         this.printRounded(x.accuracyByCharPerc),
         this.printRounded(x.accuracyByCharPerc + x.accuracyByCharPercDelta),
         this.printRounded(x.accuracyByCharPercDelta)
