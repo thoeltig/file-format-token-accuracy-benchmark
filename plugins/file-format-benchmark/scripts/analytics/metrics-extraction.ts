@@ -702,6 +702,7 @@ class MetricsExtraction {
         testCase: `${reasoning.format}_${reasoning.structure}_${reasoning.recordCount}_${reasoning.variant}`,
         format: reasoning.format,
         structure: reasoning.structure,
+        testRuns: reasoning.testRuns,
         variant: reasoning.variant,
         recordCount: reasoning.recordCount,
         hasOptionalData: reasoning.variant !== "mandatory",

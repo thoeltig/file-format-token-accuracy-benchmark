@@ -122,6 +122,7 @@ export function aggregateMetrics(metrics: TestMetrics[]): AggregatedMetric[] {
     const avgTest: AggregatedMetric = {
       format,
       variant,
+      fullTestRuns: 0,
       recordCount,
       readTokens: 0,
       readDurationInMs: 0,
@@ -272,6 +273,7 @@ export function aggregateMetrics(metrics: TestMetrics[]): AggregatedMetric[] {
     };
 
     tests.forEach(t => {
+      avgTest.fullTestRuns = t.fullTestRuns;
       avgTest.readTokens += t.readTokens;
       avgTest.readDurationInMs += t.readDurationInMs;
       avgTest.readTokensPerMs += t.readTokensPerMs;

@@ -70,6 +70,12 @@ class ReportValidator {
                 recordCount: testCase.recordCount,
                 testRuns: testCase.answerFiles.length,
                 totalQuestions: validationData.metadata.totalQuestions,
+                questionDistribution: [
+                    ['field_retrieval', groundTruthQuestions.filter(x => x.category === 'field_retrieval').reduce((sum, _) => sum + 1, 0)],
+                    ['filtering', groundTruthQuestions.filter(x => x.category === 'filtering').reduce((sum, _) => sum + 1, 0)],
+                    ['aggregation', groundTruthQuestions.filter(x => x.category === 'aggregation').reduce((sum, _) => sum + 1, 0)],
+                    ['structure_awareness', groundTruthQuestions.filter(x => x.category === 'structure_awareness').reduce((sum, _) => sum + 1, 0)],
+                ],
                 accuracy: {
                     correct: 0,
                     incorrect: 0,
@@ -168,8 +174,8 @@ class ReportValidator {
                 accuracyByCharPercDriftMin: calcDriftPerc(avgAccuracyByCharPercent, Math.min(...report.perRunAccuracy.map(x => x.charactersOfAnswers.accuracyByCharPerc))),
                 accuracyByCharPercDriftMax: calcDriftPerc(avgAccuracyByCharPercent, Math.max(...report.perRunAccuracy.map(x => x.charactersOfAnswers.accuracyByCharPerc))),
                 weightedAccuracyByCharPerc: avgWeightedAccuracyByCharPercent,
-                weightedAccuracyByCharPercDriftMin: calcDriftPerc(avgAccuracyByCharPercent, Math.min(...report.perRunAccuracy.map(x => x.charactersOfAnswers.weightedAccuracyByCharPerc))),
-                weightedAccuracyByCharPercDriftMax: calcDriftPerc(avgAccuracyByCharPercent, Math.max(...report.perRunAccuracy.map(x => x.charactersOfAnswers.weightedAccuracyByCharPerc)))
+                weightedAccuracyByCharPercDriftMin: calcDriftPerc(avgWeightedAccuracyByCharPercent, Math.min(...report.perRunAccuracy.map(x => x.charactersOfAnswers.weightedAccuracyByCharPerc))),
+                weightedAccuracyByCharPercDriftMax: calcDriftPerc(avgWeightedAccuracyByCharPercent, Math.max(...report.perRunAccuracy.map(x => x.charactersOfAnswers.weightedAccuracyByCharPerc)))
             };
             
             console.log(`${testCase.format.padEnd(15)} ${testCase.structure.padEnd(8)} ${testCase.variant.padEnd(10)} ${String(testCase.recordCount).padEnd(4)}`);
